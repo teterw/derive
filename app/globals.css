@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Manual dark-mode override on top of prefers-color-scheme (PROMPT.md §10). */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-correct: var(--correct);
+  --color-wrong: var(--wrong);
+
+  --font-sans: var(--font-plex-thai), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+:root {
+  --bg: #faf9f6;
+  --surface: #ffffff;
+  --surface-2: #f2f0ea;
+  --border: #e3e0d8;
+  --fg: #1c1b18;
+  --muted: #6f6b61;
+  --accent: #b8860b;
+  --accent-fg: #ffffff;
+  --correct: #2f7d4f;
+  --wrong: #b4402f;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    --bg: #101113;
+    --surface: #17191c;
+    --surface-2: #1f2226;
+    --border: #2b2f34;
+    --fg: #e8e6e1;
+    --muted: #8b8f96;
+    --accent: #e2b714;
+    --accent-fg: #17191c;
+    --correct: #58c18a;
+    --wrong: #e26d5c;
   }
 }
 
+.dark {
+  --bg: #101113;
+  --surface: #17191c;
+  --surface-2: #1f2226;
+  --border: #2b2f34;
+  --fg: #e8e6e1;
+  --muted: #8b8f96;
+  --accent: #e2b714;
+  --accent-fg: #17191c;
+  --correct: #58c18a;
+  --wrong: #e26d5c;
+}
+
+html {
+  color-scheme: light dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  /* Thai needs more room between lines than Latin does. */
+  line-height: 1.7;
+}
+
+:lang(th) {
+  word-break: break-word;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

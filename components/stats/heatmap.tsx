@@ -100,6 +100,13 @@ export function Heatmap({
                         onBlur={() => setHovered(null)}
                         title={describe(cell, labels)}
                         aria-label={describe(cell, labels)}
+                        /**
+                         * A year of cells is a year of tab stops. Only the
+                         * days with something on them take focus; the empty
+                         * ones are still readable by pointer and by the
+                         * caption's live readout.
+                         */
+                        tabIndex={cell.attempts > 0 ? 0 : -1}
                         className={cn(
                           "h-[11px] w-[11px] cursor-pointer rounded-[2px]",
                           BUCKET_CLASS[bucketOf(cell.attempts)],

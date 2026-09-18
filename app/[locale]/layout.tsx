@@ -4,6 +4,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans_Thai } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import "katex/dist/katex.min.css";
 import "../globals.css";
 
 const plexThai = IBM_Plex_Sans_Thai({

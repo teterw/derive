@@ -138,6 +138,34 @@ async function checkPage(path: string, token: string): Promise<Result> {
 
   if (html.length < 2000) notes.push(`suspiciously short (${html.length} bytes)`);
 
+  /**
+   * KaTeX markup without KaTeX's stylesheet renders as collapsed fractions and
+   * missing radical signs - the HTML looks right and the page does not. Any
+   * page showing maths must ship the stylesheet with it.
+   */
+  if (html.includes('class="katex')) {
+    const stylesheets = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g)]
+      .map((match) => match[1]!)
+      .concat(
+        [...html.matchAll(/<link[^>]+href="([^"]+)"[^>]+rel="stylesheet"/g)].map(
+          (match) => match[1]!,
+        ),
+      );
+
+    let styled = false;
+    for (const href of new Set(stylesheets)) {
+      const css = await fetch(new URL(href, BASE)).then(
+        (response) => (response.ok ? response.text() : ""),
+        () => "",
+      );
+      if (css.includes(".katex")) {
+        styled = true;
+        break;
+      }
+    }
+    if (!styled) notes.push("maths is on the page but KaTeX's stylesheet is not");
+  }
+
   return { path, ok: notes.length === 0, notes };
 }
 

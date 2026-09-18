@@ -1,0 +1,198 @@
+// @vitest-environment jsdom
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
+import { generateQuestion, toPublicQuestion } from "@/content/generators";
+import { allRules } from "@/content/rules";
+import { skills } from "@/content/topics";
+import { DIFFICULTY_LABELS } from "@/content/types";
+import messages from "@/messages/th.json";
+
+const answerExamQuestionAction = vi.fn();
+const finishExamAction = vi.fn();
+const setExplainModeAction = vi.fn();
+const refresh = vi.fn();
+
+vi.mock("@/lib/exam/actions", () => ({
+  answerExamQuestionAction: (...args: unknown[]) =>
+    answerExamQuestionAction(...args),
+  finishExamAction: (...args: unknown[]) => finishExamAction(...args),
+  setExplainModeAction: (...args: unknown[]) => setExplainModeAction(...args),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh }),
+}));
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
+const { ExamRunner } = await import("./exam-runner");
+
+const ruleNames = Object.fromEntries(
+  allRules.map((rule) => [rule.id, rule.name]),
+);
+const skillNames = Object.fromEntries(
+  skills.map((skill) => [skill.id, skill.name]),
+);
+
+const questions = [11, 12, 13].map((seed) =>
+  generateQuestion("quad.solve-factor-simple", seed, 1),
+);
+
+function renderExam(
+  overrides: Partial<{
+    timeLimitSec: number;
+    elapsedSec: number;
+    initialAnswered: Record<string, { answer: string; correct: boolean }>;
+  }> = {},
+) {
+  render(
+    <NextIntlClientProvider locale="th" messages={messages}>
+      <ExamRunner
+        runId="run-1"
+        questions={questions.map(toPublicQuestion)}
+        initialAnswered={overrides.initialAnswered ?? {}}
+        initialExplainMode="onWrong"
+        timeLimitSec={overrides.timeLimitSec ?? 0}
+        elapsedSec={overrides.elapsedSec ?? 0}
+        skillNames={skillNames}
+        ruleNames={ruleNames}
+        difficultyLabels={DIFFICULTY_LABELS}
+      />
+    </NextIntlClientProvider>,
+  );
+}
+
+const answerBox = () =>
+  screen.getByLabelText(messages.practice.yourAnswer) as HTMLInputElement;
+
+describe("ExamRunner", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    answerExamQuestionAction.mockResolvedValue({
+      correct: true,
+      steps: null,
+      correctAnswer: null,
+    });
+  });
+
+  it("says where you are in the set", () => {
+    renderExam();
+    expect(
+      screen.getByText(
+        messages.exam.questionOf
+          .replace("{index}", "1")
+          .replace("{total}", "3"),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("records an answer and locks that question", async () => {
+    const user = userEvent.setup();
+    renderExam();
+
+    await user.type(answerBox(), "2, 3{Enter}");
+
+    await waitFor(() =>
+      expect(answerExamQuestionAction).toHaveBeenCalledWith(
+        expect.objectContaining({ runId: "run-1", questionId: questions[0]!.id }),
+      ),
+    );
+    await waitFor(() => expect(answerBox()).toBeDisabled());
+  });
+
+  it("lets you move between questions and keeps a part-typed answer", async () => {
+    const user = userEvent.setup();
+    renderExam();
+
+    await user.type(answerBox(), "half-written");
+    await user.click(screen.getByRole("button", { name: messages.exam.goToQuestion.replace("{index}", "2") }));
+    expect(answerBox().value).toBe("");
+
+    await user.click(screen.getByRole("button", { name: messages.exam.goToQuestion.replace("{index}", "1") }));
+    expect(answerBox().value).toBe("half-written");
+  });
+
+  it("does not show the working when explanations are hidden", async () => {
+    answerExamQuestionAction.mockResolvedValue({
+      correct: false,
+      steps: null,
+      correctAnswer: null,
+    });
+    const user = userEvent.setup();
+    renderExam();
+
+    await user.type(answerBox(), "0{Enter}");
+
+    await waitFor(() =>
+      expect(screen.getByText(messages.exam.incorrect)).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(messages.practice.showAllSteps)).toBeNull();
+    expect(screen.queryByText(messages.exam.theAnswerIs)).toBeNull();
+  });
+
+  it("shows the working when the server sends it", async () => {
+    answerExamQuestionAction.mockResolvedValue({
+      correct: false,
+      steps: questions[0]!.steps,
+      correctAnswer: "2, 3",
+    });
+    const user = userEvent.setup();
+    renderExam();
+
+    await user.type(answerBox(), "0{Enter}");
+
+    await waitFor(() =>
+      expect(screen.getByText("2, 3")).toBeInTheDocument(),
+    );
+    expect(document.querySelector(".katex")).not.toBeNull();
+  });
+
+  it("tells the server when explanations are switched mid-test", async () => {
+    const user = userEvent.setup();
+    renderExam();
+
+    await user.selectOptions(
+      screen.getByLabelText(messages.exam.explainMode),
+      "always",
+    );
+    await waitFor(() =>
+      expect(setExplainModeAction).toHaveBeenCalledWith("run-1", "always"),
+    );
+  });
+
+  it("submits the exam", async () => {
+    const user = userEvent.setup();
+    renderExam();
+
+    await user.click(
+      screen.getByRole("button", { name: messages.exam.submitExam }),
+    );
+    await waitFor(() => expect(finishExamAction).toHaveBeenCalledWith("run-1"));
+  });
+
+  it("starts on the first unanswered question when you come back", () => {
+    renderExam({
+      initialAnswered: {
+        [questions[0]!.id]: { answer: "2, 3", correct: true },
+      },
+    });
+    expect(
+      screen.getByText(
+        messages.exam.questionOf
+          .replace("{index}", "2")
+          .replace("{total}", "3"),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the clock counting down from what is left", () => {
+    renderExam({ timeLimitSec: 600, elapsedSec: 60 });
+    expect(screen.getByText("9:00")).toBeInTheDocument();
+  });
+});

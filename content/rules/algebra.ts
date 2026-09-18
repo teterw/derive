@@ -86,6 +86,50 @@ export const algebraRules: Rule[] = [
     seeAlso: ["quad.common-factor"],
   },
   {
+    id: "model.equation",
+    topicIds: ["quadratic-equations"],
+    name: {
+      th: "การตั้งสมการจากโจทย์ปัญหา",
+      en: "Translating a word problem into an equation",
+    },
+    statement: "\\text{สิ่งที่โจทย์ถาม} \\rightarrow x",
+    plain: {
+      th: "ตั้งตัวแปรแทนสิ่งที่โจทย์ถาม แล้วเขียนเงื่อนไขในโจทย์เป็นสมการ",
+      en: "Name the unknown, then write the condition in the problem as an equation.",
+    },
+    examples: [
+      {
+        from: "\\text{พื้นที่ } 40, \\ \\text{ยาวกว่ากว้าง } 3",
+        to: "x(x + 3) = 40",
+      },
+    ],
+    seeAlso: ["eq.move-term", "quad.zero-product"],
+  },
+  {
+    id: "model.reject-root",
+    topicIds: ["quadratic-equations"],
+    name: {
+      th: "การตัดคำตอบที่ไม่สมเหตุสมผล",
+      en: "Rejecting a root that does not fit",
+    },
+    statement: "x > 0",
+    plain: {
+      th: "สมการอาจมีสองคำตอบ แต่บริบทของโจทย์อาจยอมรับได้เพียงคำตอบเดียว",
+      en: "The equation may have two roots while the situation allows only one.",
+    },
+    examples: [
+      {
+        from: "x = 5 \\text{ หรือ } x = -8",
+        to: "x = 5",
+        note: {
+          th: "ความยาวเป็นลบไม่ได้",
+          en: "A length cannot be negative.",
+        },
+      },
+    ],
+    seeAlso: ["quad.zero-product", "model.equation"],
+  },
+  {
     id: "arith.distribute",
     topicIds: BOTH,
     name: {

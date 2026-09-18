@@ -123,6 +123,14 @@ export function radical(coefficientValue: number, radicand: number): string {
   return `${coefficientValue}\\sqrt{${radicand}}`;
 }
 
+/** The same thing as `radical`, in mathjs source: `3*sqrt(5)`, `sqrt(5)`. */
+export function radicalMath(coefficientValue: number, radicand: number): string {
+  if (radicand === 1) return String(coefficientValue);
+  if (coefficientValue === 1) return `sqrt(${radicand})`;
+  if (coefficientValue === -1) return `-sqrt(${radicand})`;
+  return `${coefficientValue}*sqrt(${radicand})`;
+}
+
 /** `\sqrt{72}` written in lowest radical form: `6\sqrt{2}`. */
 export function simplifiedRadical(radicand: number, outerCoefficient = 1): string {
   const { outside, inside } = extractSquareFactor(radicand);
@@ -149,5 +157,14 @@ export function coefficientPower(
   return `${coefficientValue}${body}`;
 }
 
-/** Thai and English both use "or" between roots; keep it as one string. */
-export const OR = { th: "\\text{ หรือ }", en: "\\text{ or }" } as const;
+/**
+ * Joins alternatives with the word "or". Returns both languages, because a
+ * line of roots is one of the few displayed lines that contains a word rather
+ * than only notation.
+ */
+export function orJoin(parts: string[]): { th: string; en: string } {
+  return {
+    th: parts.join(" \\text{ หรือ } "),
+    en: parts.join(" \\text{ or } "),
+  };
+}

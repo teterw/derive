@@ -44,6 +44,12 @@ export type Step = {
   /** KaTeX: the state AFTER this step. */
   expr: string;
   /**
+   * Only for lines that contain a word rather than only symbols - "x = 2
+   * หรือ x = 3". Everything else is notation, which is the same in both
+   * languages, and leaves this undefined.
+   */
+  exprEn?: string;
+  /**
    * The same state in mathjs syntax, when it is machine-checkable.
    * Generators fill this in so the property tests can verify the derivation
    * rather than trust it. Omitted only for prose steps ("reject the negative

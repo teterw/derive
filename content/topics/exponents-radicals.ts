@@ -57,7 +57,14 @@ export const exponentsRadicalsSkills: Skill[] = [
     // The whole point of the skill is to end up with positive exponents.
     strictForm: "positive-exponents",
     prerequisites: ["exp.integer-laws"],
-    ruleIds: ["exp.zero", "exp.negative", "exp.quotient", "exp.product"],
+    ruleIds: [
+      "exp.zero",
+      "exp.negative",
+      "exp.quotient",
+      "exp.product",
+      "exp.power-of-product",
+      "exp.power-of-power",
+    ],
   },
   {
     id: "exp.scientific",
@@ -87,7 +94,7 @@ export const exponentsRadicalsSkills: Skill[] = [
     },
     strictForm: "simplified-radical",
     prerequisites: [],
-    ruleIds: ["rad.perfect-square-extract", "rad.product"],
+    ruleIds: ["rad.perfect-square-extract", "rad.product", "rad.quotient"],
   },
   {
     id: "rad.operations",
@@ -108,6 +115,7 @@ export const exponentsRadicalsSkills: Skill[] = [
       "rad.quotient",
       "rad.perfect-square-extract",
       "arith.combine-like-terms",
+      "quad.diff-squares",
     ],
   },
   {
@@ -128,6 +136,7 @@ export const exponentsRadicalsSkills: Skill[] = [
       "rad.conjugate",
       "rad.product",
       "arith.simplify-fraction",
+      "arith.distribute",
     ],
   },
 ];

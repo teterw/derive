@@ -17,7 +17,12 @@ export function makeStep(
   expr: string,
   ruleId: RuleId,
   explain: L,
-  options: { math?: string | null; chain?: string; highlight?: string[] } = {},
+  options: {
+    math?: string | null;
+    chain?: string;
+    highlight?: string[];
+    exprEn?: string;
+  } = {},
 ): Step {
   const math =
     options.math === null
@@ -26,6 +31,7 @@ export function makeStep(
 
   return {
     expr,
+    ...(options.exprEn ? { exprEn: options.exprEn } : {}),
     ...(math ? { math } : {}),
     ...(options.chain ? { chain: options.chain } : {}),
     ruleId,

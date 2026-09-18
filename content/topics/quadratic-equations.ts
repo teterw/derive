@@ -55,6 +55,7 @@ export const quadraticEquationsSkills: Skill[] = [
     ruleIds: [
       "quad.trinomial-pattern",
       "quad.perfect-square-trinomial",
+      "quad.common-factor",
       "arith.distribute",
     ],
   },
@@ -96,6 +97,7 @@ export const quadraticEquationsSkills: Skill[] = [
       "quad.common-factor",
       "quad.diff-squares",
       "quad.zero-product",
+      "eq.balance",
     ],
   },
   {
@@ -168,6 +170,13 @@ export const quadraticEquationsSkills: Skill[] = [
     },
     strictForm: null,
     prerequisites: ["quad.solve-by-factoring"],
-    ruleIds: ["eq.move-term", "quad.trinomial-pattern", "quad.zero-product"],
+    ruleIds: [
+      "model.equation",
+      "model.reject-root",
+      "eq.move-term",
+      "arith.distribute",
+      "quad.trinomial-pattern",
+      "quad.zero-product",
+    ],
   },
 ];

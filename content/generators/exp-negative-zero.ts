@@ -1,5 +1,6 @@
 import { coefficientPower, power } from "../format";
 import { makeStep } from "../step";
+import { namedMistakes } from "../misconception";
 import type {
   Difficulty,
   Generator,
@@ -95,7 +96,7 @@ function build(rng: RNG, v: string, difficulty: Difficulty): Built {
     return {
       stem: power(String(base), -exponent),
       answerMath: `1/${value}`,
-      misconceptions: [
+      misconceptions: namedMistakes({ kind: "exact", value: `1/${value}` }, [
         {
           answer: { kind: "exact", value: `-${value}` },
           explain: {
@@ -103,7 +104,7 @@ function build(rng: RNG, v: string, difficulty: Difficulty): Built {
             en: "The minus is on the exponent, not on the answer - a negative exponent means the reciprocal.",
           },
         },
-      ],
+      ]),
       steps: [
         makeStep(`\\frac{1}{${power(String(base), exponent)}}`, "exp.negative", {
           th: "เลขชี้กำลังลบ หมายถึงส่วนกลับ",

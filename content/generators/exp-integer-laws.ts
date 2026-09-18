@@ -1,5 +1,6 @@
 import { coefficientPower, power } from "../format";
 import { makeStep } from "../step";
+import { namedMistakes } from "../misconception";
 import type {
   Difficulty,
   Generator,
@@ -31,7 +32,11 @@ function shapeFor(rng: RNG, difficulty: Difficulty): Shape {
     case 1:
       return rng.pick(["product", "quotient"] as const);
     case 2:
-      return rng.pick(["power-of-power", "power-of-product", "product"] as const);
+      return rng.pick([
+        "power-of-power",
+        "power-of-product",
+        "product",
+      ] as const);
     default:
       return rng.pick([
         "product",
@@ -79,8 +84,17 @@ export const expLawsCore: Generator = {
 };
 
 /** mathjs source for a single term, e.g. `4*x^(2)`, `x`, `9`. */
-function mathTerm(coefficientValue: number, variable: string, exponent: number): string {
-  const body = exponent === 0 ? "1" : exponent === 1 ? variable : `${variable}^(${exponent})`;
+function mathTerm(
+  coefficientValue: number,
+  variable: string,
+  exponent: number,
+): string {
+  const body =
+    exponent === 0
+      ? "1"
+      : exponent === 1
+        ? variable
+        : `${variable}^(${exponent})`;
   if (exponent === 0) return String(coefficientValue);
   return coefficientValue === 1 ? body : `${coefficientValue}*${body}`;
 }
@@ -102,18 +116,18 @@ function buildSimple(rng: RNG, v: string, shape: Shape): Built {
       return {
         stem,
         answerMath: mathTerm(1, v, m + n),
-        misconceptions:
-          m * n === m + n
-            ? []
-            : [
-                {
-                  answer: { kind: "exact", value: mathTerm(1, v, m * n) },
-                  explain: {
-                    th: `นั่นคือการคูณเลขชี้กำลัง (${m} \\times ${n}) แต่การคูณเลขยกกำลังฐานเดียวกันต้องบวกเลขชี้กำลัง`,
-                    en: `That multiplies the exponents (${m} \\times ${n}). Multiplying powers of the same base adds them.`,
-                  },
-                },
-              ],
+        misconceptions: namedMistakes(
+          { kind: "exact", value: mathTerm(1, v, m + n) },
+          [
+            {
+              answer: { kind: "exact", value: mathTerm(1, v, m * n) },
+              explain: {
+                th: `นั่นคือการคูณเลขชี้กำลัง (${m} \\times ${n}) แต่การคูณเลขยกกำลังฐานเดียวกันต้องบวกเลขชี้กำลัง`,
+                en: `That multiplies the exponents (${m} \\times ${n}). Multiplying powers of the same base adds them.`,
+              },
+            },
+          ],
+        ),
         steps: [
           makeStep(power(v, `${m}+${n}`), "exp.product", {
             th: `ฐานเป็น ${v} เหมือนกัน จึงนำเลขชี้กำลังมาบวกกัน`,
@@ -148,15 +162,18 @@ function buildSimple(rng: RNG, v: string, shape: Shape): Built {
       return {
         stem,
         answerMath: mathTerm(1, v, m - n),
-        misconceptions: [
-          {
-            answer: { kind: "exact", value: mathTerm(1, v, m + n) },
-            explain: {
-              th: `นั่นคือการบวกเลขชี้กำลัง แต่การหารเลขยกกำลังฐานเดียวกันต้องลบเลขชี้กำลัง: ${m} - ${n}`,
-              en: `That adds the exponents. Dividing powers of the same base subtracts them: ${m} - ${n}.`,
+        misconceptions: namedMistakes(
+          { kind: "exact", value: mathTerm(1, v, m - n) },
+          [
+            {
+              answer: { kind: "exact", value: mathTerm(1, v, m + n) },
+              explain: {
+                th: `นั่นคือการบวกเลขชี้กำลัง แต่การหารเลขยกกำลังฐานเดียวกันต้องลบเลขชี้กำลัง: ${m} - ${n}`,
+                en: `That adds the exponents. Dividing powers of the same base subtracts them: ${m} - ${n}.`,
+              },
             },
-          },
-        ],
+          ],
+        ),
         steps: [
           makeStep(power(v, `${m}-${n}`), "exp.quotient", {
             th: `ฐานเป็น ${v} เหมือนกัน จึงนำเลขชี้กำลังมาลบกัน`,
@@ -168,7 +185,10 @@ function buildSimple(rng: RNG, v: string, shape: Shape): Built {
           }),
         ],
         hints: [
-          { th: "ตัวเศษและตัวส่วนมีฐานเดียวกัน", en: "Top and bottom share a base." },
+          {
+            th: "ตัวเศษและตัวส่วนมีฐานเดียวกัน",
+            en: "Top and bottom share a base.",
+          },
           {
             th: "ใช้สมบัติการหารของเลขยกกำลัง",
             en: "Use the quotient of powers rule.",
@@ -188,18 +208,18 @@ function buildSimple(rng: RNG, v: string, shape: Shape): Built {
       return {
         stem,
         answerMath: mathTerm(1, v, m * n),
-        misconceptions:
-          m + n === m * n
-            ? []
-            : [
-                {
-                  answer: { kind: "exact", value: mathTerm(1, v, m + n) },
-                  explain: {
-                    th: `นั่นคือการบวกเลขชี้กำลัง (${m} + ${n}) แต่การยกกำลังซ้อนต้องคูณเลขชี้กำลัง`,
-                    en: `That adds the exponents (${m} + ${n}). A power of a power multiplies them.`,
-                  },
-                },
-              ],
+        misconceptions: namedMistakes(
+          { kind: "exact", value: mathTerm(1, v, m * n) },
+          [
+            {
+              answer: { kind: "exact", value: mathTerm(1, v, m + n) },
+              explain: {
+                th: `นั่นคือการบวกเลขชี้กำลัง (${m} + ${n}) แต่การยกกำลังซ้อนต้องคูณเลขชี้กำลัง`,
+                en: `That adds the exponents (${m} + ${n}). A power of a power multiplies them.`,
+              },
+            },
+          ],
+        ),
         steps: [
           makeStep(power(v, `${m} \\cdot ${n}`), "exp.power-of-power", {
             th: "ยกกำลังซ้อนกัน ให้นำเลขชี้กำลังมาคูณกัน",
@@ -242,14 +262,10 @@ function buildSimple(rng: RNG, v: string, shape: Shape): Built {
               en: "A power of a product raises each factor.",
             },
           ),
-          makeStep(
-            coefficientPower(cn, v, m * n),
-            "exp.power-of-power",
-            {
-              th: `${c}^{${n}} = ${cn} และเลขชี้กำลังของ ${v} คือ ${m} \\times ${n} = ${m * n}`,
-              en: `${c}^{${n}} = ${cn}, and the exponent of ${v} is ${m} \\times ${n} = ${m * n}.`,
-            },
-          ),
+          makeStep(coefficientPower(cn, v, m * n), "exp.power-of-power", {
+            th: `${c}^{${n}} = ${cn} และเลขชี้กำลังของ ${v} คือ ${m} \\times ${n} = ${m * n}`,
+            en: `${c}^{${n}} = ${cn}, and the exponent of ${v} is ${m} \\times ${n} = ${m * n}.`,
+          }),
         ],
         hints: [
           {

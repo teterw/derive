@@ -1,6 +1,14 @@
 import { coefficient, gcd, linearExpr, quadraticExpr, sumTerms } from "../format";
 import { makeStep } from "../step";
-import type { Difficulty, Generator, Question, RNG, Step } from "../types";
+import { namedMistakes } from "../misconception";
+import type {
+  Difficulty,
+  Generator,
+  Misconception,
+  Question,
+  RNG,
+  Step,
+} from "../types";
 
 const TOPIC = "quadratic-equations";
 
@@ -15,6 +23,7 @@ type Built = {
   answerMath: string;
   steps: Step[];
   hints: { th: string; en: string }[];
+  misconceptions?: Misconception[];
 };
 
 function question(
@@ -35,6 +44,7 @@ function question(
     answer: { kind: "exact", value: built.answerMath },
     steps: built.steps,
     hints: built.hints,
+    ...(built.misconceptions ? { misconceptions: built.misconceptions } : {}),
     rulesUsed: [...new Set(built.steps.map((step) => step.ruleId))],
   };
 }
@@ -186,6 +196,25 @@ export const quadFactorTrinomial: Generator = {
         stem,
         answerKatex,
         answerMath,
+        /**
+         * Copying the signs of the middle and constant terms straight into
+         * the brackets, without working out what multiplies to what.
+         */
+        misconceptions: namedMistakes(
+          { kind: "exact", value: answerMath },
+          [
+            {
+              answer: {
+                kind: "exact",
+                value: `${factorMath(-p)}*${factorMath(-q)}`,
+              },
+              explain: {
+                th: `ลองคูณกลับดู จะได้ ${quadraticExpr(1, -b, c)} ซึ่งไม่ตรงกับโจทย์ - เครื่องหมายในวงเล็บกลับด้าน`,
+                en: `Multiply that back out and you get ${quadraticExpr(1, -b, c)}, which is not the question - the signs in the brackets are the wrong way round.`,
+              },
+            },
+          ],
+        ),
         steps: [
           makeStep(
             `${factorKatex(p)}${factorKatex(q)}`,

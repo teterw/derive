@@ -16,7 +16,7 @@ import {
   getDailyStreak,
 } from "@/lib/daily/challenge";
 import { asExamRunConfig } from "@/lib/exam/session";
-import { bangkokDay } from "@/lib/stats/day";
+import { bangkokDay, bangkokStamp } from "@/lib/stats/day";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ToolDock } from "@/components/tools/tool-dock";
@@ -102,7 +102,7 @@ export default async function DailyPage({
             total: run.total,
             correct: run.correct,
             durationMs: run.durationMs,
-            startedAt: run.startedAt,
+            startedAtLabel: bangkokStamp(run.startedAt),
           }}
           questions={questions}
           attempts={rows.map((row) => ({

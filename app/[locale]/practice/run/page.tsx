@@ -11,6 +11,7 @@ import { DIFFICULTY_LABELS } from "@/content/types";
 import {
   configFromSearchParams,
   nextQuestionRef,
+  parseQuestionId,
 } from "@/lib/practice/session";
 import { AppShell } from "@/components/layout/app-shell";
 import { ToolDock } from "@/components/tools/tool-dock";
@@ -35,11 +36,15 @@ export default async function PracticeRunPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("practice");
-  const config = configFromSearchParams(await searchParams);
+  const query = await searchParams;
+  const config = configFromSearchParams(query);
+
+  // `?q=` pins the question, so a language switch does not deal a new one.
+  const pinned = typeof query.q === "string" ? parseQuestionId(query.q) : null;
 
   let first;
   try {
-    const ref = nextQuestionRef(config);
+    const ref = pinned ?? nextQuestionRef(config);
     first = toPublicQuestion(
       generateQuestion(ref.generatorId, ref.seed, ref.difficulty),
     );

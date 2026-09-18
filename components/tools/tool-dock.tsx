@@ -104,7 +104,8 @@ export function ToolDock({
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 z-30 flex flex-col gap-2">
+      {/* Clear of the phone nav bar, which owns the bottom of the screen. */}
+      <div className="fixed bottom-20 right-4 z-30 flex flex-col gap-2 sm:bottom-4">
         {buttons.map((button) => (
           <button
             key={button.tool}

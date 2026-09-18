@@ -38,7 +38,8 @@ export function ExamResults({
     total: number;
     correct: number;
     durationMs: number | null;
-    startedAt: Date;
+    /** Already formatted in the learner's timezone by the server. */
+    startedAtLabel: string;
   };
   questions: Question[];
   attempts: AttemptRow[];
@@ -75,9 +76,7 @@ export function ExamResults({
         <h1 className="text-2xl font-semibold tracking-tight">
           {labels.title}
         </h1>
-        <p className="text-sm text-muted">
-          {run.startedAt.toISOString().slice(0, 16).replace("T", " ")}
-        </p>
+        <p className="text-sm text-muted">{run.startedAtLabel}</p>
       </header>
 
       <dl className="grid grid-cols-3 gap-4 text-center">

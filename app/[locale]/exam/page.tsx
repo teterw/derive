@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
@@ -11,6 +11,7 @@ import { skillsOfTopic, topics } from "@/content/topics";
 import { DIFFICULTIES, DIFFICULTY_LABELS } from "@/content/types";
 import { startExamFormAction } from "@/lib/exam/actions";
 import { QUESTION_COUNTS, TIME_LIMITS_MINUTES } from "@/lib/exam/session";
+import { bangkokStamp } from "@/lib/stats/day";
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge, Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,8 @@ export default async function ExamSetupPage({
       correct: runs.correct,
     })
     .from(runs)
-    .where(eq(runs.userId, user.id))
+    // Only exams: a daily challenge is its own thing with its own page.
+    .where(and(eq(runs.userId, user.id), eq(runs.mode, "exam")))
     .orderBy(desc(runs.startedAt))
     .limit(5);
 
@@ -159,7 +161,7 @@ export default async function ExamSetupPage({
                   className="flex items-center justify-between gap-3 py-2 text-sm hover:text-accent"
                 >
                   <span className="text-muted">
-                    {run.startedAt.toISOString().slice(0, 16).replace("T", " ")}
+                    {bangkokStamp(run.startedAt)}
                   </span>
                   {run.finishedAt ? (
                     <Badge tone="neutral">

@@ -23,8 +23,7 @@ import type { ExplainMode } from "@/lib/exam/session";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
 import { AnswerInput } from "@/components/math/answer-input";
-import { Tex } from "@/components/math/katex";
-import { MathText } from "@/components/math/math-text";
+import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
 import { cn } from "@/lib/utils";
 
@@ -255,13 +254,10 @@ export function ExamRunner({
           </Badge>
         </div>
 
-        <p className="text-center text-sm text-muted">
-          <MathText text={question.prompt[locale]} />
-        </p>
-
-        <div className="overflow-x-auto rounded-xl border border-border bg-surface px-4 py-8">
-          <Tex tex={question.stem} display className="text-2xl" />
-        </div>
+        <QuestionDisplay
+          prompt={question.prompt[locale]}
+          stem={question.stem}
+        />
 
         {question.choices ? (
           <div className="grid gap-2 sm:grid-cols-3">

@@ -11,6 +11,7 @@ import { skills } from "@/content/topics";
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
 import { asExamRunConfig } from "@/lib/exam/session";
+import { bangkokStamp } from "@/lib/stats/day";
 import { AppShell } from "@/components/layout/app-shell";
 import { ToolDock } from "@/components/tools/tool-dock";
 import { ExamRunner } from "./exam-runner";
@@ -67,7 +68,7 @@ export default async function ExamRunPage({
             total: run.total,
             correct: run.correct,
             durationMs: run.durationMs,
-            startedAt: run.startedAt,
+            startedAtLabel: bangkokStamp(run.startedAt),
           }}
           questions={questions}
           attempts={rows.map((row) => ({

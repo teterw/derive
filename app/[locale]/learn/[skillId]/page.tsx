@@ -14,6 +14,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Badge, Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Tex } from "@/components/math/katex";
 import { MathText } from "@/components/math/math-text";
+import { QuestionDisplay } from "@/components/math/question-display";
 import { RuleChip, StepViewer } from "@/components/math/step-viewer";
 
 const ruleNames = Object.fromEntries(
@@ -125,12 +126,11 @@ export default async function LessonPage({
                 </span>
               </div>
 
-              <p className="text-sm text-muted">
-                <MathText text={example.question.prompt[active]} />
-              </p>
-              <div className="overflow-x-auto rounded-lg border border-border bg-surface-2/60 px-4 py-6">
-                <Tex tex={example.question.stem} display className="text-xl" />
-              </div>
+              <QuestionDisplay
+                prompt={example.question.prompt[active]}
+                stem={example.question.stem}
+                size="medium"
+              />
 
               {example.note ? (
                 <p className="text-sm text-muted">

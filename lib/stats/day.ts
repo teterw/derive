@@ -20,6 +20,24 @@ export function bangkokDay(at: Date = new Date()): string {
   return formatter.format(at);
 }
 
+const stampFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: TIMEZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+/**
+ * `YYYY-MM-DD HH:mm` in Asia/Bangkok. Anything with a time on it that a
+ * learner reads is in their own timezone, not the server's.
+ */
+export function bangkokStamp(at: Date): string {
+  return stampFormatter.format(at).replace(",", "");
+}
+
 export function previousDay(day: string): string {
   const [year, month, date] = day.split("-").map(Number);
   const value = new Date(Date.UTC(year!, month! - 1, date!));

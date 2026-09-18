@@ -16,8 +16,8 @@ import type { PracticeConfig } from "@/lib/practice/session";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
 import { AnswerInput, type AnswerInputHandle } from "@/components/math/answer-input";
-import { Tex } from "@/components/math/katex";
 import { MathText } from "@/components/math/math-text";
+import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
 import { cn } from "@/lib/utils";
 
@@ -166,6 +166,18 @@ export function PracticeRunner({
     startedAt.current = Date.now();
   }, [question.id]);
 
+  /**
+   * The current question lives in the URL, so switching language mid-question
+   * comes back to the same question rather than a fresh one (PROMPT.md §10).
+   * replaceState rather than a router push: this is not a navigation.
+   */
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("q") === question.id) return;
+    url.searchParams.set("q", question.id);
+    window.history.replaceState(null, "", url);
+  }, [question.id]);
+
   // Monkeytype-style: hands stay on the keyboard.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -232,14 +244,12 @@ export function PracticeRunner({
               {difficultyLabels[question.difficulty]?.[locale]}
             </Badge>
           </div>
-          <p className="text-sm text-muted">
-            <MathText text={question.prompt[locale]} />
-          </p>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-border bg-surface px-4 py-8">
-          <Tex tex={question.stem} display className="text-2xl" />
-        </div>
+        <QuestionDisplay
+          prompt={question.prompt[locale]}
+          stem={question.stem}
+        />
 
         {question.choices ? (
           <div className="grid gap-2 sm:grid-cols-3">

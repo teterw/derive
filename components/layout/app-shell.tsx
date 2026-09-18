@@ -1,5 +1,14 @@
 import { getTranslations } from "next-intl/server";
-import { LogOut } from "lucide-react";
+import {
+  BarChart3,
+  BookOpen,
+  CalendarDays,
+  Dumbbell,
+  FileText,
+  LogOut,
+  RotateCw,
+  Sigma,
+} from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import type { SessionUser } from "@/lib/auth/session";
@@ -9,15 +18,22 @@ import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
-  { href: "/daily", key: "daily" },
-  { href: "/learn", key: "learn" },
-  { href: "/practice", key: "practice" },
-  { href: "/exam", key: "exam" },
-  { href: "/review", key: "review" },
-  { href: "/stats", key: "stats" },
-  { href: "/rules", key: "formulas" },
+  { href: "/daily", key: "daily", icon: CalendarDays, onPhone: true },
+  { href: "/learn", key: "learn", icon: BookOpen, onPhone: false },
+  { href: "/practice", key: "practice", icon: Dumbbell, onPhone: true },
+  { href: "/exam", key: "exam", icon: FileText, onPhone: false },
+  { href: "/review", key: "review", icon: RotateCw, onPhone: true },
+  { href: "/stats", key: "stats", icon: BarChart3, onPhone: true },
+  { href: "/rules", key: "formulas", icon: Sigma, onPhone: false },
 ] as const;
 
+/**
+ * The frame every signed-in page sits in.
+ *
+ * On a laptop the destinations are a row in the header. On a phone they are a
+ * bottom bar, where a thumb can reach them - the app has to be usable on a
+ * phone, and a hidden hamburger is not the same thing (PROMPT.md §10).
+ */
 export async function AppShell({
   locale,
   user,
@@ -31,6 +47,8 @@ export async function AppShell({
   const tCommon = await getTranslations("common");
   const tApp = await getTranslations("app");
 
+  const phoneNav = NAV.filter((item) => item.onPhone);
+
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-border">
@@ -39,10 +57,12 @@ export async function AppShell({
             <span className="text-base font-semibold tracking-tight">
               {tApp("name")}
             </span>
-            <span className="text-xs text-muted">{tApp("tagline")}</span>
+            <span className="hidden text-xs text-muted sm:inline">
+              {tApp("tagline")}
+            </span>
           </Link>
 
-          <nav className="hidden items-center gap-1 text-sm sm:flex">
+          <nav className="hidden items-center gap-1 text-sm lg:flex">
             {NAV.map((item) => (
               <Link
                 key={item.href}
@@ -65,6 +85,14 @@ export async function AppShell({
           <div className="ml-auto flex items-center gap-2">
             <LocaleSwitch />
             <ThemeToggle label={tCommon("theme")} />
+            {user.role === "admin" ? (
+              <Link
+                href="/admin"
+                className="rounded px-2 py-1 text-sm text-muted hover:text-fg lg:hidden"
+              >
+                {t("admin")}
+              </Link>
+            ) : null}
             <form action={logoutAction}>
               <input type="hidden" name="locale" value={locale} />
               <Button
@@ -79,11 +107,43 @@ export async function AppShell({
             </form>
           </div>
         </div>
+
+        {/* Between phone and laptop, a scrolling strip beats a hidden menu. */}
+        <nav className="mx-auto hidden w-full max-w-5xl gap-1 overflow-x-auto px-4 pb-2 text-sm sm:flex lg:hidden">
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="shrink-0 rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg"
+            >
+              {t(item.key)}
+            </Link>
+          ))}
+        </nav>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 pb-24 sm:pb-8">
         {children}
       </main>
+
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface sm:hidden">
+        <ul className="flex">
+          {phoneNav.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.href} className="flex-1">
+                <Link
+                  href={item.href}
+                  className="flex flex-col items-center gap-0.5 py-2 text-[10px] text-muted active:text-accent"
+                >
+                  <Icon className="h-5 w-5" />
+                  {t(item.key)}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
     </div>
   );
 }

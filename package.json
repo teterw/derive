@@ -12,10 +12,10 @@
     "test:watch": "vitest",
     "content:coverage": "tsx scripts/content-coverage.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx --env-file=.env scripts/migrate.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed:admin": "tsx --env-file=.env scripts/seed-admin.ts"
+    "db:seed:admin": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed-admin.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

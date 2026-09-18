@@ -50,10 +50,8 @@ export const quadCompletingSquare: Generator = {
 
     const half = ib / 2;
     const halfText = fraction(ib, 2);
-    const halfSquared = half * half;
-    const halfSquaredText = fraction(ib * ib, 4);
-    const rightSide = halfSquared - ic;
-    const rightSideText = fraction(ib * ib - 4 * ic, 4);
+      const halfSquaredText = fraction(ib * ib, 4);
+      const rightSideText = fraction(ib * ib - 4 * ic, 4);
 
     steps.push(
       makeStep(`${quadraticExpr(1, ib, 0)} = ${-ic}`, "eq.move-term", {

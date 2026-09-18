@@ -1,13 +1,12 @@
 import {
   fraction,
-  gcd,
   linearExpr,
   orJoin,
   quadraticExpr,
   reduceFraction,
 } from "../format";
 import { makeStep } from "../step";
-import type { Difficulty, Generator, Question, RNG, Step } from "../types";
+import type { Generator, Question, Step } from "../types";
 
 const TOPIC = "quadratic-equations";
 const SKILL = "quad.solve-by-factoring";
@@ -150,7 +149,6 @@ export const quadSolveFactorLeading: Generator = {
     // A shared factor would make the leading coefficient a red herring.
     if (m % a === 0) m += 1;
     if (m === 0) m = 1;
-    void gcd;
 
     const b = -(a * n + m);
     const c = m * n;

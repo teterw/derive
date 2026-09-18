@@ -1,6 +1,6 @@
 import { linearExpr, orJoin, quadraticExpr } from "../format";
 import { makeStep } from "../step";
-import type { Difficulty, Generator, Question, RNG, Step } from "../types";
+import type { Generator, Question, Step } from "../types";
 
 const TOPIC = "quadratic-equations";
 const SKILL = "quad.word-problems";

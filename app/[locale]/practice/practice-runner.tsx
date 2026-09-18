@@ -63,7 +63,9 @@ export function PracticeRunner({
   });
   const [pending, startTransition] = useTransition();
 
-  const startedAt = useRef(Date.now());
+  // Set in an effect, not during render: reading the clock while rendering is
+  // impure and React may render more than once.
+  const startedAt = useRef(0);
   const inputRef = useRef<AnswerInputHandle>(null);
 
   const reset = useCallback((next: PublicQuestion) => {
@@ -80,7 +82,7 @@ export function PracticeRunner({
   const submit = useCallback(() => {
     if (phase !== "answering" || pending) return;
     if (answer.trim() === "") return;
-    const elapsed = Date.now() - startedAt.current;
+    const elapsed = Date.now() - (startedAt.current || Date.now());
 
     startTransition(async () => {
       const result = await submitAnswerAction({
@@ -129,6 +131,10 @@ export function PracticeRunner({
       if (hint) setHints((current) => [...current, hint]);
     });
   }, [hints.length, question.hintCount, question.id]);
+
+  useEffect(() => {
+    startedAt.current = Date.now();
+  }, [question.id]);
 
   // Monkeytype-style: hands stay on the keyboard.
   useEffect(() => {

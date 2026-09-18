@@ -1,6 +1,14 @@
 import { gcd, radical } from "../format";
 import { makeStep } from "../step";
-import type { Difficulty, Generator, Question, RNG, Step } from "../types";
+import { namedMistakes } from "../misconception";
+import type {
+  Difficulty,
+  Generator,
+  Misconception,
+  Question,
+  RNG,
+  Step,
+} from "../types";
 
 const ID = "rad.rationalize-core";
 const SKILL = "rad.rationalize";
@@ -38,6 +46,7 @@ export const radRationalizeCore: Generator = {
       answer: { kind: "exact", value: built.answerMath },
       steps: built.steps,
       hints: built.hints,
+      ...(built.misconceptions ? { misconceptions: built.misconceptions } : {}),
       rulesUsed: [...new Set(built.steps.map((step) => step.ruleId))],
     };
   },
@@ -48,6 +57,7 @@ type Built = {
   answerMath: string;
   steps: Step[];
   hints: { th: string; en: string }[];
+  misconceptions?: Misconception[];
 };
 
 function build(rng: RNG, difficulty: Difficulty): Built {
@@ -103,6 +113,19 @@ function monomial(rng: RNG, difficulty: Difficulty): Built {
   return {
     stem,
     answerMath,
+    /**
+     * Clearing the root by multiplying only the bottom. It looks like the
+     * right shape and it is a different number.
+     */
+    misconceptions: namedMistakes({ kind: "exact", value: answerMath }, [
+      {
+        answer: { kind: "exact", value: `${a}/${b}` },
+        explain: {
+          th: `ถ้าคูณเฉพาะตัวส่วนด้วย \\sqrt{${b}} ค่าจะเปลี่ยนไป ต้องคูณทั้งเศษและส่วน`,
+          en: `Multiplying only the bottom by \\sqrt{${b}} changes the value. Both halves have to be multiplied.`,
+        },
+      },
+    ]),
     steps,
     hints: [
       {

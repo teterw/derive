@@ -113,6 +113,20 @@ pnpm resolves from PowerShell, not Git Bash.
   add a chart, run the data-viz validator against both surfaces rather than
   picking colours by eye.
 
+## Writing files with backslashes in them
+
+Most content here is KaTeX, which is backslashes all the way down. Two traps,
+both of which have bitten:
+
+- A shell heredoc in this environment collapses `\` to ``. Write files
+  containing LaTeX with the editor tools or a node script, never a heredoc.
+- In a template literal, a mis-escaped command does not leave a broken
+  backslash behind - it eats it. `\left` written with one backslash becomes
+  the word `left`; `\times` becomes a tab. Neither leaves anything for a
+  "raw command in prose" check to find, which is why
+  `components/math/math-text.test.ts` also looks for command names that have
+  lost their backslash.
+
 ## Commits
 
 Conventional commits, one phase per branch (`phase-0`, `phase-1`, …).

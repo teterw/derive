@@ -354,6 +354,19 @@ export const quadDiffSquares: Generator = {
         stem,
         answerKatex,
         answerMath: `(x - ${k})*(x + ${k})`,
+        // Treating it as a perfect square is the reflex this shape breaks.
+        misconceptions: namedMistakes(
+          { kind: "exact", value: `(x - ${k})*(x + ${k})` },
+          [
+            {
+              answer: { kind: "exact", value: `(x - ${k})^2` },
+              explain: {
+                th: `\\left(x - ${k}\\right)^2 คูณกลับได้ x^2 - ${2 * k}x + ${k * k} ซึ่งมีพจน์ x โผล่มา ผลต่างกำลังสองต้องเป็นผลต่างคูณผลบวก`,
+                en: `\\left(x - ${k}\\right)^2 multiplies back to x^2 - ${2 * k}x + ${k * k}, which has an x term. A difference of squares is a difference times a sum.`,
+              },
+            },
+          ],
+        ),
         steps: [
           makeStep(`x^2 - ${k}^2`, "quad.diff-squares", {
             th: `${k * k} = ${k}^2 จึงเป็นผลต่างกำลังสอง`,

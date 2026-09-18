@@ -140,6 +140,9 @@ describe("the real corpus", () => {
             strings.push(step.explain.th, step.explain.en);
           }
           for (const hint of question.hints) strings.push(hint.th, hint.en);
+          for (const mistake of question.misconceptions ?? []) {
+            strings.push(mistake.explain.th, mistake.explain.en);
+          }
         }
       }
     }
@@ -174,6 +177,29 @@ describe("the real corpus", () => {
           `from ${JSON.stringify(text)}: ${part.value}`,
         ).not.toThrow();
       }
+    }
+  });
+
+  /**
+   * A mis-escaped command in a template literal loses its backslash: "\left"
+   * written with one backslash becomes plain "left", which the check above
+   * cannot see because there is no backslash left to find. "\times" is worse:
+   * it becomes a tab. Both have happened here, so both are checked for.
+   */
+  it("never contains a LaTeX command that lost its backslash", () => {
+    const COMMANDS =
+      /\b(left|right|frac|sqrt|cdot|times|div|neq|geq|leq|pm)\s*[({]/;
+    const TAB = String.fromCharCode(9);
+    for (const text of corpus) {
+      // Strip the properly escaped commands first; anything left is a slip.
+      const stripped = text.replace(/\\[a-zA-Z]+/g, " ");
+      expect(
+        COMMANDS.test(stripped),
+        `command missing its backslash: ${text}`,
+      ).toBe(false);
+      expect(text.includes(TAB), `stray tab from a bad escape: ${text}`).toBe(
+        false,
+      );
     }
   });
 

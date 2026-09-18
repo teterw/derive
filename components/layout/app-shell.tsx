@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
-/**
- * Phase 0 ships the frame with only the routes that exist. Learn / Practice /
- * Exam / Stats arrive in Phases 1-3 and get added here as they land.
- */
+/** Routes appear here as they land. Exam and Stats arrive in Phases 2 and 3. */
+const NAV = [
+  { href: "/learn", key: "learn" },
+  { href: "/practice", key: "practice" },
+  { href: "/rules", key: "formulas" },
+] as const;
+
 export async function AppShell({
   locale,
   user,
@@ -37,6 +40,15 @@ export async function AppShell({
           </Link>
 
           <nav className="flex items-center gap-1 text-sm">
+            {NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg"
+              >
+                {t(item.key)}
+              </Link>
+            ))}
             {user.role === "admin" ? (
               <Link
                 href="/admin"

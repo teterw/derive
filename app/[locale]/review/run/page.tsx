@@ -11,6 +11,7 @@ import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
 import { normalizeConfig } from "@/lib/practice/session";
 import { AppShell } from "@/components/layout/app-shell";
+import { ToolDock } from "@/components/tools/tool-dock";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { PracticeRunner } from "../../practice/practice-runner";
 
@@ -80,6 +81,10 @@ export default async function ReviewRunPage({
         ruleNames={ruleNames}
         skillNames={skillNames}
         difficultyLabels={DIFFICULTY_LABELS}
+      />
+      <ToolDock
+        rules={allRules}
+        desmosApiKey={process.env.NEXT_PUBLIC_DESMOS_API_KEY ?? ""}
       />
     </AppShell>
   );

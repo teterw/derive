@@ -140,7 +140,7 @@
     "answered": "Answered",
     "accuracy": "Accuracy",
     "streak": "Streak",
-    "shortcutHint": "Enter to submit · E to explain · H for a hint",
+    "shortcutHint": "Enter submit · E explain · H hint · ? shortcuts",
     "noContentTitle": "Nothing matches that selection yet",
     "noContentBody": "Try adding another skill or difficulty.",
     "backToSetup": "Back to setup",
@@ -275,5 +275,29 @@
     "longestCorrectStreak": "Longest run of correct answers",
     "fastestSprint": "Fastest 20 questions · {topic}",
     "noSprintsYet": "Answer 20 questions in one topic and your best time appears here."
+  },
+  "tools": {
+    "graph": "Graph",
+    "formulas": "Formulas",
+    "calculator": "Calculator",
+    "shortcuts": "Shortcuts",
+    "searchRules": "Search formulas",
+    "noRules": "No formulas match that search.",
+    "ruleCount": "All formulas",
+    "calculatorInput": "Expression to work out",
+    "calculatorError": "cannot work that out",
+    "desmosMissingKey": "NEXT_PUBLIC_DESMOS_API_KEY is not set, so the graph is unavailable.",
+    "desmosLoading": "Loading the graph…",
+    "desmosFailed": "The graph failed to load. Check the connection.",
+    "shortcut": {
+      "submit": "Submit / next question",
+      "explain": "Show the working",
+      "hint": "Take a hint",
+      "graph": "Open the graph",
+      "formulas": "Open the formulas",
+      "calculator": "Open the calculator",
+      "shortcuts": "Show these shortcuts",
+      "close": "Close the panel"
+    }
   }
 }

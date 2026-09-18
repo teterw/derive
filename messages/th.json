@@ -140,7 +140,7 @@
     "answered": "ทำแล้ว",
     "accuracy": "ความแม่นยำ",
     "streak": "ติดต่อกัน",
-    "shortcutHint": "Enter ส่งคำตอบ · E อธิบาย · H คำใบ้",
+    "shortcutHint": "Enter ส่งคำตอบ · E อธิบาย · H คำใบ้ · ? ปุ่มลัด",
     "noContentTitle": "ยังไม่มีโจทย์ที่ตรงกับที่เลือก",
     "noContentBody": "ลองเลือกทักษะหรือระดับความยากเพิ่ม",
     "backToSetup": "กลับไปตั้งค่า",
@@ -275,5 +275,29 @@
     "longestCorrectStreak": "ตอบถูกติดต่อกันมากที่สุด",
     "fastestSprint": "20 ข้อที่เร็วที่สุด · {topic}",
     "noSprintsYet": "ทำครบ 20 ข้อในบทเดียวกันเมื่อไร สถิติจะขึ้นที่นี่"
+  },
+  "tools": {
+    "graph": "กราฟ",
+    "formulas": "สูตร",
+    "calculator": "เครื่องคิดเลข",
+    "shortcuts": "ปุ่มลัด",
+    "searchRules": "ค้นหาสูตร",
+    "noRules": "ไม่พบสูตรที่ตรงกับคำค้น",
+    "ruleCount": "สูตรทั้งหมด",
+    "calculatorInput": "นิพจน์ที่จะคำนวณ",
+    "calculatorError": "คำนวณไม่ได้",
+    "desmosMissingKey": "ยังไม่ได้ตั้งค่า NEXT_PUBLIC_DESMOS_API_KEY จึงยังใช้กราฟไม่ได้",
+    "desmosLoading": "กำลังโหลดกราฟ…",
+    "desmosFailed": "โหลดกราฟไม่สำเร็จ ลองตรวจการเชื่อมต่ออินเทอร์เน็ต",
+    "shortcut": {
+      "submit": "ส่งคำตอบ / ไปข้อถัดไป",
+      "explain": "แสดงวิธีทำ",
+      "hint": "ขอคำใบ้",
+      "graph": "เปิดกราฟ",
+      "formulas": "เปิดสูตร",
+      "calculator": "เปิดเครื่องคิดเลข",
+      "shortcuts": "แสดงปุ่มลัด",
+      "close": "ปิดหน้าต่าง"
+    }
   }
 }

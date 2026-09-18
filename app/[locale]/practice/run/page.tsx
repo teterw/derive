@@ -13,6 +13,7 @@ import {
   nextQuestionRef,
 } from "@/lib/practice/session";
 import { AppShell } from "@/components/layout/app-shell";
+import { ToolDock } from "@/components/tools/tool-dock";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { PracticeRunner } from "../practice-runner";
 
@@ -64,6 +65,10 @@ export default async function PracticeRunPage({
         ruleNames={ruleNames}
         skillNames={skillNames}
         difficultyLabels={DIFFICULTY_LABELS}
+      />
+      <ToolDock
+        rules={allRules}
+        desmosApiKey={process.env.NEXT_PUBLIC_DESMOS_API_KEY ?? ""}
       />
     </AppShell>
   );

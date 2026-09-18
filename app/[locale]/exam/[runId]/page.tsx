@@ -12,6 +12,7 @@ import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
 import { asExamRunConfig } from "@/lib/exam/session";
 import { AppShell } from "@/components/layout/app-shell";
+import { ToolDock } from "@/components/tools/tool-dock";
 import { ExamRunner } from "./exam-runner";
 import { ExamResults } from "./exam-results";
 
@@ -119,6 +120,12 @@ export default async function ExamRunPage({
         skillNames={skillNames}
         ruleNames={ruleNames}
         difficultyLabels={DIFFICULTY_LABELS}
+      />
+      {/* A graph during a closed-book exam would be a different exam. */}
+      <ToolDock
+        rules={allRules}
+        desmosApiKey={process.env.NEXT_PUBLIC_DESMOS_API_KEY ?? ""}
+        allowGraph={config.explainMode !== "off"}
       />
     </AppShell>
   );

@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
-/** Routes appear here as they land. Exam and Stats arrive in Phases 2 and 3. */
+/** Routes appear here as they land. Stats arrives in Phase 3. */
 const NAV = [
   { href: "/learn", key: "learn" },
   { href: "/practice", key: "practice" },
+  { href: "/exam", key: "exam" },
+  { href: "/review", key: "review" },
   { href: "/rules", key: "formulas" },
 ] as const;
 

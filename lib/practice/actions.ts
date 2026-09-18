@@ -52,6 +52,8 @@ export async function submitAnswerAction(input: {
   timeMs: number;
   hintsUsed: number;
   stepsRevealed: boolean;
+  /** Re-drilling a missed question records as `review`, not `practice`. */
+  mode?: "practice" | "review";
 }): Promise<SubmitResult> {
   const userId = await requireUserId();
   const ref = parseQuestionId(input.questionId);
@@ -63,7 +65,7 @@ export async function submitAnswerAction(input: {
 
   await recordAttempt({
     userId,
-    mode: "practice",
+    mode: input.mode === "review" ? "review" : "practice",
     question,
     userAnswer: input.answer,
     isCorrect: result.correct,

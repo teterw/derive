@@ -134,7 +134,10 @@
       "scientific-notation": "ค่าถูกต้องแล้ว แต่ยังไม่อยู่ในรูปสัญกรณ์วิทยาศาสตร์",
       "factored": "ค่าถูกต้องแล้ว แต่ยังไม่ได้แยกตัวประกอบ",
       "positive-exponents": "ค่าถูกต้องแล้ว แต่ยังมีเลขชี้กำลังติดลบอยู่"
-    }
+    },
+    "queueDone": "ทบทวนครบแล้ว",
+    "queueDoneBody": "ข้อที่ทำถูกจะถูกนำออกจากรายการทบทวนโดยอัตโนมัติ",
+    "queueProgress": "ข้อ {index} จาก {total}"
   },
   "learn": {
     "title": "เรียน",
@@ -159,5 +162,55 @@
     "examples": "ตัวอย่าง",
     "seeAlso": "ดูเพิ่มเติม",
     "whereItIsUsed": "ใช้ในทักษะ"
+  },
+  "exam": {
+    "setupTitle": "ตั้งค่าการสอบ",
+    "setupSubtitle": "กำหนดขอบเขต จำนวนข้อ เวลา แล้วเริ่มสอบ",
+    "difficultyMix": "สัดส่วนความยาก",
+    "questionCount": "จำนวนข้อ",
+    "timeLimit": "เวลาที่ใช้ได้",
+    "minutes": "{count} นาที",
+    "untimed": "ไม่จับเวลา",
+    "explainMode": "การแสดงเฉลย",
+    "explainOff": "ไม่แสดงระหว่างสอบ",
+    "explainOnWrong": "แสดงเมื่อตอบผิด",
+    "explainAlways": "แสดงทุกข้อ",
+    "explainModeNote": "เปลี่ยนได้ระหว่างสอบเช่นกัน",
+    "start": "เริ่มสอบ",
+    "recentRuns": "การสอบล่าสุด",
+    "inProgress": "กำลังสอบ",
+    "questionOf": "ข้อ {index} จาก {total}",
+    "goToQuestion": "ไปที่ข้อ {index}",
+    "previous": "ข้อก่อนหน้า",
+    "next": "ข้อถัดไป",
+    "answer": "ตอบ",
+    "flag": "ทำเครื่องหมาย",
+    "correct": "ถูกต้อง",
+    "incorrect": "ยังไม่ถูก",
+    "theAnswerIs": "คำตอบที่ถูกคือ",
+    "answeredCount": "ตอบแล้ว {answered} จาก {total} ข้อ",
+    "submitExam": "ส่งข้อสอบ",
+    "resultsTitle": "ผลการสอบ",
+    "score": "คะแนน",
+    "accuracy": "ความแม่นยำ",
+    "time": "เวลาที่ใช้",
+    "perSkill": "แยกตามทักษะ",
+    "everyQuestion": "รายข้อ",
+    "yourAnswer": "คุณตอบ",
+    "notAnswered": "ไม่ได้ตอบ",
+    "reviewWrong": "ฝึกข้อที่ยังไม่แม่น",
+    "backToSetup": "ตั้งค่าสอบใหม่"
+  },
+  "review": {
+    "title": "ทบทวน",
+    "subtitle": "ข้อที่ตอบผิดครั้งล่าสุดจะรออยู่ที่นี่ จนกว่าจะทำถูก",
+    "emptyTitle": "ยังไม่มีข้อที่ต้องทบทวน",
+    "emptyBody": "ทำโจทย์ไปสักพัก แล้วข้อที่ยังไม่แม่นจะมารวมกันที่นี่เอง",
+    "goPractise": "ไปฝึกโจทย์",
+    "waiting": "ข้อรอทบทวน",
+    "start": "เริ่มทบทวน",
+    "bySkill": "แยกตามทักษะ",
+    "drillThis": "ทบทวนเฉพาะทักษะนี้",
+    "backToQueue": "กลับไปหน้าทบทวน"
   }
 }

@@ -134,7 +134,10 @@
       "scientific-notation": "Right value, but not in scientific notation.",
       "factored": "Right value, but it is not factorised.",
       "positive-exponents": "Right value, but a negative exponent is still there."
-    }
+    },
+    "queueDone": "Queue finished",
+    "queueDoneBody": "The ones you got right have left the review queue.",
+    "queueProgress": "{index} of {total}"
   },
   "learn": {
     "title": "Learn",
@@ -159,5 +162,55 @@
     "examples": "Examples",
     "seeAlso": "See also",
     "whereItIsUsed": "Used in"
+  },
+  "exam": {
+    "setupTitle": "Set up an exam",
+    "setupSubtitle": "Choose the scope, the length and the clock, then begin.",
+    "difficultyMix": "Difficulty mix",
+    "questionCount": "Questions",
+    "timeLimit": "Time limit",
+    "minutes": "{count} minutes",
+    "untimed": "Untimed",
+    "explainMode": "Explanations",
+    "explainOff": "Hidden during the test",
+    "explainOnWrong": "Shown when wrong",
+    "explainAlways": "Shown every time",
+    "explainModeNote": "You can change this mid-test too.",
+    "start": "Start the exam",
+    "recentRuns": "Recent exams",
+    "inProgress": "In progress",
+    "questionOf": "Question {index} of {total}",
+    "goToQuestion": "Go to question {index}",
+    "previous": "Previous",
+    "next": "Next",
+    "answer": "Answer",
+    "flag": "Flag",
+    "correct": "Correct",
+    "incorrect": "Not quite",
+    "theAnswerIs": "The answer is",
+    "answeredCount": "{answered} of {total} answered",
+    "submitExam": "Submit",
+    "resultsTitle": "Results",
+    "score": "Score",
+    "accuracy": "Accuracy",
+    "time": "Time",
+    "perSkill": "By skill",
+    "everyQuestion": "Every question",
+    "yourAnswer": "You answered",
+    "notAnswered": "Not answered",
+    "reviewWrong": "Drill what you missed",
+    "backToSetup": "Set up another"
+  },
+  "review": {
+    "title": "Review",
+    "subtitle": "Questions you got wrong most recently wait here until you get them right.",
+    "emptyTitle": "Nothing to review",
+    "emptyBody": "Do some questions, and the ones that did not stick will collect here.",
+    "goPractise": "Go and practise",
+    "waiting": "questions waiting",
+    "start": "Start reviewing",
+    "bySkill": "By skill",
+    "drillThis": "Drill just this skill",
+    "backToQueue": "Back to the queue"
   }
 }

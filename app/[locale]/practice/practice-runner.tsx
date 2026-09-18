@@ -35,12 +35,20 @@ type Tally = { asked: number; correct: number; streak: number; best: number };
 export function PracticeRunner({
   config,
   first,
+  queue,
+  mode = "practice",
   ruleNames,
   skillNames,
   difficultyLabels,
 }: {
   config: PracticeConfig;
   first: PublicQuestion;
+  /**
+   * Review mode walks a fixed list of missed questions instead of drawing a
+   * fresh one each time, so the learner meets the identical question again.
+   */
+  queue?: PublicQuestion[];
+  mode?: "practice" | "review";
   ruleNames: Record<string, { th: string; en: string }>;
   skillNames: Record<string, { th: string; en: string }>;
   difficultyLabels: Record<number, { th: string; en: string }>;
@@ -62,6 +70,8 @@ export function PracticeRunner({
     best: 0,
   });
   const [pending, startTransition] = useTransition();
+  const [queueIndex, setQueueIndex] = useState(0);
+  const [finished, setFinished] = useState(false);
 
   // Set in an effect, not during render: reading the clock while rendering is
   // impure and React may render more than once.
@@ -91,6 +101,7 @@ export function PracticeRunner({
         timeMs: elapsed,
         hintsUsed: hints.length,
         stepsRevealed: revealedBeforeAnswering,
+        mode,
       });
       setOutcome(result);
       setSteps(result.steps);
@@ -105,15 +116,34 @@ export function PracticeRunner({
         };
       });
     });
-  }, [answer, hints.length, pending, phase, question.id, revealedBeforeAnswering]);
+  }, [
+    answer,
+    hints.length,
+    mode,
+    pending,
+    phase,
+    question.id,
+    revealedBeforeAnswering,
+  ]);
 
   const next = useCallback(() => {
     if (pending) return;
+    if (queue) {
+      const position = queueIndex + 1;
+      if (position >= queue.length) {
+        setFinished(true);
+        return;
+      }
+      setQueueIndex(position);
+      reset(queue[position]!);
+      inputRef.current?.focus();
+      return;
+    }
     startTransition(async () => {
       reset(await nextQuestionAction(config));
       inputRef.current?.focus();
     });
-  }, [config, pending, reset]);
+  }, [config, pending, queue, queueIndex, reset]);
 
   const explain = useCallback(() => {
     if (steps) return;
@@ -169,9 +199,30 @@ export function PracticeRunner({
   const unparseable =
     outcome && !outcome.result.correct && outcome.result.reason === "unparseable";
 
+  if (finished) {
+    return (
+      <div className="mx-auto w-full max-w-2xl space-y-6 text-center">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {t("queueDone")}
+        </h2>
+        <Scoreboard tally={tally} labels={t} />
+        <p className="text-sm text-muted">{t("queueDoneBody")}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-2xl space-y-8">
       <Scoreboard tally={tally} labels={t} />
+
+      {queue ? (
+        <p className="text-center font-mono text-xs tabular-nums text-muted">
+          {t("queueProgress", {
+            index: queueIndex + 1,
+            total: queue.length,
+          })}
+        </p>
+      ) : null}
 
       <div className="space-y-6">
         <div className="space-y-2 text-center">

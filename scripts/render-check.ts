@@ -9,13 +9,14 @@
  *
  * Needs a dev server (`pnpm dev`) and the demo account (`pnpm db:seed:demo`).
  */
-import { createHash, randomBytes } from "node:crypto";
+
 import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
 import { sessions, users } from "../lib/db/schema";
 import { skills } from "../content/topics";
 import { allRules } from "../content/rules";
 import { SESSION_COOKIE } from "../lib/auth/constants";
+import { hashSessionToken, newSessionToken } from "../lib/auth/token";
 
 const BASE = process.env.RENDER_CHECK_BASE ?? "http://localhost:3000";
 const USERNAME = process.env.RENDER_CHECK_USER ?? "demo";
@@ -35,11 +36,11 @@ async function main() {
   }
 
   // A real session, created the way the login action creates one.
-  const token = randomBytes(32).toString("base64url");
+  const token = newSessionToken();
   const [session] = await db
     .insert(sessions)
     .values({
-      tokenHash: createHash("sha256").update(token).digest("hex"),
+      tokenHash: hashSessionToken(token),
       userId: user.id,
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       userAgent: "render-check",

@@ -1,4 +1,3 @@
-import { createHash, randomBytes } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { and, eq, gt, lt } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -8,32 +7,26 @@ import {
   SESSION_TTL_REMEMBER_MS,
   SESSION_TTL_SHORT_MS,
 } from "./constants";
+import { hashSessionToken, newSessionToken } from "./token";
 
 export type SessionUser = Omit<User, "passwordHash">;
 
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
-
-function newToken(): string {
-  return randomBytes(32).toString("base64url");
-}
 
 /**
  * Creates a session row and sets the cookie. The raw token exists only in the
- * cookie; the database holds its SHA-256.
+ * cookie; the database holds only its HMAC.
  */
 export async function createSession(
   userId: string,
   remember: boolean,
 ): Promise<void> {
-  const token = newToken();
+  const token = newSessionToken();
   const ttl = remember ? SESSION_TTL_REMEMBER_MS : SESSION_TTL_SHORT_MS;
   const expiresAt = new Date(Date.now() + ttl);
   const userAgent = (await headers()).get("user-agent")?.slice(0, 512) ?? null;
 
   await db.insert(sessions).values({
-    tokenHash: hashToken(token),
+    tokenHash: hashSessionToken(token),
     userId,
     expiresAt,
     userAgent,
@@ -60,7 +53,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const tokenHash = hashToken(token);
+  const tokenHash = hashSessionToken(token);
   const rows = await db
     .select({ session: sessions, user: users })
     .from(sessions)
@@ -98,7 +91,7 @@ export async function destroySession(): Promise<void> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
   if (token) {
-    await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
+    await db.delete(sessions).where(eq(sessions.tokenHash, hashSessionToken(token)));
   }
   store.delete(SESSION_COOKIE);
 }

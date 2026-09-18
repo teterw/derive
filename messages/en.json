@@ -17,7 +17,12 @@
     "no": "No",
     "none": "—",
     "language": "Language",
-    "theme": "Theme"
+    "theme": "Theme",
+    "errorTitle": "Something went wrong",
+    "errorBody": "This page failed to load. Trying again usually does it.",
+    "tryAgain": "Try again",
+    "notFoundTitle": "That page does not exist",
+    "backHome": "Back to the dashboard"
   },
   "nav": {
     "dashboard": "Dashboard",

@@ -83,8 +83,15 @@ describe("StepViewer", () => {
 
   it("renders the maths rather than the source", () => {
     renderStepViewer(99);
-    // KaTeX leaves its own markup behind; raw backslashes would mean it did not run.
-    expect(document.querySelector(".katex")).not.toBeNull();
-    expect(document.body.textContent).not.toContain("\\left");
+    const rendered = [...document.querySelectorAll(".katex-html")];
+    expect(rendered.length).toBeGreaterThan(0);
+
+    // What a sighted reader sees carries no LaTeX commands...
+    for (const fragment of rendered) {
+      expect(fragment.textContent ?? "").not.toContain("\\left");
+    }
+    // ...while the MathML annotation keeps the source, which is what a screen
+    // reader and a copy-paste rely on.
+    expect(document.querySelector(".katex-mathml")).not.toBeNull();
   });
 });

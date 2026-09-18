@@ -15,12 +15,21 @@ import {
   attempts,
   inviteCodes,
   inviteRedemptions,
+  runs,
   users,
 } from "../lib/db/schema";
 import { hashPassword } from "../lib/auth/password";
 import { generateInviteCode } from "../lib/auth/invite";
 import { generateQuestion, generators } from "../content/generators";
-import { getSkill } from "../content/topics";
+import { getSkill, skills } from "../content/topics";
+import type { Difficulty } from "../content/types";
+import { buildExamRefs } from "../lib/exam/session";
+import {
+  DAILY_QUESTIONS,
+  dailyRefs,
+  findOrCreateDailyRun,
+  getDailyStreak,
+} from "../lib/daily/challenge";
 import { checkAnswer } from "../lib/math/check";
 import { recordAttempt } from "../lib/stats/record";
 import {
@@ -280,6 +289,91 @@ async function main() {
       `${after} vs ${queueCount - 1}`,
     );
   }
+
+  // --- an exam run, through the same actions the UI calls -----------------
+  console.log("\nexam");
+  const examConfig = {
+    skillIds: skills.slice(0, 4).map((skill) => skill.id),
+    difficulties: [1, 2] as Difficulty[],
+    count: 10,
+    timeLimitSec: 0,
+    explainMode: "onWrong" as const,
+  };
+  const examRefs = buildExamRefs(examConfig);
+  fail("an exam deals the requested number of questions", examRefs.length === 10);
+  fail(
+    "and spreads them over more than one skill",
+    new Set(
+      examRefs.map((ref) => generateQuestion(ref.generatorId, ref.seed, ref.difficulty).skillId),
+    ).size > 1,
+  );
+
+  const [examRun] = await db
+    .insert(runs)
+    .values({
+      userId,
+      mode: "exam",
+      config: { ...examConfig, refs: examRefs },
+      total: examRefs.length,
+    })
+    .returning({ id: runs.id });
+
+  for (const ref of examRefs) {
+    const question = generateQuestion(ref.generatorId, ref.seed, ref.difficulty);
+    await recordAttempt({
+      userId,
+      mode: "exam",
+      runId: examRun!.id,
+      question,
+      userAnswer: canonicalAnswer(question.answer),
+      isCorrect: true,
+      timeMs: 9000,
+      hintsUsed: 0,
+      stepsRevealed: false,
+    });
+  }
+
+  const [examAttempts] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(attempts)
+    .where(eq(attempts.runId, examRun!.id));
+  fail("exam attempts are tied to the run", Number(examAttempts?.count) === 10);
+
+  // --- the daily challenge ------------------------------------------------
+  console.log("\ndaily");
+  const first = await findOrCreateDailyRun(userId);
+  const again = await findOrCreateDailyRun(userId);
+  fail("opening the daily twice reuses one run", first.id === again.id);
+
+  const todayRefs = dailyRefs();
+  fail("the daily is five questions", todayRefs.length === DAILY_QUESTIONS);
+  fail(
+    "and is the same set for a second reader",
+    JSON.stringify(dailyRefs()) === JSON.stringify(todayRefs),
+  );
+
+  for (const ref of todayRefs) {
+    const question = generateQuestion(ref.generatorId, ref.seed, ref.difficulty);
+    await recordAttempt({
+      userId,
+      mode: "daily",
+      runId: first.id,
+      question,
+      userAnswer: canonicalAnswer(question.answer),
+      isCorrect: true,
+      timeMs: 7000,
+      hintsUsed: 0,
+      stepsRevealed: false,
+    });
+  }
+  await db
+    .update(runs)
+    .set({ finishedAt: new Date(), correct: DAILY_QUESTIONS })
+    .where(eq(runs.id, first.id));
+
+  const dailyStreak = await getDailyStreak(userId);
+  fail("finishing it starts a daily streak", dailyStreak.current === 1);
+  fail("and it is marked done for today", dailyStreak.doneToday);
 
   // --- clean up -----------------------------------------------------------
   await db.delete(users).where(eq(users.id, userId));

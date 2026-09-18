@@ -159,8 +159,8 @@ export const quadraticRules: Rule[] = [
     },
     statement: "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}",
     conditions: {
-      th: "สำหรับ ax^2 + bx + c = 0 เมื่อ a \\neq 0",
-      en: "for ax^2 + bx + c = 0 with a \\neq 0",
+      th: "สำหรับ $ax^2 + bx + c = 0$ เมื่อ a \\neq 0",
+      en: "for $ax^2 + bx + c = 0$ with a \\neq 0",
     },
     plain: {
       th: "สูตรนี้ใช้ได้กับสมการกำลังสองทุกสมการ แม้แยกตัวประกอบไม่ได้",

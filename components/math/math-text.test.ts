@@ -29,6 +29,12 @@ describe("classify", () => {
     }
   });
 
+  it("still calls hyphenated English a word", () => {
+    for (const token of ["step-by-step", "A-Level", "well-known"]) {
+      expect(classify(token), token).toBe("prose");
+    }
+  });
+
   it("calls words words, in both languages", () => {
     for (const token of ["the", "product", "เหมือนกัน", "ฐานเป็น"]) {
       expect(classify(token), token).toBe("prose");
@@ -45,6 +51,25 @@ describe("segment", () => {
 
   it("keeps a variable attached to the formula it belongs to", () => {
     expect(math("so x = 2")).toEqual(["x = 2"]);
+  });
+
+  it("renders a coefficient beside a variable as maths", () => {
+    expect(math("คิดดิสคริมิแนนต์ b^2 - 4ac ก่อน")).toEqual(["b^2 - 4ac"]);
+    expect(math("so 4ac is subtracted")).toEqual(["4ac"]);
+  });
+
+  /**
+   * `bx` is genuinely ambiguous - two letters, no digit, no operator, exactly
+   * like the English words "is" and "by" that surround it in real sentences.
+   * The guess cannot win, so content marks those few formulas explicitly.
+   */
+  it("needs explicit delimiters when a term is indistinguishable from a word", () => {
+    expect(math("the general form ax^2 + bx + c = 0 solves")).not.toEqual([
+      "ax^2 + bx + c = 0",
+    ]);
+    expect(math("the general form $ax^2 + bx + c = 0$ solves")).toEqual([
+      "ax^2 + bx + c = 0",
+    ]);
   });
 
   it("does not turn the English article a into a variable", () => {
@@ -133,8 +158,9 @@ describe("the real corpus", () => {
       const rebuilt = segment(text)
         .map((part) => part.value)
         .join("");
+      // `$` is a delimiter, not content - it is consumed on the way through.
       expect(rebuilt.replace(/\s+/g, " ").trim()).toBe(
-        text.replace(/\s+/g, " ").trim(),
+        text.replace(/\$/g, "").replace(/\s+/g, " ").trim(),
       );
     }
   });

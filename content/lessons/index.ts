@@ -357,8 +357,8 @@ const lessonList: Lesson[] = [
     skillId: "quad.factor-trinomial",
     title: { th: "แยกตัวประกอบตรีนาม", en: "Factoring a trinomial" },
     intro: {
-      th: "ตรีนาม x^2 + bx + c มาจากการคูณ (x + p)(x + q) ดังนั้นการแยกตัวประกอบคือการเดินย้อนกลับ หาสองจำนวนที่คูณกันได้ c และบวกกันได้ b",
-      en: "A trinomial x^2 + bx + c comes from multiplying (x + p)(x + q), so factoring is walking backwards: find two numbers with product c and sum b.",
+      th: "ตรีนาม $x^2 + bx + c$ มาจากการคูณ (x + p)(x + q) ดังนั้นการแยกตัวประกอบคือการเดินย้อนกลับ หาสองจำนวนที่คูณกันได้ c และบวกกันได้ b",
+      en: "A trinomial $x^2 + bx + c$ comes from multiplying (x + p)(x + q), so factoring is walking backwards: find two numbers with product c and sum b.",
     },
     bigIdea: {
       th: "คูณกันได้พจน์คงที่ บวกกันได้สัมประสิทธิ์ของ x",
@@ -547,8 +547,8 @@ const lessonList: Lesson[] = [
     skillId: "quad.formula",
     title: { th: "สูตรหาคำตอบ", en: "The quadratic formula" },
     intro: {
-      th: "สูตรนี้คือผลของการทำให้เป็นกำลังสองสมบูรณ์กับ ax^2 + bx + c = 0 แบบทั่วไป ทำครั้งเดียวแล้วใช้ได้ทุกสมการ",
-      en: "The formula is what you get from completing the square on ax^2 + bx + c = 0 in general: do it once, use it for ever.",
+      th: "สูตรนี้คือผลของการทำให้เป็นกำลังสองสมบูรณ์กับ $ax^2 + bx + c = 0$ แบบทั่วไป ทำครั้งเดียวแล้วใช้ได้ทุกสมการ",
+      en: "The formula is what you get from completing the square on $ax^2 + bx + c = 0$ in general: do it once, use it for ever.",
     },
     bigIdea: {
       th: "เขียน a, b, c ออกมาให้ชัดก่อน แล้วคิดดิสคริมิแนนต์ b^2 - 4ac ก่อนแทนในสูตร",

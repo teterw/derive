@@ -46,6 +46,14 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except API routes, Next internals and files with an extension.
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
+  /**
+   * Everything except API routes, Next internals, and real static files.
+   *
+   * The file exclusion is anchored to the end of the path on purpose: rule and
+   * skill ids contain dots (`/rules/exp.product`, `/learn/quad.formula`), and
+   * the usual "any path containing a dot" matcher skips exactly those pages.
+   */
+  matcher: [
+    "/((?!api|_next|_vercel|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|css|js|mjs|map|txt|xml|json|webmanifest|woff|woff2|ttf|otf|eot|mp4|webm)$).*)",
+  ],
 };

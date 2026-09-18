@@ -27,8 +27,17 @@ export function classify(token: string): Strength {
   if (!core) return "prose";
   if (THAI.test(core)) return "prose";
   if (/\\[a-zA-Z]+/.test(core)) return "strong";
-  if (/^[A-Za-z]$/.test(core)) return "weak";
-  if (/[A-Za-z]{2,}/.test(core)) return "prose";
+
+  // A plain word is a word; a single letter beside notation is a variable.
+  if (/^[A-Za-z]+$/.test(core)) return core.length === 1 ? "weak" : "prose";
+  // Hyphenated English ("step-by-step", "A-Level") is still a word.
+  if (/^[A-Za-z]+(-[A-Za-z]+)+$/.test(core)) return "prose";
+
+  /**
+   * Anything else carrying a maths character is notation - including `ax^2`
+   * and `4ac`, which a "two letters means a word" rule would wrongly leave
+   * sitting in the prose as raw source.
+   */
   if (/[0-9^_{}\\+\-*/=<>()[\]|]/.test(core)) return "strong";
   return "prose";
 }

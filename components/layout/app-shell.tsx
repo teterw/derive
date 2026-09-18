@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
-/** Routes appear here as they land. Stats arrives in Phase 3. */
 const NAV = [
   { href: "/learn", key: "learn" },
   { href: "/practice", key: "practice" },
   { href: "/exam", key: "exam" },
   { href: "/review", key: "review" },
+  { href: "/stats", key: "stats" },
   { href: "/rules", key: "formulas" },
 ] as const;
 
@@ -41,7 +41,7 @@ export async function AppShell({
             <span className="text-xs text-muted">{tApp("tagline")}</span>
           </Link>
 
-          <nav className="flex items-center gap-1 text-sm">
+          <nav className="hidden items-center gap-1 text-sm sm:flex">
             {NAV.map((item) => (
               <Link
                 key={item.href}

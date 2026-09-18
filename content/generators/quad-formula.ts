@@ -1,6 +1,7 @@
 import { isPerfectSquare, orJoin, quadraticExpr, radical } from "../format";
 import { solveQuadratic, simplifySquareRoot } from "../quad-roots";
 import { makeStep } from "../step";
+import { namedMistakes } from "../misconception";
 import type { Difficulty, Generator, Question, RNG, Step } from "../types";
 
 const ID = "quad.formula-core";
@@ -123,6 +124,20 @@ export const quadFormulaCore: Generator = {
       stem,
       answer: { kind: "set", values: roots.math },
       steps,
+      /**
+       * Forgetting that the formula opens with *minus* b. The discriminant is
+       * unchanged by the sign of b, so the wrong roots are exactly the roots
+       * of the equation with b flipped - which is what makes them findable.
+       */
+      misconceptions: namedMistakes({ kind: "set", values: roots.math }, [
+        {
+          answer: { kind: "set", values: solveQuadratic(a, -b, c).math },
+          explain: {
+            th: `สูตรขึ้นต้นด้วย -b ไม่ใช่ b ตรงนี้ b = ${b} ดังนั้น -b = ${-b}`,
+            en: `The formula starts with -b, not b. Here b = ${b}, so -b = ${-b}.`,
+          },
+        },
+      ]),
       hints: [
         {
           th: `เขียน a, b, c ออกมาก่อน: a = ${a}, b = ${b}, c = ${c}`,

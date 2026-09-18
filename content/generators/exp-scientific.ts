@@ -1,5 +1,13 @@
 import { makeStep } from "../step";
-import type { Difficulty, Generator, Question, RNG, Step } from "../types";
+import { namedMistakes } from "../misconception";
+import type {
+  Difficulty,
+  Generator,
+  Misconception,
+  Question,
+  RNG,
+  Step,
+} from "../types";
 
 const ID = "exp.scientific-notation";
 const SKILL = "exp.scientific";
@@ -73,6 +81,7 @@ export const expScientificNotation: Generator = {
       answer: { kind: "exact", value: built.answerMath },
       steps: built.steps,
       hints: built.hints,
+      ...(built.misconceptions ? { misconceptions: built.misconceptions } : {}),
       rulesUsed: [...new Set(built.steps.map((step) => step.ruleId))],
     };
   },
@@ -84,6 +93,7 @@ type Built = {
   answerMath: string;
   steps: Step[];
   hints: { th: string; en: string }[];
+  misconceptions?: Misconception[];
 };
 
 const WRITE_PROMPT = {
@@ -108,6 +118,28 @@ function build(rng: RNG, difficulty: Difficulty): Built {
       prompt: WRITE_PROMPT,
       stem: plain,
       answerMath: `${m.text}*10^(${exponent})`,
+      /**
+       * Counting the places the point moves but not which way it went. The
+       * sign of the exponent is the whole content of this skill.
+       */
+      misconceptions: namedMistakes(
+        { kind: "exact", value: `${m.text}*10^(${exponent})` },
+        [
+          {
+            answer: { kind: "exact", value: `${m.text}*10^(${-exponent})` },
+            explain:
+              exponent > 0
+                ? {
+                    th: `จำนวนนี้มากกว่า 10 เลขชี้กำลังจึงต้องเป็นบวก ถ้าเขียนเป็น ${m.text} \\times 10^{${-exponent}} จะได้ค่าน้อยกว่า 1`,
+                    en: `This number is bigger than 10, so the exponent is positive. ${m.text} \\times 10^{${-exponent}} would be smaller than 1.`,
+                  }
+                : {
+                    th: `จำนวนนี้น้อยกว่า 1 เลขชี้กำลังจึงต้องติดลบ ถ้าเขียนเป็น ${m.text} \\times 10^{${-exponent}} จะได้จำนวนที่ใหญ่มาก`,
+                    en: `This number is smaller than 1, so the exponent is negative. ${m.text} \\times 10^{${-exponent}} would be enormous.`,
+                  },
+          },
+        ],
+      ),
       steps: [
         makeStep(
           `${m.text} \\times 10^{${exponent}}`,

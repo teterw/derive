@@ -19,8 +19,15 @@ content. `docs/CONTENT-PIPELINE.md` governs how questions get added.
 | `pnpm db:push` | shove the schema straight at the database (dev only) |
 | `pnpm db:seed:admin` | create/promote the bootstrap admin from `.env` |
 | `pnpm content:coverage` | per-skill gaps: generators, difficulties, lesson, shapes |
+| `pnpm smoke` | the whole stack against the real database, then cleans up |
+| `pnpm render-check` | fetch every page as a signed-in user and look at it |
+| `pnpm db:seed:demo` | a demo account with history (`-- --clean` to remove) |
 
 Scripts read `.env` then `.env.local`, with `.env.local` winning.
+
+**Compiling is not rendering.** `pnpm build` passing has twice hidden a bug
+that `pnpm render-check` found in seconds. Run it after touching routing,
+translations or anything a server component reads.
 
 pnpm is installed per-user (`npm i -g pnpm`), not via corepack. On this machine
 pnpm resolves from PowerShell, not Git Bash.
@@ -92,6 +99,19 @@ pnpm resolves from PowerShell, not Git Bash.
 - Prose with maths in it is segmented at render time by
   `components/math/math-text.tsx`. Write ordinary sentences; use `$...$` only
   when the guess would be wrong.
+
+## Statistics
+
+- Every aggregate is SQL over `attempts` / `daily_stats`. Raw rows are never
+  shipped to the browser to be summed there.
+- A "day" is an Asia/Bangkok calendar day, computed when the attempt row is
+  written and stored on it. Never derive a day from a UTC timestamp at read
+  time.
+- Times a learner reads are Asia/Bangkok too - `bangkokStamp()`, not
+  `toISOString()`.
+- Chart colours come from the validated `--viz-*` ramp in `globals.css`. If you
+  add a chart, run the data-viz validator against both surfaces rather than
+  picking colours by eye.
 
 ## Commits
 

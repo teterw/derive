@@ -1,6 +1,13 @@
 import { coefficientPower, power } from "../format";
 import { makeStep } from "../step";
-import type { Difficulty, Generator, Question, RNG, Step } from "../types";
+import type {
+  Difficulty,
+  Generator,
+  Misconception,
+  Question,
+  RNG,
+  Step,
+} from "../types";
 
 const ID = "exp.laws-core";
 const SKILL = "exp.integer-laws";
@@ -65,6 +72,7 @@ export const expLawsCore: Generator = {
       answer: { kind: "exact", value: built.answerMath },
       steps: built.steps,
       hints: built.hints,
+      ...(built.misconceptions ? { misconceptions: built.misconceptions } : {}),
       rulesUsed: [...new Set(built.steps.map((step) => step.ruleId))],
     };
   },
@@ -82,6 +90,7 @@ type Built = {
   answerMath: string;
   steps: Step[];
   hints: { th: string; en: string }[];
+  misconceptions?: Misconception[];
 };
 
 function buildSimple(rng: RNG, v: string, shape: Shape): Built {
@@ -93,6 +102,18 @@ function buildSimple(rng: RNG, v: string, shape: Shape): Built {
       return {
         stem,
         answerMath: mathTerm(1, v, m + n),
+        misconceptions:
+          m * n === m + n
+            ? []
+            : [
+                {
+                  answer: { kind: "exact", value: mathTerm(1, v, m * n) },
+                  explain: {
+                    th: `นั่นคือการคูณเลขชี้กำลัง (${m} \\times ${n}) แต่การคูณเลขยกกำลังฐานเดียวกันต้องบวกเลขชี้กำลัง`,
+                    en: `That multiplies the exponents (${m} \\times ${n}). Multiplying powers of the same base adds them.`,
+                  },
+                },
+              ],
         steps: [
           makeStep(power(v, `${m}+${n}`), "exp.product", {
             th: `ฐานเป็น ${v} เหมือนกัน จึงนำเลขชี้กำลังมาบวกกัน`,
@@ -127,6 +148,15 @@ function buildSimple(rng: RNG, v: string, shape: Shape): Built {
       return {
         stem,
         answerMath: mathTerm(1, v, m - n),
+        misconceptions: [
+          {
+            answer: { kind: "exact", value: mathTerm(1, v, m + n) },
+            explain: {
+              th: `นั่นคือการบวกเลขชี้กำลัง แต่การหารเลขยกกำลังฐานเดียวกันต้องลบเลขชี้กำลัง: ${m} - ${n}`,
+              en: `That adds the exponents. Dividing powers of the same base subtracts them: ${m} - ${n}.`,
+            },
+          },
+        ],
         steps: [
           makeStep(power(v, `${m}-${n}`), "exp.quotient", {
             th: `ฐานเป็น ${v} เหมือนกัน จึงนำเลขชี้กำลังมาลบกัน`,
@@ -158,6 +188,18 @@ function buildSimple(rng: RNG, v: string, shape: Shape): Built {
       return {
         stem,
         answerMath: mathTerm(1, v, m * n),
+        misconceptions:
+          m + n === m * n
+            ? []
+            : [
+                {
+                  answer: { kind: "exact", value: mathTerm(1, v, m + n) },
+                  explain: {
+                    th: `นั่นคือการบวกเลขชี้กำลัง (${m} + ${n}) แต่การยกกำลังซ้อนต้องคูณเลขชี้กำลัง`,
+                    en: `That adds the exponents (${m} + ${n}). A power of a power multiplies them.`,
+                  },
+                },
+              ],
         steps: [
           makeStep(power(v, `${m} \\cdot ${n}`), "exp.power-of-power", {
             th: "ยกกำลังซ้อนกัน ให้นำเลขชี้กำลังมาคูณกัน",

@@ -85,6 +85,22 @@ export type Answer =
  */
 export type Provenance = "generated" | "adapted" | "authored";
 
+/**
+ * A wrong answer that a particular mistake produces, and what the mistake was.
+ *
+ * "Wrong" on its own teaches nothing. A learner who multiplies exponents
+ * instead of adding them has applied a real rule in the wrong place, and
+ * saying which rule they reached for is the whole point of this app.
+ *
+ * It carries a whole `Answer`, checked the same way the real one is - so it
+ * recognises the mistake however the learner happens to write it, and a set of
+ * roots is matched as a set.
+ */
+export type Misconception = {
+  answer: Answer;
+  explain: L;
+};
+
 export type Question = {
   /** `${generatorId}:${seed}:${difficulty}` */
   id: string;
@@ -110,11 +126,16 @@ export type Question = {
   steps: Step[];
   /** Progressive: a nudge, then the rule's name, then the first step. */
   hints: L[];
+  /** Named wrong answers, each with the mistake that produces it. */
+  misconceptions?: Misconception[];
   rulesUsed: RuleId[];
 };
 
 /** What the client is allowed to see before it submits (PROMPT.md §6.4). */
-export type PublicQuestion = Omit<Question, "answer" | "steps" | "hints"> & {
+export type PublicQuestion = Omit<
+  Question,
+  "answer" | "steps" | "hints" | "misconceptions" | "machineStem"
+> & {
   hintCount: number;
 };
 

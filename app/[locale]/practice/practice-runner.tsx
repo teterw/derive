@@ -350,6 +350,11 @@ export function PracticeRunner({
 
             {!correct ? (
               <div className="mt-2 space-y-1 text-sm">
+                {outcome.misconception ? (
+                  <p className="rounded-md border border-border bg-surface px-3 py-2 text-fg">
+                    <MathText text={outcome.misconception[locale]} />
+                  </p>
+                ) : null}
                 {formFeedback ? <p className="text-muted">{formFeedback}</p> : null}
                 {incomplete ? (
                   <p className="text-muted">

@@ -139,11 +139,13 @@ export function toPublicQuestion(question: Question): PublicQuestion {
     steps: _steps,
     hints,
     machineStem: _machineStem,
+    misconceptions: _misconceptions,
     ...rest
   } = question;
   void _answer;
   void _steps;
   void _machineStem;
+  void _misconceptions;
   return { ...rest, hintCount: hints.length };
 }
 

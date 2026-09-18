@@ -34,6 +34,7 @@ export function verifyGenerator(generator: Generator, seeds = SEEDS): void {
       checkStepChain(question, where);
       checkAnswerSatisfiesStem(question, where);
       checkAnswerChecking(question, where);
+      checkMisconceptions(question, where);
     }
   }
 }
@@ -230,6 +231,32 @@ function expectEquivalentToAnswer(
     expect(Math.abs(Number(value) - answer.value), where).toBeLessThanOrEqual(
       answer.tol,
     );
+  }
+}
+
+/**
+ * A named mistake must be a *wrong* answer. If one ever matched the real
+ * answer, a correct learner would be told they had made a mistake - worse than
+ * saying nothing at all.
+ */
+function checkMisconceptions(question: Question, where: string): void {
+  for (const misconception of question.misconceptions ?? []) {
+    const text = canonicalAnswerText(misconception.answer);
+    if (text === null) continue;
+
+    expect(
+      checkAnswer(question.answer, text).correct,
+      `${where}: misconception ${text} is actually the right answer`,
+    ).toBe(false);
+
+    expect(
+      misconception.explain.th.trim(),
+      `${where}: misconception with no Thai`,
+    ).not.toBe("");
+    expect(
+      misconception.explain.en.trim(),
+      `${where}: misconception with no English`,
+    ).not.toBe("");
   }
 }
 

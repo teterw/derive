@@ -21,6 +21,13 @@ function rootsLine(roots: string[]): { th: string; en: string } {
   return orJoin(roots.map((root) => `x = ${root}`));
 }
 
+/** Two solution sets, compared as sets. */
+function sameSet(a: string[], b: string[]): boolean {
+  const normalise = (values: string[]) =>
+    [...values].map(Number).sort((x, y) => x - y).join(",");
+  return normalise(a) === normalise(b);
+}
+
 function factorKatex(a: number, constant: number): string {
   return `\\left(${linearExpr(a, constant)}\\right)`;
 }
@@ -99,6 +106,12 @@ export const quadSolveFactorSimple: Generator = {
     );
 
     const values = p === q ? [String(p)] : [String(p), String(q)];
+    /**
+     * Reading the roots straight off the brackets without flipping the sign is
+     * the commonest slip here - unless the roots happen to be symmetric, in
+     * which case the "mistake" is the right answer and must not be named.
+     */
+    const flipped = values.map((value) => String(-Number(value)));
 
     return {
       id: `${quadSolveFactorSimple.id}:${rng.seed}:${difficulty}`,
@@ -111,6 +124,21 @@ export const quadSolveFactorSimple: Generator = {
       stem,
       answer: { kind: "set", values },
       steps,
+      /**
+       * Reading the roots straight off the factorisation without flipping the
+       * sign is the single commonest slip on this skill.
+       */
+      misconceptions: sameSet(flipped, values)
+        ? []
+        : [
+            {
+              answer: { kind: "set", values: flipped },
+              explain: {
+                th: `นั่นคือตัวเลขที่อยู่ในวงเล็บ ไม่ใช่คำตอบ จาก ${linearExpr(1, -p)} = 0 ต้องย้ายข้าง ได้ x = ${p}`,
+                en: `Those are the numbers inside the brackets, not the roots. From ${linearExpr(1, -p)} = 0 you get x = ${p}.`,
+              },
+            },
+          ],
       hints: [
         {
           th: "ข้างหนึ่งของสมการต้องเป็นศูนย์ก่อน",

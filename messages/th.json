@@ -160,7 +160,8 @@
     "queueDone": "ทบทวนครบแล้ว",
     "queueDoneBody": "ข้อที่ทำถูกจะถูกนำออกจากรายการทบทวนโดยอัตโนมัติ",
     "queueProgress": "ข้อ {index} จาก {total}",
-    "incompleteSet": "ที่ตอบมาถูกต้อง แต่สมการนี้มี {expected} คำตอบ คุณตอบมา {found} คำตอบ"
+    "incompleteSet": "ที่ตอบมาถูกต้อง แต่สมการนี้มี {expected} คำตอบ คุณตอบมา {found} คำตอบ",
+    "whatWentWrong": "สิ่งที่น่าจะพลาดไป"
   },
   "learn": {
     "title": "เรียน",

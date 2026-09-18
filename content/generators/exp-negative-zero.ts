@@ -1,6 +1,13 @@
 import { coefficientPower, power } from "../format";
 import { makeStep } from "../step";
-import type { Difficulty, Generator, Question, RNG, Step } from "../types";
+import type {
+  Difficulty,
+  Generator,
+  Misconception,
+  Question,
+  RNG,
+  Step,
+} from "../types";
 
 const ID = "exp.zero-negative";
 const SKILL = "exp.negative-zero";
@@ -37,6 +44,7 @@ export const expZeroNegative: Generator = {
       answer: { kind: "exact", value: built.answerMath },
       steps: built.steps,
       hints: built.hints,
+      ...(built.misconceptions ? { misconceptions: built.misconceptions } : {}),
       rulesUsed: [...new Set(built.steps.map((step) => step.ruleId))],
     };
   },
@@ -47,6 +55,7 @@ type Built = {
   answerMath: string;
   steps: Step[];
   hints: { th: string; en: string }[];
+  misconceptions?: Misconception[];
 };
 
 function build(rng: RNG, v: string, difficulty: Difficulty): Built {
@@ -86,6 +95,15 @@ function build(rng: RNG, v: string, difficulty: Difficulty): Built {
     return {
       stem: power(String(base), -exponent),
       answerMath: `1/${value}`,
+      misconceptions: [
+        {
+          answer: { kind: "exact", value: `-${value}` },
+          explain: {
+            th: "เครื่องหมายลบอยู่บนเลขชี้กำลัง ไม่ใช่บนคำตอบ - เลขชี้กำลังลบหมายถึงส่วนกลับ",
+            en: "The minus is on the exponent, not on the answer - a negative exponent means the reciprocal.",
+          },
+        },
+      ],
       steps: [
         makeStep(`\\frac{1}{${power(String(base), exponent)}}`, "exp.negative", {
           th: "เลขชี้กำลังลบ หมายถึงส่วนกลับ",

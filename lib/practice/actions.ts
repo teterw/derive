@@ -2,7 +2,12 @@
 
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { getSkill } from "@/content/topics";
-import type { L, PublicQuestion, Step } from "@/content/types";
+import type {
+  L,
+  Misconception,
+  PublicQuestion,
+  Step,
+} from "@/content/types";
 import { checkAnswer, type CheckResult } from "@/lib/math/check";
 import { getSessionUser } from "@/lib/auth/session";
 import { recordAttempt } from "@/lib/stats/record";
@@ -44,6 +49,12 @@ export type SubmitResult = {
   /** The answer as the app would write it, for the "you said / it is" line. */
   correctAnswer: string;
   steps: Step[];
+  /**
+   * Set when the wrong answer is a *recognised* wrong answer - the one a
+   * particular mistake produces. Naming the mistake is the difference between
+   * "wrong" and a lesson.
+   */
+  misconception?: L;
 };
 
 export async function submitAnswerAction(input: {
@@ -78,7 +89,22 @@ export async function submitAnswerAction(input: {
     result,
     correctAnswer: displayAnswer(question),
     steps: question.steps,
+    ...(result.correct
+      ? {}
+      : { misconception: matchMisconception(question, input.answer) }),
   };
+}
+
+/** Which named mistake, if any, produces the answer that was given. */
+function matchMisconception(
+  question: { misconceptions?: Misconception[] },
+  raw: string,
+): L | undefined {
+  for (const candidate of question.misconceptions ?? []) {
+    // No form requirement: the mistake is about the value, not its shape.
+    if (checkAnswer(candidate.answer, raw).correct) return candidate.explain;
+  }
+  return undefined;
 }
 
 /** One hint at a time, in order. Nothing past the one that was asked for. */

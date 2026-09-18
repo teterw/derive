@@ -1,6 +1,6 @@
 "use client";
 
-import { useImperativeHandle, useRef, type Ref } from "react";
+import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +44,23 @@ export function AnswerInput({
 }) {
   const t = useTranslations("practice");
   const inputRef = useRef<HTMLInputElement>(null);
+  /**
+   * Where the caret should land once the new value has been committed. The
+   * value is controlled by the parent, so the caret cannot be moved in the
+   * same tick as the insert - it has to wait for the render that carries the
+   * new text.
+   */
+  const pendingCaret = useRef<number | null>(null);
+
+  useEffect(() => {
+    const caret = pendingCaret.current;
+    if (caret === null) return;
+    pendingCaret.current = null;
+    const input = inputRef.current;
+    if (!input) return;
+    input.focus();
+    input.setSelectionRange(caret, caret);
+  }, [value]);
 
   useImperativeHandle(handleRef, () => ({
     focus: () => inputRef.current?.focus(),
@@ -55,14 +72,8 @@ export function AnswerInput({
     if (!input) return;
     const start = input.selectionStart ?? value.length;
     const end = input.selectionEnd ?? value.length;
-    const next = value.slice(0, start) + text + value.slice(end);
-    onChange(next);
-
-    const caret = start + text.length - caretBack;
-    requestAnimationFrame(() => {
-      input.focus();
-      input.setSelectionRange(caret, caret);
-    });
+    onChange(value.slice(0, start) + text + value.slice(end));
+    pendingCaret.current = start + text.length - caretBack;
   }
 
   return (

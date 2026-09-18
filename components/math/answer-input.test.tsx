@@ -1,0 +1,110 @@
+// @vitest-environment jsdom
+import { describe, expect, it, vi } from "vitest";
+import { useState } from "react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
+import { AnswerInput } from "./answer-input";
+import { checkAnswer } from "@/lib/math/check";
+import messages from "@/messages/th.json";
+
+/**
+ * The keypad exists so that maths can be typed on a phone. What matters is
+ * that what it inserts is what the answer checker accepts - a private format
+ * that needs translating later would be worse than no keypad at all.
+ */
+function Harness({ onSubmit = () => {} }: { onSubmit?: () => void }) {
+  const [value, setValue] = useState("");
+  return (
+    <NextIntlClientProvider locale="th" messages={messages}>
+      <AnswerInput
+        value={value}
+        onChange={setValue}
+        onSubmit={onSubmit}
+        state="idle"
+      />
+      <output data-testid="value">{value}</output>
+    </NextIntlClientProvider>
+  );
+}
+
+const box = () =>
+  screen.getByLabelText(messages.practice.yourAnswer) as HTMLInputElement;
+const value = () => screen.getByTestId("value").textContent ?? "";
+
+describe("AnswerInput", () => {
+  it("types straight into the box", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.type(box(), "2/3");
+    expect(value()).toBe("2/3");
+  });
+
+  it("submits on Enter", async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    render(<Harness onSubmit={onSubmit} />);
+    await user.type(box(), "5{Enter}");
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("puts the caret inside the brackets a key opens", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.click(screen.getByRole("button", { name: "√" }));
+    // Keyboard, not type(): type() clicks first, which would move the caret
+    // to the end - exactly what the key is trying to avoid.
+    await user.keyboard("18");
+
+    expect(value()).toBe("sqrt(18)");
+  });
+
+  it("inserts notation the answer checker actually accepts", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.type(box(), "2");
+    await user.click(screen.getByRole("button", { name: "√" }));
+    await user.keyboard("3");
+
+    expect(value()).toBe("2sqrt(3)");
+    expect(
+      checkAnswer({ kind: "exact", value: "2*sqrt(3)" }, value()).correct,
+    ).toBe(true);
+  });
+
+  it("builds a power the checker understands", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.type(box(), "x");
+    await user.click(screen.getByRole("button", { name: "x²" }));
+
+    expect(value()).toBe("x^2");
+    expect(
+      checkAnswer({ kind: "exact", value: "x*x" }, value()).correct,
+    ).toBe(true);
+  });
+
+  it("goes quiet once the question is answered", async () => {
+    const user = userEvent.setup();
+    render(
+      <NextIntlClientProvider locale="th" messages={messages}>
+        <AnswerInput
+          value="2"
+          onChange={() => {}}
+          onSubmit={() => {}}
+          disabled
+          state="correct"
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(box()).toBeDisabled();
+    for (const key of screen.getAllByRole("button")) {
+      expect(key).toBeDisabled();
+    }
+    await user.click(screen.getByRole("button", { name: "√" }));
+  });
+});

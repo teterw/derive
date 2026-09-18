@@ -1,12 +1,20 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
-import { ArrowRight, BookOpen, Dumbbell, Flame, RotateCw } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  Dumbbell,
+  Flame,
+  RotateCw,
+} from "lucide-react";
 import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
 import { getHeatmap, getStreak, getToday, getWeakestSkills } from "@/lib/stats/queries";
 import { getReviewCount } from "@/lib/review/queue";
+import { getDailyStreak } from "@/lib/daily/challenge";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Heatmap } from "@/components/stats/heatmap";
@@ -27,15 +35,18 @@ export default async function DashboardPage({
   const user = await requireUser(locale);
   const t = await getTranslations("dashboard");
   const tStats = await getTranslations("stats");
+  const tDaily = await getTranslations("daily");
   const active = locale as Locale;
 
-  const [streak, today, heatmap, weakest, reviewCount] = await Promise.all([
-    getStreak(user.id),
-    getToday(user.id),
-    getHeatmap(user.id, 133),
-    getWeakestSkills(user.id, 3),
-    getReviewCount(user.id),
-  ]);
+  const [streak, today, heatmap, weakest, reviewCount, daily] =
+    await Promise.all([
+      getStreak(user.id),
+      getToday(user.id),
+      getHeatmap(user.id, 133),
+      getWeakestSkills(user.id, 3),
+      getReviewCount(user.id),
+      getDailyStreak(user.id),
+    ]);
 
   const accuracy =
     today.attempts === 0
@@ -79,13 +90,19 @@ export default async function DashboardPage({
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ActionCard
+          href="/daily"
+          icon={<CalendarDays className="h-5 w-5" />}
+          title={tDaily("cardTitle")}
+          body={daily.doneToday ? tDaily("cardDone") : tDaily("cardBody")}
+          primary={!daily.doneToday}
+        />
         <ActionCard
           href="/practice"
           icon={<Dumbbell className="h-5 w-5" />}
           title={t("practiceTitle")}
           body={t("practiceBody")}
-          primary
         />
         <ActionCard
           href="/review"

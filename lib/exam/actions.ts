@@ -115,8 +115,9 @@ export async function answerExamQuestionAction(input: {
   const result = checkAnswer(question.answer, input.answer, skill.strictForm);
 
   await recordAttempt({
+    // A daily challenge runs through the same machinery; the run says which.
     userId,
-    mode: "exam",
+    mode: run.mode,
     runId: input.runId,
     question,
     userAnswer: input.answer,

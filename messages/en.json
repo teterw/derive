@@ -28,7 +28,8 @@
     "stats": "Stats",
     "formulas": "Formulas",
     "admin": "Admin",
-    "logout": "Log out"
+    "logout": "Log out",
+    "daily": "Daily"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -299,5 +300,17 @@
       "shortcuts": "Show these shortcuts",
       "close": "Close the panel"
     }
+  },
+  "daily": {
+    "title": "Daily challenge",
+    "subtitle": "Five questions for {day} - everyone gets the same set",
+    "streak": "Day streak",
+    "doneTitle": "Done for today",
+    "doneBody": "A new set arrives at midnight, Bangkok time.",
+    "resultsTitle": "Today's result",
+    "backHome": "Back to the dashboard",
+    "cardTitle": "Daily challenge",
+    "cardBody": "Today's five questions, not done yet",
+    "cardDone": "Done for today"
   }
 }

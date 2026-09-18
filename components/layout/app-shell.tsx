@@ -9,6 +9,7 @@ import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
+  { href: "/daily", key: "daily" },
   { href: "/learn", key: "learn" },
   { href: "/practice", key: "practice" },
   { href: "/exam", key: "exam" },

@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "smoke": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/smoke-test.ts",
     "content:coverage": "tsx scripts/content-coverage.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrate.ts",

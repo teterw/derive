@@ -92,6 +92,19 @@ describe("checkAnswer - sets", () => {
     expect(checkAnswer(roots, "2, -5, 7").correct).toBe(false);
   });
 
+  it("says when a right root is simply missing a partner", () => {
+    expect(checkAnswer(roots, "2")).toEqual({
+      correct: false,
+      reason: "incomplete",
+      found: 1,
+      expected: 2,
+    });
+  });
+
+  it("but calls a wrong root wrong, not incomplete", () => {
+    expect(checkAnswer(roots, "7")).toEqual({ correct: false, reason: "wrong" });
+  });
+
   it("rejects a repeated root standing in for two", () => {
     expect(checkAnswer(roots, "2, 2").correct).toBe(false);
   });

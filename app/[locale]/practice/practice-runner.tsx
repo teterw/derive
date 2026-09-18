@@ -210,6 +210,10 @@ export function PracticeRunner({
       : null;
   const unparseable =
     outcome && !outcome.result.correct && outcome.result.reason === "unparseable";
+  const incomplete =
+    outcome && !outcome.result.correct && outcome.result.reason === "incomplete"
+      ? outcome.result
+      : null;
 
   if (finished) {
     return (
@@ -347,6 +351,14 @@ export function PracticeRunner({
             {!correct ? (
               <div className="mt-2 space-y-1 text-sm">
                 {formFeedback ? <p className="text-muted">{formFeedback}</p> : null}
+                {incomplete ? (
+                  <p className="text-muted">
+                    {t("incompleteSet", {
+                      found: incomplete.found,
+                      expected: incomplete.expected,
+                    })}
+                  </p>
+                ) : null}
                 {unparseable ? (
                   <p className="text-muted">{t("couldNotRead")}</p>
                 ) : null}

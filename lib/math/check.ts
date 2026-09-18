@@ -13,7 +13,13 @@ export type CheckResult =
   | { correct: false; reason: "unparseable" }
   | { correct: false; reason: "wrong" }
   /** Right value, wrong shape: the skill declares `strictForm`. */
-  | { correct: false; reason: "form"; requirement: FormRequirement };
+  | { correct: false; reason: "form"; requirement: FormRequirement }
+  /**
+   * Every root given is right, but not all of them were given. By far the
+   * most common near-miss on a quadratic, and worth saying out loud rather
+   * than marking as simply wrong.
+   */
+  | { correct: false; reason: "incomplete"; found: number; expected: number };
 
 const SYMBOL_REPLACEMENTS: [RegExp, string][] = [
   [/√/g, "sqrt"],
@@ -103,15 +109,15 @@ export function checkAnswer(
         return { correct: false, reason: "unparseable" };
       }
       const given = parts as string[];
-      if (given.length !== answer.values.length) {
+      if (given.length > answer.values.length) {
         return { correct: false, reason: "wrong" };
       }
 
-      // Order-free: match each expected value to a distinct given one.
-      const used = new Set<number>();
-      for (const expected of answer.values) {
-        const index = given.findIndex((candidate, i) => {
-          if (used.has(i)) return false;
+      // Order-free: match each given value to a distinct expected one.
+      const claimed = new Set<number>();
+      for (const candidate of given) {
+        const index = answer.values.findIndex((expected, i) => {
+          if (claimed.has(i)) return false;
           try {
             return areEquivalent(candidate, expected);
           } catch {
@@ -119,7 +125,16 @@ export function checkAnswer(
           }
         });
         if (index === -1) return { correct: false, reason: "wrong" };
-        used.add(index);
+        claimed.add(index);
+      }
+
+      if (given.length < answer.values.length) {
+        return {
+          correct: false,
+          reason: "incomplete",
+          found: given.length,
+          expected: answer.values.length,
+        };
       }
 
       for (const part of given) {

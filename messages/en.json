@@ -154,7 +154,8 @@
     },
     "queueDone": "Queue finished",
     "queueDoneBody": "The ones you got right have left the review queue.",
-    "queueProgress": "{index} of {total}"
+    "queueProgress": "{index} of {total}",
+    "incompleteSet": "What you gave is right, but this equation has {expected} roots and you gave {found}."
   },
   "learn": {
     "title": "Learn",

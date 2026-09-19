@@ -39,6 +39,10 @@ export const quadraticRules: Rule[] = [
       th: "หาสองจำนวนที่คูณกันได้พจน์คงที่ และบวกกันได้สัมประสิทธิ์ของ x",
       en: "Find two numbers that multiply to the constant term and add to the coefficient of x.",
     },
+    mnemonic: {
+      th: "หาสองจำนวนที่ คูณได้ท้าย บวกได้กลาง",
+      en: "Find two numbers that multiply to the last term and add to the middle one.",
+    },
     examples: [
       {
         from: "x^2 - 5x + 6",
@@ -64,6 +68,10 @@ export const quadraticRules: Rule[] = [
       th: "กำลังสองลบกำลังสอง แยกเป็นผลต่างคูณผลบวกได้เสมอ",
       en: "A square minus a square always splits into a difference times a sum.",
     },
+    mnemonic: {
+      th: "ผลต่างกำลังสอง เท่ากับ ผลบวก คูณ ผลต่าง",
+      en: "A difference of squares is the sum times the difference.",
+    },
     examples: [
       { from: "x^2 - 49", to: "(x - 7)(x + 7)" },
       { from: "9x^2 - 25", to: "(3x - 5)(3x + 5)" },
@@ -82,6 +90,10 @@ export const quadraticRules: Rule[] = [
       th: "ตรีนามที่พจน์หัวและพจน์ท้ายเป็นกำลังสอง และพจน์กลางเป็นสองเท่าของผลคูณราก",
       en: "First and last terms are squares, and the middle term is twice their product.",
     },
+    mnemonic: {
+      th: "หน้ากำลังสอง บวกสองหน้าหลัง บวกหลังกำลังสอง",
+      en: "Front squared, plus twice front-times-back, plus back squared - the standard Thai chant, where หน้า and หลัง are the first and second terms.",
+    },
     examples: [
       { from: "x^2 + 6x + 9", to: "(x + 3)^2" },
       { from: "x^2 - 10x + 25", to: "(x - 5)^2" },
@@ -99,6 +111,10 @@ export const quadraticRules: Rule[] = [
     plain: {
       th: "ถ้าผลคูณเป็นศูนย์ ต้องมีตัวใดตัวหนึ่งเป็นศูนย์",
       en: "If a product is zero, at least one of the factors is zero.",
+    },
+    mnemonic: {
+      th: "คูณกันได้ศูนย์ ต้องมีตัวใดตัวหนึ่งเป็นศูนย์",
+      en: "If a product is zero, one of the factors has to be zero.",
     },
     examples: [
       {
@@ -166,6 +182,10 @@ export const quadraticRules: Rule[] = [
       th: "สูตรนี้ใช้ได้กับสมการกำลังสองทุกสมการ แม้แยกตัวประกอบไม่ได้",
       en: "This works for every quadratic, including the ones that will not factor.",
     },
+    mnemonic: {
+      th: "ลบบี บวกลบ รากบีกำลังสองลบสี่เอซี ส่วนสองเอ",
+      en: "Minus b, plus-or-minus the root of b squared minus four a c, all over two a - said as one line, which is how it is memorised.",
+    },
     examples: [
       {
         from: "x^2 - 5x + 6 = 0",
@@ -189,6 +209,10 @@ export const quadraticRules: Rule[] = [
     plain: {
       th: "D > 0 มีสองคำตอบ, D = 0 มีคำตอบเดียว, D < 0 ไม่มีคำตอบที่เป็นจำนวนจริง",
       en: "D > 0 gives two roots, D = 0 gives one, D < 0 gives none in the real numbers.",
+    },
+    mnemonic: {
+      th: "D มากกว่าศูนย์ได้สองคำตอบ D เท่ากับศูนย์ได้คำตอบเดียว D น้อยกว่าศูนย์ไม่มีคำตอบจำนวนจริง",
+      en: "D above zero gives two roots, D zero gives one, D below zero gives none in the reals.",
     },
     examples: [
       {

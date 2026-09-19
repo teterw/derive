@@ -98,6 +98,11 @@ export default async function RulesPage({
                       {rule.name[active]}
                     </CardTitle>
                     <Tex tex={rule.statement} display className="py-1" />
+                    {rule.mnemonic ? (
+                      <p className="border-l-2 border-accent pl-2 text-sm">
+                        <MathText text={rule.mnemonic[active]} />
+                      </p>
+                    ) : null}
                     <CardDescription>
                       <MathText text={rule.plain[active]} />
                     </CardDescription>

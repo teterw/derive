@@ -161,7 +161,11 @@
     "queueDoneBody": "The ones you got right have left the review queue.",
     "queueProgress": "{index} of {total}",
     "incompleteSet": "What you gave is right, but this equation has {expected} roots and you gave {found}.",
-    "whatWentWrong": "What probably happened"
+    "whatWentWrong": "What probably happened",
+    "readsAs": "Reads as",
+    "cannotReadYet": "Not readable yet - check the brackets.",
+    "selectAll": "All",
+    "selectNone": "None"
   },
   "learn": {
     "title": "Learn",
@@ -185,7 +189,8 @@
     "inPlainWords": "In plain words",
     "examples": "Examples",
     "seeAlso": "See also",
-    "whereItIsUsed": "Used in"
+    "whereItIsUsed": "Used in",
+    "howItIsRemembered": "How it is remembered"
   },
   "exam": {
     "setupTitle": "Set up an exam",
@@ -223,7 +228,12 @@
     "yourAnswer": "You answered",
     "notAnswered": "Not answered",
     "reviewWrong": "Drill what you missed",
-    "backToSetup": "Set up another"
+    "backToSetup": "Set up another",
+    "checkAnswer": "Check answer",
+    "finishDaily": "Finish today's set",
+    "unansweredWarning": "{count} question(s) are still unanswered. Finishing now records them as not answered.",
+    "keepGoing": "Keep going",
+    "finishAnyway": "Finish anyway"
   },
   "review": {
     "title": "Review",

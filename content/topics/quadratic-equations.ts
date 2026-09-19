@@ -35,6 +35,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "ดึงตัวประกอบร่วมของทุกพจน์ออกมาไว้หน้าวงเล็บ",
       en: "Pull the factor shared by every term outside the bracket.",
     },
+    formula: "ab + ac = a(b+c)",
     strictForm: "factored",
     prerequisites: [],
     ruleIds: ["quad.common-factor", "arith.distribute"],
@@ -50,6 +51,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "หาสองจำนวนที่คูณกันได้พจน์คงที่ และบวกกันได้สัมประสิทธิ์ของ x",
       en: "Find two numbers multiplying to the constant and adding to the middle coefficient.",
     },
+    formula: "x^2 + (p+q)x + pq = (x+p)(x+q)",
     strictForm: "factored",
     prerequisites: ["quad.factor-common"],
     ruleIds: [
@@ -70,6 +72,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "จำรูปแบบ a^2 - b^2 แล้วแยกเป็นผลต่างคูณผลบวก",
       en: "Recognise a^2 - b^2 and split it into a difference times a sum.",
     },
+    formula: "a^2 - b^2 = (a-b)(a+b)",
     strictForm: "factored",
     prerequisites: ["quad.factor-common"],
     ruleIds: ["quad.diff-squares", "quad.common-factor"],
@@ -85,6 +88,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "จัดสมการให้เท่ากับศูนย์ แยกตัวประกอบ แล้วใช้สมบัติการคูณเป็นศูนย์",
       en: "Set the equation to zero, factor it, then use the zero product property.",
     },
+    formula: "AB = 0",
     strictForm: null,
     prerequisites: [
       "quad.factor-trinomial",
@@ -111,6 +115,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "เติมกำลังสองของครึ่งหนึ่งของสัมประสิทธิ์ x แล้วถอดรากทั้งสองข้าง",
       en: "Add the square of half the middle coefficient, then take roots of both sides.",
     },
+    formula: "x^2 + bx = \\left(x + \\dfrac{b}{2}\\right)^2 - \\dfrac{b^2}{4}",
     strictForm: null,
     prerequisites: ["quad.solve-by-factoring"],
     ruleIds: [
@@ -132,6 +137,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "ใช้สูตรกับสมการกำลังสองทุกแบบ รวมถึงแบบที่แยกตัวประกอบไม่ได้",
       en: "Use the formula on any quadratic, including ones that will not factor.",
     },
+    formula: "x = \\dfrac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}",
     strictForm: null,
     prerequisites: ["quad.completing-square"],
     ruleIds: [
@@ -153,6 +159,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "ใช้ D = b^2 - 4ac บอกจำนวนคำตอบโดยไม่ต้องแก้สมการ",
       en: "Use D = b^2 - 4ac to count the roots without solving.",
     },
+    formula: "D = b^2 - 4ac",
     strictForm: null,
     prerequisites: ["quad.formula"],
     ruleIds: ["quad.discriminant", "quad.formula"],
@@ -168,6 +175,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "ตั้งสมการจากสถานการณ์ แก้สมการ แล้วตรวจว่าคำตอบสมเหตุสมผล",
       en: "Set up the equation, solve it, then check the answer makes sense.",
     },
+    formula: "\\text{โจทย์} \\rightarrow x",
     strictForm: null,
     prerequisites: ["quad.solve-by-factoring"],
     ruleIds: [

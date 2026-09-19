@@ -7,6 +7,7 @@ import type { Locale } from "@/i18n/routing";
 import type { Question } from "@/content/types";
 import { Badge, Card } from "@/components/ui/card";
 import { Tex } from "@/components/math/katex";
+import { AnswerText } from "@/components/math/answer-text";
 import { MathText } from "@/components/math/math-text";
 import { StepViewer } from "@/components/math/step-viewer";
 import { cn } from "@/lib/utils";
@@ -182,22 +183,27 @@ export function ExamResults({
                     </p>
 
                     <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-                      <p className="text-muted">
+                      <p className="flex flex-wrap items-center gap-x-2 text-muted">
                         {labels.yourAnswer}{" "}
-                        <span
-                          className={cn(
-                            "font-mono",
-                            attempt?.isCorrect ? "text-correct" : "text-wrong",
-                          )}
-                        >
-                          {attempt?.userAnswer || labels.notAnswered}
-                        </span>
+                        {attempt?.userAnswer ? (
+                          <AnswerText
+                            value={attempt.userAnswer}
+                            className={
+                              attempt.isCorrect ? "text-correct" : "text-wrong"
+                            }
+                          />
+                        ) : (
+                          <span className="text-muted">
+                            {labels.notAnswered}
+                          </span>
+                        )}
                       </p>
-                      <p className="text-muted">
+                      <p className="flex flex-wrap items-center gap-x-2 text-muted">
                         {labels.theAnswerIs}{" "}
-                        <span className="font-mono text-fg">
-                          {describeAnswer(question)}
-                        </span>
+                        <AnswerText
+                          value={describeAnswer(question)}
+                          className="text-fg"
+                        />
                       </p>
                     </div>
 

@@ -1,4 +1,4 @@
-import { coefficientPower, power } from "../format";
+import { VARIABLES, coefficientPower, power } from "../format";
 import { makeStep } from "../step";
 import { namedMistakes } from "../misconception";
 import type {
@@ -27,7 +27,7 @@ export const expZeroNegative: Generator = {
   provenance: "generated",
 
   generate(rng, difficulty): Question {
-    const v = rng.pick(["x", "y", "a", "b"] as const);
+    const v = rng.pick(VARIABLES);
     const built = build(rng, v, difficulty);
 
     return {

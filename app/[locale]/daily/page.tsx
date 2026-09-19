@@ -153,6 +153,7 @@ export default async function DailyPage({
         initialExplainMode={config.explainMode}
         timeLimitSec={0}
         elapsedSec={0}
+        mode="daily"
         skillNames={skillNames}
         ruleNames={ruleNames}
         difficultyLabels={DIFFICULTY_LABELS}

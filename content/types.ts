@@ -36,6 +36,23 @@ export type Rule = {
   conditions?: L;
   /** One sentence, no jargon. */
   plain: L;
+  /**
+   * How a Thai tutor actually tells you to remember it.
+   *
+   * Thai maths teaching leans hard on spoken mnemonics, and they are not
+   * translations of the formula - they are a different, chantable encoding of
+   * it. `(น+ล)^2 = น^2 + 2นล + ล^2` is taught as "หน้ากำลังสอง บวกสองหน้าหลัง
+   * บวกหลังกำลังสอง", where หน้า/หลัง mean the front and back terms and น/ล
+   * are their initials. A learner who has been taught that chant will not
+   * recognise the same rule written only with `a` and `b`.
+   *
+   * The English side is the gloss, not an English mnemonic: there usually is
+   * not one, and inventing a fake one would be worse than explaining the Thai.
+   *
+   * Optional - most rules do not have a traditional chant, and making one up
+   * would put words in a teacher's mouth.
+   */
+  mnemonic?: L;
   examples: { from: string; to: string; note?: L }[];
   seeAlso?: RuleId[];
 };
@@ -182,6 +199,15 @@ export type Skill = {
   name: L;
   /** One line describing what the learner can do once they have this. */
   summary: L;
+  /**
+   * The one formula that makes the skill recognisable at a glance, as KaTeX.
+   *
+   * A list of fourteen Thai skill names is fourteen things to read; the same
+   * list with `a^m \cdot a^n = a^{m+n}` beside each one is something a learner
+   * can scan. This is the picture on the tin, not a complete statement of the
+   * skill - the rule page is where the full statement lives.
+   */
+  formula: string;
   /** When set, an equivalent answer in the wrong form is rejected. */
   strictForm: FormRequirement | null;
   /** Skills that should come first. */

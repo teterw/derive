@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
+import { useEffect, useImperativeHandle, useMemo, useRef, type Ref } from "react";
 import { useTranslations } from "next-intl";
+import { answerToTex } from "@/lib/math/to-tex";
+import { Tex } from "@/components/math/katex";
 import { cn } from "@/lib/utils";
 
 /**
@@ -76,6 +78,18 @@ export function AnswerInput({
     pendingCaret.current = start + text.length - caretBack;
   }
 
+  /**
+   * What the typed text actually means, rendered as maths.
+   *
+   * Typing `3sqrt(2)` and being shown `3sqrt(2)` back tells a learner nothing
+   * they did not already know - they are left checking their own typing
+   * against a format they half-remember. Showing `3√2` lets them confirm the
+   * *maths* before they commit to it, which is the thing they are actually
+   * unsure about.
+   */
+  const preview = useMemo(() => answerToTex(value), [value]);
+  const typing = value.trim() !== "";
+
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
@@ -105,6 +119,35 @@ export function AnswerInput({
             state === "idle" && "border-border",
           )}
         />
+      </div>
+
+      {/*
+        Reserved height, so the keypad does not jump down the page the moment
+        the first character is typed.
+      */}
+      <div
+        className="flex min-h-9 items-center gap-2 px-1"
+        aria-live="polite"
+        data-testid="answer-preview"
+      >
+        {typing ? (
+          preview ? (
+            <>
+              <span className="shrink-0 text-xs text-muted">{t("readsAs")}</span>
+              <span
+                className={cn(
+                  "min-w-0 overflow-x-auto text-lg",
+                  state === "correct" && "text-correct",
+                  state === "wrong" && "text-wrong",
+                )}
+              >
+                <Tex tex={preview} />
+              </span>
+            </>
+          ) : (
+            <span className="text-xs text-muted">{t("cannotReadYet")}</span>
+          )
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-1.5">

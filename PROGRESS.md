@@ -24,8 +24,9 @@ Beyond the phase plan: the **daily challenge** from
 `docs/CONTENT-PIPELINE.md` §6 is built.
 
 Green as of this commit: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(294 tests in 25 files), `pnpm build`, `pnpm smoke` (32 checks against the real
-database), `pnpm render-check` (14 pages, signed in).
+(318 tests in 27 files), `pnpm build`, `pnpm smoke` (32 checks against the real
+database), `pnpm render-check` (15 pages, signed in), `pnpm check:contrast`,
+`pnpm vars`.
 
 `pnpm render-check` needs a server already listening on port 3000 — it does not
 start one. Without it every page "fails" with `fetch failed`, which looks far
@@ -95,8 +96,11 @@ determinism and variety.
 | Every page actually renders | `pnpm render-check` — fetches each page as a signed-in user, and asserts that a page shipping KaTeX markup also ships the KaTeX stylesheet |
 | The chart palette is colourblind-safe | the data-viz validator, against both surfaces — not eyeballed |
 
-What is **not** covered: nobody has sat down and used the app as a learner for
-an hour. The pieces are verified; the feel is not.
+What is **not** covered: the *feel*. The first real session with the app
+produced six findings that no test could have caught, all now fixed — see
+"Round two" below. Expect more of the same from the second session; that is
+what this kind of testing is for, and it is worth more per hour than anything
+else on this list.
 
 **Compiling is not rendering.** `pnpm build` was green for a long stretch during
 which every formula in the app rendered as unstyled fallback text, because
@@ -106,6 +110,41 @@ general lesson stands: after touching routing, translations, styling or
 anything a server component reads, look at a page.
 
 ---
+
+## Round two — what the first real session changed
+
+Six things, all reported from actually using the app rather than from reading
+the code. Each is worth recording because each was invisible to the tests.
+
+1. **The theme.** Black-and-yellow was Monkeytype's, and Monkeytype is only
+   ever dark; the gold had to become a dark goldenrod to survive a white page,
+   and a dark goldenrod is a muddy olive. Now indigo — chosen because the
+   accent sits beside correct-green and wrong-red on every answered question,
+   and indigo is the furthest a usable hue gets from both. Gold sits *between*
+   them, which is why it muddied. `pnpm check:contrast` now parses the tokens
+   out of `globals.css` and checks every pairing in both modes, so this cannot
+   quietly rot.
+2. **Unknowns were `x`, then `y`, then `k`.** Two generators drew a letter
+   from `["x","y","a","m","k"]`. The variety was decoration and it cost
+   attention: you had to re-read each stem to see what was being asked. One
+   shared `VARIABLES` set now, and `pnpm vars` lists every letter in every
+   stem and flags anything outside it.
+3. **The answer box showed you your own keystrokes.** `m^5` was displayed
+   back as `m^5`, which tells a learner nothing about the thing they are
+   unsure of. There is now a live rendered preview under the input, and every
+   later display of an answer goes through the same renderer.
+4. **The practice setup page was a wall of prose.** Each skill now leads with
+   its formula and demotes the name to a caption, because choosing what to
+   drill is recognition, not reading. Plus `All` / `None` per topic.
+5. **The formula page did not speak Thai.** Thai teaching leans on spoken
+   mnemonics that are a *different encoding* of the rule, not a translation of
+   it — `หน้ากำลังสอง บวกสองหน้าหลัง บวกหลังกำลังสอง`. Thirteen rules now carry
+   one. (The exponent laws turned out to already match Thai convention exactly,
+   `a^m \cdot a^n`, conditions and all, so they were left alone.)
+6. **Daily could be thrown away by one stray click.** A primary-styled submit
+   button sat permanently beside the navigation, and the daily has no second
+   attempt that day. Finishing is now guarded by a panel naming what is
+   outstanding, with the question numbers as buttons.
 
 ## Where to pick up
 
@@ -174,6 +213,17 @@ anything a server component reads, look at a page.
   are generated from the same coefficients as the real answer, so a change to a
   generator could quietly make one of them correct. `namedMistakes()` filters
   through `checkAnswer`, and the property gate re-checks every seed.
+- **A second maths parser ships to the browser, deliberately.** The answer
+  preview needs to parse on every keystroke and mathjs is ~500KB.
+  `lib/math/to-tex.ts` is the small one; its test parses a corpus with *both*
+  it and mathjs and asserts they agree at sample points, because a preview
+  that disagrees with the marker is worse than no preview.
+- **`data-answer` on every rendered answer.** Once KaTeX has rendered, there
+  is no single node whose text is "2, 3" any more, so tests and the render
+  check assert against that attribute rather than picking through KaTeX's
+  internals. Note also that `textContent` includes KaTeX's MathML annotation,
+  which carries the raw TeX on purpose — assert on `.katex-html` when what you
+  mean is "what a sighted learner sees".
 - **Files containing LaTeX are never written through a shell heredoc.** The
   heredoc in this environment collapses `\\` to `\`, and a mis-escaped command
   in a template literal eats its backslash entirely rather than leaving a

@@ -16,6 +16,7 @@ import type { PracticeConfig } from "@/lib/practice/session";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
 import { AnswerInput, type AnswerInputHandle } from "@/components/math/answer-input";
+import { AnswerText } from "@/components/math/answer-text";
 import { MathText } from "@/components/math/math-text";
 import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
@@ -367,15 +368,16 @@ export function PracticeRunner({
                 {unparseable ? (
                   <p className="text-muted">{t("couldNotRead")}</p>
                 ) : null}
-                <p className="text-muted">
+                <p className="flex flex-wrap items-center gap-x-2 text-muted">
                   {t("youAnswered")}{" "}
-                  <span className="font-mono text-fg">{answer}</span>
+                  <AnswerText value={answer} className="text-fg" />
                 </p>
-                <p className="text-muted">
+                <p className="flex flex-wrap items-center gap-x-2 text-muted">
                   {t("theAnswerIs")}{" "}
-                  <span className="font-mono text-fg">
-                    {outcome.correctAnswer}
-                  </span>
+                  <AnswerText
+                    value={outcome.correctAnswer}
+                    className="text-fg"
+                  />
                 </p>
               </div>
             ) : null}

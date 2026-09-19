@@ -80,6 +80,24 @@ export function sumTerms(terms: (string | null)[]): string {
   });
 }
 
+/**
+ * The only letters a question ever uses for an unknown.
+ *
+ * Generators used to draw from a wider bag - `x`, `y`, `a`, `b`, `m`, `k` -
+ * which meant a practice run could ask about `x`, then `y`, then `k`, and a
+ * learner had to re-read the stem each time to work out what was even being
+ * asked. The variety was decoration and it cost attention.
+ *
+ * `x` and `y` are also what Thai school maths uses for an unknown; `a`, `b`
+ * and `c` are reserved for *coefficients*, which is exactly how the rule
+ * statements on the formula page write them (`ax^2 + bx + c = 0`). Letting a
+ * question call its unknown `a` quietly contradicted the formula sheet.
+ *
+ * Dropping `a` has a second benefit: the render-time maths segmenter could
+ * never tell a lone `a` from the English article, and now it never has to.
+ */
+export const VARIABLES = ["x", "y"] as const;
+
 /** `ax^2 + bx + c` in the usual written order, with zero terms dropped. */
 export function quadraticExpr(
   a: number,

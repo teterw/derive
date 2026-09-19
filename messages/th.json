@@ -161,7 +161,11 @@
     "queueDoneBody": "ข้อที่ทำถูกจะถูกนำออกจากรายการทบทวนโดยอัตโนมัติ",
     "queueProgress": "ข้อ {index} จาก {total}",
     "incompleteSet": "ที่ตอบมาถูกต้อง แต่สมการนี้มี {expected} คำตอบ คุณตอบมา {found} คำตอบ",
-    "whatWentWrong": "สิ่งที่น่าจะพลาดไป"
+    "whatWentWrong": "สิ่งที่น่าจะพลาดไป",
+    "readsAs": "อ่านว่า",
+    "cannotReadYet": "ยังอ่านไม่ออก ลองตรวจวงเล็บดูอีกครั้ง",
+    "selectAll": "เลือกทั้งหมด",
+    "selectNone": "ล้างทั้งหมด"
   },
   "learn": {
     "title": "เรียน",
@@ -185,7 +189,8 @@
     "inPlainWords": "พูดง่าย ๆ คือ",
     "examples": "ตัวอย่าง",
     "seeAlso": "ดูเพิ่มเติม",
-    "whereItIsUsed": "ใช้ในทักษะ"
+    "whereItIsUsed": "ใช้ในทักษะ",
+    "howItIsRemembered": "ท่องสูตร"
   },
   "exam": {
     "setupTitle": "ตั้งค่าการสอบ",
@@ -223,7 +228,12 @@
     "yourAnswer": "คุณตอบ",
     "notAnswered": "ไม่ได้ตอบ",
     "reviewWrong": "ฝึกข้อที่ยังไม่แม่น",
-    "backToSetup": "ตั้งค่าสอบใหม่"
+    "backToSetup": "ตั้งค่าสอบใหม่",
+    "checkAnswer": "ตรวจคำตอบ",
+    "finishDaily": "จบโจทย์ประจำวัน",
+    "unansweredWarning": "ยังเหลืออีก {count} ข้อที่ยังไม่ได้ตอบ ถ้าส่งตอนนี้ข้อเหล่านี้จะนับว่าไม่ได้ตอบ",
+    "keepGoing": "กลับไปทำต่อ",
+    "finishAnyway": "ส่งเลยทั้งที่ยังไม่ครบ"
   },
   "review": {
     "title": "ทบทวน",

@@ -32,6 +32,17 @@ const box = () =>
   screen.getByLabelText(messages.practice.yourAnswer) as HTMLInputElement;
 const value = () => screen.getByTestId("value").textContent ?? "";
 
+/**
+ * What a sighted learner actually reads. KaTeX renders twice - visible HTML
+ * plus a MathML tree carrying the TeX source for screen readers and
+ * copy-paste - so plain `textContent` always contains the raw `\sqrt{2}` and
+ * proves nothing about what is on screen.
+ */
+export function visibleText(root: Element): string {
+  const html = root.querySelector(".katex-html");
+  return (html ?? root).textContent ?? "";
+}
+
 describe("AnswerInput", () => {
   it("types straight into the box", async () => {
     const user = userEvent.setup();
@@ -85,6 +96,68 @@ describe("AnswerInput", () => {
     expect(
       checkAnswer({ kind: "exact", value: "x*x" }, value()).correct,
     ).toBe(true);
+  });
+
+  /**
+   * The preview is the only thing standing between a learner and submitting
+   * `2^-3` when they meant `2^(-3)`. If it stops rendering, or renders the
+   * keystrokes back at them, it has stopped doing its job.
+   */
+  describe("the preview", () => {
+    const preview = () => screen.getByTestId("answer-preview");
+
+    it("shows nothing before anything is typed", () => {
+      render(<Harness />);
+      expect(preview().textContent?.trim()).toBe("");
+    });
+
+    it("shows the maths, not the keystrokes", async () => {
+      const user = userEvent.setup();
+      render(<Harness />);
+
+      await user.type(box(), "3sqrt(2)");
+
+      expect(preview().querySelector(".katex")).toBeTruthy();
+      // Not `textContent`: KaTeX also emits a MathML annotation holding the
+      // TeX source, deliberately, so a formula can be copied out. What the
+      // learner *sees* is `.katex-html`.
+      expect(visibleText(preview())).not.toContain("sqrt");
+      expect(visibleText(preview())).toContain("2");
+    });
+
+    it("renders a power as a power", async () => {
+      const user = userEvent.setup();
+      render(<Harness />);
+
+      await user.type(box(), "m^5");
+
+      const annotation = preview().querySelector(
+        'annotation[encoding="application/x-tex"]',
+      );
+      expect(annotation?.textContent).toBe("m^{5}");
+    });
+
+    it("says so rather than guessing when the input is half-typed", async () => {
+      const user = userEvent.setup();
+      render(<Harness />);
+
+      await user.type(box(), "2x +");
+
+      expect(preview().textContent).toContain(
+        messages.practice.cannotReadYet,
+      );
+    });
+
+    it("recovers as soon as the input is complete again", async () => {
+      const user = userEvent.setup();
+      render(<Harness />);
+
+      await user.type(box(), "(x+1");
+      expect(preview().textContent).toContain(messages.practice.cannotReadYet);
+
+      await user.type(box(), ")");
+      expect(preview().querySelector(".katex")).toBeTruthy();
+    });
   });
 
   it("goes quiet once the question is answered", async () => {

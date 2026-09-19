@@ -33,6 +33,7 @@ export const exponentsRadicalsSkills: Skill[] = [
       th: "คูณ หาร และยกกำลังซ้อน โดยใช้สมบัติของเลขชี้กำลัง",
       en: "Multiply, divide and nest powers using the exponent laws.",
     },
+    formula: "a^m \\cdot a^n = a^{m+n}",
     strictForm: null,
     prerequisites: [],
     ruleIds: [
@@ -55,6 +56,7 @@ export const exponentsRadicalsSkills: Skill[] = [
       en: "Rewrite negative exponents as positive ones.",
     },
     // The whole point of the skill is to end up with positive exponents.
+    formula: "a^{-n} = \\dfrac{1}{a^n}",
     strictForm: "positive-exponents",
     prerequisites: ["exp.integer-laws"],
     ruleIds: [
@@ -77,6 +79,7 @@ export const exponentsRadicalsSkills: Skill[] = [
       th: "เขียนจำนวนมากหรือน้อยมากในรูป A \\times 10^n",
       en: "Write very large or very small numbers as A \\times 10^n.",
     },
+    formula: "A \\times 10^n",
     strictForm: "scientific-notation",
     prerequisites: ["exp.negative-zero"],
     ruleIds: ["exp.scientific-form", "exp.product", "exp.quotient"],
@@ -92,6 +95,7 @@ export const exponentsRadicalsSkills: Skill[] = [
       th: "ถอดตัวประกอบกำลังสองสมบูรณ์ออกจากตัวถูกกรณฑ์",
       en: "Pull perfect-square factors out of the radicand.",
     },
+    formula: "\\sqrt{k^2m} = k\\sqrt{m}",
     strictForm: "simplified-radical",
     prerequisites: [],
     ruleIds: ["rad.perfect-square-extract", "rad.product", "rad.quotient"],
@@ -107,6 +111,7 @@ export const exponentsRadicalsSkills: Skill[] = [
       th: "รวมกรณฑ์ที่เหมือนกัน และคูณหารกรณฑ์โดยใช้สมบัติของกรณฑ์",
       en: "Combine like radicals and use the product and quotient rules.",
     },
+    formula: "a\\sqrt{c} + b\\sqrt{c} = (a+b)\\sqrt{c}",
     strictForm: "simplified-radical",
     prerequisites: ["rad.simplify"],
     ruleIds: [
@@ -129,6 +134,7 @@ export const exponentsRadicalsSkills: Skill[] = [
       th: "กำจัดกรณฑ์ออกจากตัวส่วน ทั้งแบบพจน์เดียวและแบบใช้สังยุค",
       en: "Clear roots from the denominator, with a single term or a conjugate.",
     },
+    formula: "\\dfrac{a}{\\sqrt{b}} = \\dfrac{a\\sqrt{b}}{b}",
     strictForm: "rationalized-denominator",
     prerequisites: ["rad.simplify", "rad.operations"],
     ruleIds: [

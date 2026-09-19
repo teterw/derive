@@ -22,6 +22,10 @@ export const exponentRules: Rule[] = [
       th: "คูณเลขยกกำลังที่มีฐานเดียวกัน ให้นำเลขชี้กำลังมาบวกกัน",
       en: "Multiplying powers of the same base adds the exponents.",
     },
+    mnemonic: {
+      th: "ฐานเหมือนกัน คูณกัน ให้ บวก เลขชี้กำลัง",
+      en: "Same base, multiplying - add the exponents.",
+    },
     examples: [
       { from: "2^3 \\cdot 2^4", to: "2^{7}" },
       { from: "x^2 \\cdot x^5", to: "x^{7}" },
@@ -49,6 +53,10 @@ export const exponentRules: Rule[] = [
       th: "หารเลขยกกำลังที่มีฐานเดียวกัน ให้นำเลขชี้กำลังมาลบกัน",
       en: "Dividing powers of the same base subtracts the exponents.",
     },
+    mnemonic: {
+      th: "ฐานเหมือนกัน หารกัน ให้ ลบ เลขชี้กำลัง",
+      en: "Same base, dividing - subtract the exponents.",
+    },
     examples: [
       { from: "\\frac{5^7}{5^3}", to: "5^{4}" },
       { from: "\\frac{x^3}{x^8}", to: "x^{-5}" },
@@ -66,6 +74,10 @@ export const exponentRules: Rule[] = [
     plain: {
       th: "ยกกำลังซ้อนกัน ให้นำเลขชี้กำลังมาคูณกัน",
       en: "Raising a power to a power multiplies the exponents.",
+    },
+    mnemonic: {
+      th: "กำลังซ้อนกำลัง ให้ คูณ เลขชี้กำลัง",
+      en: "A power of a power - multiply the exponents.",
     },
     examples: [
       { from: "\\left(3^2\\right)^4", to: "3^{8}" },
@@ -145,6 +157,10 @@ export const exponentRules: Rule[] = [
     plain: {
       th: "เลขชี้กำลังติดลบ หมายถึงส่วนกลับของเลขยกกำลังนั้น",
       en: "A negative exponent means the reciprocal of the power.",
+    },
+    mnemonic: {
+      th: "เลขชี้กำลังติดลบ ให้ย้ายข้ามเส้นเศษส่วน แล้วเปลี่ยนเป็นบวก",
+      en: "A negative exponent flips across the fraction bar and turns positive.",
     },
     examples: [
       { from: "2^{-3}", to: "\\frac{1}{8}" },

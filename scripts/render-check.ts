@@ -23,6 +23,33 @@ const USERNAME = process.env.RENDER_CHECK_USER ?? "demo";
 
 type Result = { path: string; ok: boolean; notes: string[] };
 
+/**
+ * Things a specific page must actually contain.
+ *
+ * The generic checks below catch a page that broke; these catch a page that
+ * rendered fine while quietly having lost a feature - a skill formula that
+ * stopped being passed down, a mnemonic section that fell out of the JSX. Both
+ * have the same symptom, which is nothing at all.
+ */
+const EXPECTED: { path: string; needle: string; what: string }[] = [
+  {
+    path: "/th/practice",
+    // Only the quadratic-formula skill tile puts this on the setup page.
+    needle: "4ac",
+    what: "the skill formulas beside the checkboxes",
+  },
+  {
+    path: "/th/rules/quad.perfect-square-trinomial",
+    needle: "หน้ากำลังสอง บวกสองหน้าหลัง",
+    what: "the Thai mnemonic",
+  },
+  {
+    path: "/th/rules",
+    needle: "ผลบวก คูณ ผลต่าง",
+    what: "mnemonics on the rule index",
+  },
+];
+
 async function main() {
   const [user] = await db
     .select({ id: users.id, displayName: users.displayName })
@@ -62,6 +89,8 @@ async function main() {
     "/en/stats",
     "/th/rules",
     `/th/rules/${allRules[0]!.id}`,
+    // A rule that carries a Thai mnemonic, so `EXPECTED` below can check it.
+    "/th/rules/quad.perfect-square-trinomial",
   ];
 
   const results: Result[] = [];
@@ -164,6 +193,13 @@ async function checkPage(path: string, token: string): Promise<Result> {
       }
     }
     if (!styled) notes.push("maths is on the page but KaTeX's stylesheet is not");
+  }
+
+  for (const expectation of EXPECTED) {
+    if (expectation.path !== path) continue;
+    if (!html.includes(expectation.needle)) {
+      notes.push(`${expectation.what} is missing`);
+    }
   }
 
   return { path, ok: notes.length === 0, notes };

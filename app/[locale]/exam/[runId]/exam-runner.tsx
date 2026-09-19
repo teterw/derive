@@ -23,6 +23,7 @@ import type { ExplainMode } from "@/lib/exam/session";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
 import { AnswerInput } from "@/components/math/answer-input";
+import { AnswerText } from "@/components/math/answer-text";
 import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ export function ExamRunner({
   initialExplainMode,
   timeLimitSec,
   elapsedSec,
+  mode = "exam",
   skillNames,
   ruleNames,
   difficultyLabels,
@@ -55,6 +57,8 @@ export function ExamRunner({
   initialExplainMode: ExplainMode;
   timeLimitSec: number;
   elapsedSec: number;
+  /** Only changes wording and how loudly finishing is guarded. */
+  mode?: "exam" | "daily";
   skillNames: Record<string, { th: string; en: string }>;
   ruleNames: Record<string, { th: string; en: string }>;
   difficultyLabels: Record<number, { th: string; en: string }>;
@@ -86,6 +90,7 @@ export function ExamRunner({
   );
   const [pending, startTransition] = useTransition();
   const [finishing, setFinishing] = useState(false);
+  const [confirmingFinish, setConfirmingFinish] = useState(false);
 
   const shownAt = useRef(0);
   const question = questions[index]!;
@@ -192,6 +197,28 @@ export function ExamRunner({
     () => Math.round((answeredCount / questions.length) * 100),
     [answeredCount, questions.length],
   );
+
+  /** Positions, not ids: the confirm panel jumps the runner to them. */
+  const unanswered = useMemo(
+    () =>
+      questions
+        .map((candidate, position) => (answers[candidate.id] ? -1 : position))
+        .filter((position) => position >= 0),
+    [answers, questions],
+  );
+
+  /**
+   * "Submit exam" is the wrong words for the daily challenge, which is not an
+   * exam and which the learner has been told is five quick questions.
+   */
+  const finishLabel = mode === "daily" ? t("finishDaily") : t("submitExam");
+
+  /*
+   * Derived, not stored: answering the last outstanding question while the
+   * panel is open should close it, and the way to express that is to stop
+   * rendering it rather than to chase the change with an effect.
+   */
+  const showConfirm = confirmingFinish && unanswered.length > 0;
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
@@ -301,6 +328,7 @@ export function ExamRunner({
 
           {answered ? (
             <Button
+              variant="primary"
               onClick={() => move(1)}
               disabled={index === questions.length - 1}
             >
@@ -308,8 +336,19 @@ export function ExamRunner({
               <ChevronRight className="h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={submit} disabled={pending || draft.trim() === ""}>
-              {t("answer")}
+            /*
+              This is the button a learner wants on nearly every click, so it
+              is the only primary one on screen while a question is open. The
+              finish button downstairs stays quiet until it is actually the
+              thing to do.
+            */
+            <Button
+              variant="primary"
+              onClick={submit}
+              disabled={pending || draft.trim() === ""}
+            >
+              <Check className="h-4 w-4" />
+              {t("checkAnswer")}
             </Button>
           )}
 
@@ -363,12 +402,15 @@ export function ExamRunner({
               {answered.correct ? t("correct") : t("incorrect")}
             </p>
 
+            <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted">
+              {t("yourAnswer")}{" "}
+              <AnswerText value={answered.answer} className="text-fg" />
+            </p>
+
             {answered.correctAnswer ? (
-              <p className="text-sm text-muted">
+              <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted">
                 {t("theAnswerIs")}{" "}
-                <span className="font-mono text-fg">
-                  {answered.correctAnswer}
-                </span>
+                <AnswerText value={answered.correctAnswer} className="text-fg" />
               </p>
             ) : null}
 
@@ -383,16 +425,85 @@ export function ExamRunner({
         ) : null}
       </section>
 
-      <footer className="flex items-center justify-between gap-3 border-t border-border pt-4">
-        <p className="text-sm text-muted">
-          {t("answeredCount", {
-            answered: answeredCount,
-            total: questions.length,
-          })}
-        </p>
-        <Button onClick={finish} disabled={finishing} variant="primary">
-          {t("submitExam")}
-        </Button>
+      {/*
+        Finishing is irreversible and, for the daily, once a day - so it is
+        deliberately not a one-click action sitting next to "next question".
+        The old footer had a primary-styled "submit" button permanently live
+        beside the navigation, and clicking it with four questions unanswered
+        threw the run away with no warning at all.
+
+        Now: the button is quiet until every question is answered, and any
+        click while something is outstanding opens the panel below instead of
+        finishing. The unanswered numbers in that panel are buttons, so the
+        recovery from "I nearly did that by accident" is one tap.
+      */}
+      <footer className="space-y-3 border-t border-border pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted">
+            {t("answeredCount", {
+              answered: answeredCount,
+              total: questions.length,
+            })}
+          </p>
+          <Button
+            onClick={() => {
+              if (unanswered.length > 0) {
+                setConfirmingFinish(true);
+                return;
+              }
+              finish();
+            }}
+            disabled={finishing}
+            variant={unanswered.length === 0 ? "primary" : "outline"}
+          >
+            {finishLabel}
+          </Button>
+        </div>
+
+        {showConfirm ? (
+          <div className="space-y-3 rounded-lg border border-accent/50 bg-accent/5 px-4 py-3">
+            <p className="text-sm font-medium">
+              {t("unansweredWarning", { count: unanswered.length })}
+            </p>
+
+            <div className="flex flex-wrap gap-1">
+              {unanswered.map((position) => (
+                <button
+                  key={position}
+                  type="button"
+                  onClick={() => {
+                    setIndex(position);
+                    setConfirmingFinish(false);
+                  }}
+                  aria-label={t("goToQuestion", { index: position + 1 })}
+                  className="h-8 w-8 cursor-pointer rounded border border-accent text-xs tabular-nums text-accent hover:bg-accent hover:text-accent-fg"
+                >
+                  {position + 1}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setConfirmingFinish(false);
+                  setIndex(unanswered[0]!);
+                }}
+              >
+                {t("keepGoing")}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={finish}
+                disabled={finishing}
+                className="text-wrong"
+              >
+                {t("finishAnyway")}
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </footer>
     </div>
   );

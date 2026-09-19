@@ -49,6 +49,7 @@ function renderExam(
     timeLimitSec: number;
     elapsedSec: number;
     initialAnswered: Record<string, { answer: string; correct: boolean }>;
+    mode: "exam" | "daily";
   }> = {},
 ) {
   render(
@@ -60,6 +61,7 @@ function renderExam(
         initialExplainMode="onWrong"
         timeLimitSec={overrides.timeLimitSec ?? 0}
         elapsedSec={overrides.elapsedSec ?? 0}
+        mode={overrides.mode ?? "exam"}
         skillNames={skillNames}
         ruleNames={ruleNames}
         difficultyLabels={DIFFICULTY_LABELS}
@@ -148,7 +150,7 @@ describe("ExamRunner", () => {
     await user.type(answerBox(), "0{Enter}");
 
     await waitFor(() =>
-      expect(screen.getByText("2, 3")).toBeInTheDocument(),
+      expect(document.querySelector('[data-answer="2, 3"]')).toBeInTheDocument(),
     );
     expect(document.querySelector(".katex")).not.toBeNull();
   });
@@ -166,14 +168,83 @@ describe("ExamRunner", () => {
     );
   });
 
-  it("submits the exam", async () => {
-    const user = userEvent.setup();
-    renderExam();
+  /**
+   * Finishing throws away every question left blank, and for the daily there
+   * is no second attempt that day. One stray click used to be enough.
+   */
+  describe("finishing", () => {
+    const finishButton = () =>
+      screen.getByRole("button", { name: messages.exam.submitExam });
 
-    await user.click(
-      screen.getByRole("button", { name: messages.exam.submitExam }),
-    );
-    await waitFor(() => expect(finishExamAction).toHaveBeenCalledWith("run-1"));
+    it("does not finish on the first click while questions are unanswered", async () => {
+      const user = userEvent.setup();
+      renderExam();
+
+      await user.click(finishButton());
+
+      expect(finishExamAction).not.toHaveBeenCalled();
+      expect(
+        screen.getByText(
+          messages.exam.unansweredWarning.replace("{count}", "3"),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("offers the unanswered questions as a way back", async () => {
+      const user = userEvent.setup();
+      renderExam();
+
+      await user.click(finishButton());
+      await user.click(
+        screen.getByRole("button", { name: messages.exam.keepGoing }),
+      );
+
+      expect(finishExamAction).not.toHaveBeenCalled();
+      expect(
+        screen.getByText(
+          messages.exam.questionOf.replace("{index}", "1").replace("{total}", "3"),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("finishes once the warning has been acknowledged", async () => {
+      const user = userEvent.setup();
+      renderExam();
+
+      await user.click(finishButton());
+      await user.click(
+        screen.getByRole("button", { name: messages.exam.finishAnyway }),
+      );
+
+      await waitFor(() =>
+        expect(finishExamAction).toHaveBeenCalledWith("run-1"),
+      );
+    });
+
+    it("finishes on one click once every question is answered", async () => {
+      const user = userEvent.setup();
+      renderExam({
+        initialAnswered: Object.fromEntries(
+          questions.map((question) => [
+            question.id,
+            { answer: "2, 3", correct: true },
+          ]),
+        ),
+      });
+
+      await user.click(finishButton());
+
+      await waitFor(() =>
+        expect(finishExamAction).toHaveBeenCalledWith("run-1"),
+      );
+    });
+
+    it("calls it the daily rather than an exam in daily mode", () => {
+      renderExam({ mode: "daily" });
+      expect(
+        screen.getByRole("button", { name: messages.exam.finishDaily }),
+      ).toBeInTheDocument();
+    });
   });
 
   it("starts on the first unanswered question when you come back", () => {

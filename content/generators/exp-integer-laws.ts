@@ -1,4 +1,4 @@
-import { coefficientPower, power } from "../format";
+import { VARIABLES, coefficientPower, power } from "../format";
 import { makeStep } from "../step";
 import { namedMistakes } from "../misconception";
 import type {
@@ -54,7 +54,7 @@ export const expLawsCore: Generator = {
   provenance: "generated",
 
   generate(rng, difficulty): Question {
-    const variable = rng.pick(["x", "y", "a", "m", "k"] as const);
+    const variable = rng.pick(VARIABLES);
     const shape = shapeFor(rng, difficulty);
 
     const built =

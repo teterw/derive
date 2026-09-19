@@ -56,6 +56,22 @@ export default async function RulePage({
           ) : null}
         </Card>
 
+        {/*
+          The chant comes before the explanation, because for a learner who
+          has been taught it, it *is* the explanation - and for one who has
+          not, it is the line their tutor will use next week.
+        */}
+        {rule.mnemonic ? (
+          <section className="space-y-2">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-muted">
+              {t("howItIsRemembered")}
+            </h2>
+            <p className="rounded-lg border-l-2 border-accent bg-accent/5 px-4 py-3 text-lg leading-relaxed">
+              <MathText text={rule.mnemonic[active]} />
+            </p>
+          </section>
+        ) : null}
+
         <section className="space-y-2">
           <h2 className="text-sm font-medium uppercase tracking-wide text-muted">
             {t("inPlainWords")}

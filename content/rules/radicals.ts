@@ -63,6 +63,10 @@ export const radicalRules: Rule[] = [
       th: "แยกตัวประกอบที่เป็นกำลังสองสมบูรณ์ออกมานอกเครื่องหมายกรณฑ์",
       en: "Pull any perfect-square factor out from under the root sign.",
     },
+    mnemonic: {
+      th: "ตัวไหนเป็นกำลังสองสมบูรณ์ ให้ถอดรากออกมานอกกรณฑ์ได้",
+      en: "Whatever is a perfect square comes out from under the root.",
+    },
     examples: [
       {
         from: "\\sqrt{72}",
@@ -87,6 +91,10 @@ export const radicalRules: Rule[] = [
     plain: {
       th: "บวกลบกรณฑ์ได้เฉพาะเมื่อตัวถูกกรณฑ์เหมือนกัน เหมือนการรวมพจน์คล้าย",
       en: "Radicals add only when the radicands match, just like like terms.",
+    },
+    mnemonic: {
+      th: "กรณฑ์เหมือนกันเท่านั้นจึงบวกลบกันได้ เหมือนพจน์คล้าย",
+      en: "Only matching roots combine - treat them like like-terms.",
     },
     examples: [
       { from: "3\\sqrt{5} + 4\\sqrt{5}", to: "7\\sqrt{5}" },
@@ -131,6 +139,10 @@ export const radicalRules: Rule[] = [
     plain: {
       th: "คูณด้วยสังยุค คือเปลี่ยนเครื่องหมายกลางให้ตรงข้าม แล้วกรณฑ์จะหายไป",
       en: "Multiply by the conjugate - the same terms with the middle sign flipped - and the root cancels.",
+    },
+    mnemonic: {
+      th: "คูณด้วยสังยุค คือตัวเดิมแต่สลับเครื่องหมายกลาง",
+      en: "Multiply by the conjugate: the same two terms with the middle sign flipped.",
     },
     examples: [
       {

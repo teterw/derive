@@ -107,8 +107,36 @@ describe("PracticeRunner", () => {
     await waitFor(() =>
       expect(screen.getByText(messages.practice.incorrect)).toBeInTheDocument(),
     );
-    expect(screen.getByText("5")).toBeInTheDocument();
-    expect(screen.getByText("2, 3")).toBeInTheDocument();
+    // Answers are rendered as maths, so KaTeX has split the text across many
+    // spans; `data-answer` is the stable handle on what was actually shown.
+    expect(document.querySelector('[data-answer="5"]')).toBeInTheDocument();
+    expect(document.querySelector('[data-answer="2, 3"]')).toBeInTheDocument();
+  });
+
+  it("renders your answer as maths rather than as the keys you pressed", async () => {
+    submitAnswerAction.mockResolvedValue({
+      result: { correct: false, reason: "wrong" },
+      correctAnswer: "3*sqrt(2)",
+      steps: first.steps,
+    });
+    const user = userEvent.setup();
+    renderRunner();
+
+    await user.type(answerBox(), "sqrt(18){Enter}");
+
+    await waitFor(() =>
+      expect(screen.getByText(messages.practice.incorrect)).toBeInTheDocument(),
+    );
+
+    const shown = document.querySelector('[data-answer="3*sqrt(2)"]');
+    expect(shown).toBeInTheDocument();
+    // A root sign, not the letters s-q-r-t. Read `.katex-html` rather than
+    // textContent: KaTeX also emits a MathML annotation holding the TeX
+    // source, on purpose, so the formula can be copied out.
+    expect(shown?.querySelector(".katex")).toBeTruthy();
+    expect(shown?.querySelector(".katex-html")?.textContent).not.toContain(
+      "sqrt",
+    );
   });
 
   it("says when the value is right but the form is not", async () => {

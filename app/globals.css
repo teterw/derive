@@ -26,68 +26,112 @@
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
+/*
+ * Indigo, not gold.
+ *
+ * The first theme took Monkeytype's black-and-yellow, which works there
+ * because Monkeytype is only ever dark. On a white page the same hue has to
+ * drop to a dark goldenrod to stay readable, and a dark goldenrod is a muddy
+ * olive - it looked ill in light mode and there was no way to fix that without
+ * leaving the hue.
+ *
+ * Indigo was chosen for a reason that outlives taste: the accent sits directly
+ * beside the correct-green and wrong-red on every answered question, and
+ * indigo is the furthest a usable hue gets from both of them. Gold sits
+ * between them, which is exactly why it muddied.
+ *
+ * Neutrals are cooled to match - a warm cream background under an indigo
+ * accent reads as two themes fighting.
+ */
 :root {
-  --bg: #faf9f6;
+  --bg: #f7f8fa;
   --surface: #ffffff;
-  --surface-2: #f2f0ea;
-  --border: #e3e0d8;
-  --fg: #1c1b18;
-  --muted: #6f6b61;
-  --accent: #b8860b;
+  --surface-2: #eef0f4;
+  --border: #dde1e9;
+  --fg: #16181d;
+  --muted: #5b6472;
+  --accent: #4f46e5;
   --accent-fg: #ffffff;
-  --correct: #2f7d4f;
-  --wrong: #b4402f;
+  --correct: #157f3c;
+  --wrong: #c22d1e;
 
   /*
-   * One gold hue, light to dark. Checked with the data-viz validator against
-   * this surface: monotone lightness, visible gaps, and the lightest step
-   * clears 2:1 so it is still a mark rather than a smudge.
+   * One indigo hue, light to dark. Checked with the data-viz validator against
+   * this surface: monotone lightness, adjacent steps clearing the CVD *and*
+   * normal-vision separation floors, and the lightest step above 2:1 so it is
+   * still a mark rather than a smudge. `pnpm check:contrast` re-checks the
+   * text pairings against this file.
    */
-  --viz-1: #d9a93f;
-  --viz-2: #bd8c1c;
-  --viz-3: #99700a;
-  --viz-4: #6e5005;
-  --viz-empty: #ece9e0;
+  --viz-1: #a5aef1;
+  --viz-2: #626ae2;
+  --viz-3: #3a32b8;
+  --viz-4: #201a66;
+  --viz-empty: #e9ecf2;
+}
+
+/*
+ * The dark values live here once and are only *assigned* twice below, because
+ * dark mode has to be reachable two ways - the system preference and the
+ * manual class - and a media query cannot share a rule with a plain selector.
+ * Writing the hexes twice is how the two copies drift apart silently.
+ *
+ * The ramp is re-stepped for the dark surface rather than flipped: the same
+ * hue, re-measured against #16181d, validated the same way.
+ */
+:root {
+  --d-bg: #0e0f13;
+  --d-surface: #16181d;
+  --d-surface-2: #1e212a;
+  --d-border: #2c313c;
+  --d-fg: #e7e9ee;
+  --d-muted: #8d94a3;
+  --d-accent: #8b93f8;
+  --d-accent-fg: #12131a;
+  --d-correct: #4ec77f;
+  --d-wrong: #ef6f5e;
+  --d-viz-1: #3f38a4;
+  --d-viz-2: #6b64de;
+  --d-viz-3: #9ca3f2;
+  --d-viz-4: #d1d5fa;
+  --d-viz-empty: #1b1e26;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --bg: #101113;
-    --surface: #17191c;
-    --surface-2: #1f2226;
-    --border: #2b2f34;
-    --fg: #e8e6e1;
-    --muted: #8b8f96;
-    --accent: #e2b714;
-    --accent-fg: #17191c;
-    --correct: #58c18a;
-    --wrong: #e26d5c;
-
-    /* The same hue re-stepped for the dark surface, not an automatic flip. */
-    --viz-1: #6e5005;
-    --viz-2: #99700a;
-    --viz-3: #c99526;
-    --viz-4: #edd291;
-    --viz-empty: #202327;
+    --bg: var(--d-bg);
+    --surface: var(--d-surface);
+    --surface-2: var(--d-surface-2);
+    --border: var(--d-border);
+    --fg: var(--d-fg);
+    --muted: var(--d-muted);
+    --accent: var(--d-accent);
+    --accent-fg: var(--d-accent-fg);
+    --correct: var(--d-correct);
+    --wrong: var(--d-wrong);
+    --viz-1: var(--d-viz-1);
+    --viz-2: var(--d-viz-2);
+    --viz-3: var(--d-viz-3);
+    --viz-4: var(--d-viz-4);
+    --viz-empty: var(--d-viz-empty);
   }
 }
 
 .dark {
-  --bg: #101113;
-  --surface: #17191c;
-  --surface-2: #1f2226;
-  --border: #2b2f34;
-  --fg: #e8e6e1;
-  --muted: #8b8f96;
-  --accent: #e2b714;
-  --accent-fg: #17191c;
-  --correct: #58c18a;
-  --wrong: #e26d5c;
-  --viz-1: #6e5005;
-  --viz-2: #99700a;
-  --viz-3: #c99526;
-  --viz-4: #edd291;
-  --viz-empty: #202327;
+  --bg: var(--d-bg);
+  --surface: var(--d-surface);
+  --surface-2: var(--d-surface-2);
+  --border: var(--d-border);
+  --fg: var(--d-fg);
+  --muted: var(--d-muted);
+  --accent: var(--d-accent);
+  --accent-fg: var(--d-accent-fg);
+  --correct: var(--d-correct);
+  --wrong: var(--d-wrong);
+  --viz-1: var(--d-viz-1);
+  --viz-2: var(--d-viz-2);
+  --viz-3: var(--d-viz-3);
+  --viz-4: var(--d-viz-4);
+  --viz-empty: var(--d-viz-empty);
 }
 
 html {

@@ -29,7 +29,7 @@ export function FormulaSheet({
     const needle = query.trim().toLowerCase();
     if (!needle) return rules;
     return rules.filter((rule) =>
-      [rule.id, rule.name.th, rule.name.en, rule.plain.th, rule.plain.en]
+      [rule.id, rule.name.th, rule.name.en, rule.plain.th, rule.plain.en, rule.mnemonic?.th ?? "", rule.mnemonic?.en ?? ""]
         .join(" ")
         .toLowerCase()
         .includes(needle),
@@ -61,6 +61,11 @@ export function FormulaSheet({
               {rule.conditions ? (
                 <p className="text-center text-xs text-muted">
                   <MathText text={rule.conditions[locale]} />
+                </p>
+              ) : null}
+              {rule.mnemonic ? (
+                <p className="border-l-2 border-accent pl-2 text-xs text-fg">
+                  <MathText text={rule.mnemonic[locale]} />
                 </p>
               ) : null}
               <p className="text-xs text-muted">

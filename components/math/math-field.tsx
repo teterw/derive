@@ -112,6 +112,19 @@ export function MathField({
 
         field.addEventListener("keydown", (event) => {
           if ((event as KeyboardEvent).key !== "Enter") return;
+
+          /*
+           * Once the question is answered the field is read-only and Enter no
+           * longer belongs to it - it belongs to the runner, which advances to
+           * the next question. Swallowing it unconditionally broke exactly
+           * that: answering worked, and then Enter did nothing at all, in an
+           * app whose whole premise is that your hands stay on the keyboard.
+           *
+           * Letting the event through is the fix; the runner listens on the
+           * window and reads it there.
+           */
+          if (field.readonly) return;
+
           event.preventDefault();
           event.stopPropagation();
           callbacks.current.onSubmit();

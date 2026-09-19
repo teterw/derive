@@ -139,6 +139,73 @@ describe("AnswerInput with the maths field", () => {
     expect(executeCommand).toHaveBeenCalledWith(["insert", "\\sqrt{#0}"]);
   });
 
+  /**
+   * Enter has two jobs in this app: submit the answer, then move to the next
+   * question. The field owns the first and the runner owns the second, and the
+   * field swallowing both meant that after answering, Enter did nothing at all
+   * - in an app whose premise is that your hands stay on the keyboard.
+   */
+  describe("the Enter key", () => {
+    function fireEnter(element: Element) {
+      const event = new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      });
+      element.dispatchEvent(event);
+      return event;
+    }
+
+    it("submits while the question is open", async () => {
+      const onSubmit = vi.fn();
+      render(<Harness onSubmit={onSubmit} />);
+      await waitFor(() => expect(field()).toBeTruthy());
+
+      fireEnter(field()!);
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it("stops there, so the runner does not also advance", async () => {
+      render(<Harness />);
+      await waitFor(() => expect(field()).toBeTruthy());
+
+      const seenAtWindow = vi.fn();
+      window.addEventListener("keydown", seenAtWindow);
+      fireEnter(field()!);
+      window.removeEventListener("keydown", seenAtWindow);
+
+      expect(seenAtWindow).not.toHaveBeenCalled();
+    });
+
+    it("passes through once answered, so the runner can move on", async () => {
+      const onSubmit = vi.fn();
+      render(
+        <NextIntlClientProvider locale="th" messages={messages}>
+          <AnswerInput
+            value="2"
+            onChange={() => {}}
+            onSubmit={onSubmit}
+            disabled
+            state="correct"
+          />
+        </NextIntlClientProvider>,
+      );
+      await waitFor(() =>
+        expect(
+          (field() as unknown as { readonly: boolean } | null)?.readonly,
+        ).toBe(true),
+      );
+
+      const seenAtWindow = vi.fn();
+      window.addEventListener("keydown", seenAtWindow);
+      fireEnter(field()!);
+      window.removeEventListener("keydown", seenAtWindow);
+
+      expect(onSubmit).not.toHaveBeenCalled();
+      expect(seenAtWindow).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it("turns the field read-only rather than leaving it live once answered", async () => {
     render(
       <NextIntlClientProvider locale="th" messages={messages}>

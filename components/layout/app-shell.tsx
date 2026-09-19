@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, avatarSeed } from "@/components/profile/avatar";
 import { NavLink } from "./nav-link";
+import { PageTransition } from "./page-transition";
 import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -187,7 +188,7 @@ export async function AppShell({
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 pb-24 sm:pb-8">
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface sm:hidden">

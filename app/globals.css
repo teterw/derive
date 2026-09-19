@@ -203,3 +203,42 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/*
+ * Page content fading in on navigation. See `page-transition.tsx` for why a
+ * cut reads as a glitch and a short fade does not.
+ */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.page-enter {
+  animation: page-enter 160ms ease-out both;
+}
+
+/*
+ * Someone who has asked their system for less motion has asked for this too.
+ * The content still appears - only the movement goes - because removing the
+ * animation entirely would put the hard cut back.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

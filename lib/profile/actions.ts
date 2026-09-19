@@ -8,6 +8,7 @@ import { users } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { AVATAR_SEEDS } from "@/components/profile/avatar";
 import { BIO_MAX, DISPLAY_NAME_MAX } from "./limits";
+import { prepareAvatar } from "./avatar-upload";
 
 export type ProfileState = { error?: string; saved?: boolean } | null;
 
@@ -45,6 +46,38 @@ export async function saveProfileAction(
   if (displayName.length === 0) return { error: "displayNameRequired" };
   if (displayName.length > DISPLAY_NAME_MAX) return { error: "displayNameTooLong" };
 
+  /*
+   * The picture. Three cases: a new file, an explicit removal, or neither -
+   * and "neither" must leave the existing one alone, or saving a bio would
+   * silently wipe someone's face.
+   */
+  const picture = formData.get("avatar");
+  const removing = formData.get("removeAvatar") === "on";
+
+  let avatarFields: {
+    avatarImage?: Buffer | null;
+    avatarType?: string | null;
+    avatarUpdatedAt?: Date | null;
+  } = {};
+
+  if (removing) {
+    avatarFields = {
+      avatarImage: null,
+      avatarType: null,
+      avatarUpdatedAt: null,
+    };
+  } else if (picture instanceof File && picture.size > 0) {
+    const prepared = await prepareAvatar(
+      Buffer.from(await picture.arrayBuffer()),
+    );
+    if (!prepared.ok) return { error: `avatar.${prepared.error}` };
+    avatarFields = {
+      avatarImage: prepared.bytes,
+      avatarType: prepared.type,
+      avatarUpdatedAt: new Date(),
+    };
+  }
+
   await db
     .update(users)
     .set({
@@ -52,6 +85,7 @@ export async function saveProfileAction(
       bio: rawBio === "" ? null : rawBio,
       avatarSlot,
       hideFromLeaderboard: formData.get("hideFromLeaderboard") === "on",
+      ...avatarFields,
     })
     .where(eq(users.id, user.id));
 

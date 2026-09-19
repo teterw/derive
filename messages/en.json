@@ -376,7 +376,16 @@
       "notSignedIn": "Please sign in again.",
       "bioTooLong": "That is too long.",
       "displayNameRequired": "A display name is required.",
-      "displayNameTooLong": "That name is too long."
-    }
+      "displayNameTooLong": "That name is too long.",
+      "avatar": {
+        "tooLarge": "That file is too large (6MB maximum).",
+        "wrongType": "JPG, PNG, WebP or GIF only.",
+        "notAnImage": "That file could not be read as an image.",
+        "empty": "That file is empty."
+      }
+    },
+    "uploadPicture": "Upload a picture",
+    "removePicture": "Remove picture",
+    "pictureNote": "Cropped to a square, and any location data in the file is removed."
   }
 }

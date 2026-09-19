@@ -36,15 +36,55 @@ function hash(seed: string): number {
  * The picture: a 5x5 grid, mirrored down the middle so it reads as a face or a
  * glyph rather than as noise. Two tones of one hue, on a tinted ground.
  */
+/**
+ * The URL for someone's uploaded picture, or null if they have not uploaded.
+ *
+ * `?v=` is the upload time, which makes the URL change whenever the picture
+ * does. That is what lets the route serve `immutable` for a year without
+ * anyone ever seeing a stale face.
+ */
+export function avatarUrl(
+  username: string,
+  updatedAt: Date | null | undefined,
+): string | null {
+  if (!updatedAt) return null;
+  return `/api/avatar/${encodeURIComponent(username)}?v=${updatedAt.getTime()}`;
+}
+
 export function Avatar({
   seed,
+  src,
   size = 96,
   className,
 }: {
   seed: string;
+  /** An uploaded picture. Without one, the generated pattern is drawn. */
+  src?: string | null;
   size?: number;
   className?: string;
 }) {
+  if (src) {
+    /*
+     * A plain `img`, not `next/image`. The bytes are already exactly the size
+     * they will be shown at and already WebP, so the optimiser would re-fetch
+     * and re-encode an image to arrive back where it started - and it would do
+     * that against our own route, doubling the work per avatar on a page that
+     * shows fifty of them.
+     */
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt=""
+        width={size}
+        height={size}
+        loading="lazy"
+        decoding="async"
+        className={cn("shrink-0 rounded-full object-cover", className)}
+      />
+    );
+  }
+
   const h = hash(seed || "derive");
   const hue = HUES[h % HUES.length]!;
   const second = HUES[(h >> 8) % HUES.length]!;

@@ -9,7 +9,7 @@ import { getPeople } from "@/lib/profile/queries";
 import { compactXp } from "@/lib/stats/level";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
-import { Avatar, avatarSeed } from "@/components/profile/avatar";
+import { Avatar, avatarSeed, avatarUrl } from "@/components/profile/avatar";
 import { cn } from "@/lib/utils";
 
 /**
@@ -73,6 +73,7 @@ export default async function PeoplePage({
 
                     <Avatar
                       seed={avatarSeed(person.username, person.avatarSlot)}
+                      src={avatarUrl(person.username, person.avatarUpdatedAt)}
                       size={36}
                       className="h-9 w-9"
                     />

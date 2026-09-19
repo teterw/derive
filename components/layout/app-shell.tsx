@@ -17,7 +17,7 @@ import type { SessionUser } from "@/lib/auth/session";
 import { logoutAction } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Avatar, avatarSeed } from "@/components/profile/avatar";
+import { Avatar, avatarSeed, avatarUrl } from "@/components/profile/avatar";
 import { NavLink } from "./nav-link";
 import { PageTransition } from "./page-transition";
 import { LocaleSwitch } from "./locale-switch";
@@ -136,6 +136,7 @@ export async function AppShell({
             >
               <Avatar
                 seed={avatarSeed(user.username, user.avatarSlot)}
+                src={avatarUrl(user.username, user.avatarUpdatedAt)}
                 size={28}
                 className="h-7 w-7"
               />

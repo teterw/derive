@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
+import { avatarUrl } from "@/components/profile/avatar";
 import { SettingsForm } from "./settings-form";
 
 export default async function SettingsPage({
@@ -26,6 +27,7 @@ export default async function SettingsPage({
       displayName: users.displayName,
       bio: users.bio,
       avatarSlot: users.avatarSlot,
+      avatarUpdatedAt: users.avatarUpdatedAt,
       hideFromLeaderboard: users.hideFromLeaderboard,
     })
     .from(users)
@@ -48,6 +50,7 @@ export default async function SettingsPage({
             displayName: row.displayName,
             bio: row.bio ?? "",
             avatarSlot: row.avatarSlot,
+            avatarUrl: avatarUrl(user.username, row.avatarUpdatedAt),
             hideFromLeaderboard: row.hideFromLeaderboard,
           }}
         />

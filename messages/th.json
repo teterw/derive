@@ -376,7 +376,16 @@
       "notSignedIn": "กรุณาเข้าสู่ระบบอีกครั้ง",
       "bioTooLong": "ข้อความยาวเกินไป",
       "displayNameRequired": "ต้องมีชื่อที่แสดง",
-      "displayNameTooLong": "ชื่อยาวเกินไป"
-    }
+      "displayNameTooLong": "ชื่อยาวเกินไป",
+      "avatar": {
+        "tooLarge": "ไฟล์ใหญ่เกินไป (ไม่เกิน 6MB)",
+        "wrongType": "รองรับเฉพาะ JPG, PNG, WebP หรือ GIF",
+        "notAnImage": "เปิดไฟล์นี้เป็นรูปไม่ได้",
+        "empty": "ไฟล์ว่าง"
+      }
+    },
+    "uploadPicture": "อัปโหลดรูป",
+    "removePicture": "เอารูปออก",
+    "pictureNote": "รูปจะถูกย่อเป็นสี่เหลี่ยมจัตุรัสและลบข้อมูลตำแหน่งที่ติดมากับรูปออกให้"
   }
 }

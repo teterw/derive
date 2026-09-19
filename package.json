@@ -23,7 +23,8 @@
     "vars": "tsx scripts/variable-survey.mjs",
     "accounts": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/accounts.ts",
     "profile-check": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/profile-check.ts",
-    "perf": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/perf-check.ts"
+    "perf": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/perf-check.ts",
+    "avatar-check": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/avatar-check.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

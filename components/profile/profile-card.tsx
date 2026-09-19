@@ -1,5 +1,5 @@
 import { Flame } from "lucide-react";
-import { Avatar, avatarSeed } from "./avatar";
+import { Avatar, avatarSeed, avatarUrl } from "./avatar";
 import { compactXp } from "@/lib/stats/level";
 import type { Profile } from "@/lib/profile/queries";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,7 @@ export function ProfileCard({
       <div className="flex items-center gap-4 sm:gap-5">
         <Avatar
           seed={avatarSeed(profile.username, profile.avatarSlot)}
+          src={avatarUrl(profile.username, profile.avatarUpdatedAt)}
           size={72}
           className="h-16 w-16 sm:h-20 sm:w-20"
         />

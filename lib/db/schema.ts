@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  customType,
   date,
   index,
   integer,
@@ -20,6 +21,14 @@ import {
  * database stores only their string ids, so content stays in git where it can
  * be reviewed and tested (PROMPT.md section 3).
  */
+
+/**
+ * Raw bytes. `drizzle-orm/pg-core` has no `bytea` helper, and the Neon driver
+ * hands back a Node Buffer, which is what the rest of the code expects.
+ */
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => "bytea",
+});
 
 export const userRole = pgEnum("user_role", ["user", "admin"]);
 export const localeEnum = pgEnum("locale", ["th", "en"]);
@@ -57,10 +66,28 @@ export const users = pgTable(
       .defaultNow(),
 
     /**
-     * Which generated avatar this learner picked. The picture is drawn from
-     * the seed, so there is no file to store, serve or moderate.
+     * Which generated avatar this learner picked. Drawn from the seed, so it
+     * costs nothing to store and everyone has a distinct one from day one.
+     * Still the fallback for anyone who has not uploaded a picture.
      */
     avatarSlot: integer("avatar_slot").notNull().default(0),
+    /**
+     * An uploaded picture, held in the row rather than in object storage.
+     *
+     * This is an invite-only site with tens of accounts, and every upload is
+     * re-encoded down to a 256px square of roughly 30KB - so the whole corpus
+     * is smaller than a single photo off a phone. A blob store would be a
+     * second service, a second credential and a second thing to be down, for
+     * no benefit at this size. If it ever outgrows this, the swap is behind
+     * `lib/profile/avatar-upload.ts` and the route that serves it.
+     *
+     * The bytes are always our own re-encode, never what was uploaded.
+     */
+    avatarImage: bytea("avatar_image"),
+    /** The media type of `avatarImage`, decided by us, not by the uploader. */
+    avatarType: text("avatar_type"),
+    /** Cache-busts the avatar URL when someone changes their picture. */
+    avatarUpdatedAt: timestamp("avatar_updated_at", { withTimezone: true }),
     /** One line the learner writes about themselves. Optional, and often empty. */
     bio: text("bio"),
     /**

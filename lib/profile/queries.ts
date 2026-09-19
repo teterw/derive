@@ -22,6 +22,7 @@ export type Profile = {
   displayName: string;
   bio: string | null;
   avatarSlot: number;
+  avatarUpdatedAt: Date | null;
   role: "user" | "admin";
   joinedAt: Date;
   currentStreak: number;
@@ -52,6 +53,7 @@ export type ProfileUser = {
   displayName: string;
   bio: string | null;
   avatarSlot: number;
+  avatarUpdatedAt: Date | null;
   role: "user" | "admin";
   joinedAt: Date;
   currentStreak: number;
@@ -69,6 +71,7 @@ export async function findProfileUser(
       displayName: users.displayName,
       bio: users.bio,
       avatarSlot: users.avatarSlot,
+      avatarUpdatedAt: users.avatarUpdatedAt,
       role: users.role,
       joinedAt: users.createdAt,
       currentStreak: users.currentStreak,
@@ -117,6 +120,7 @@ export async function buildProfile(user: ProfileUser): Promise<Profile> {
     displayName: user.displayName,
     bio: user.bio,
     avatarSlot: user.avatarSlot,
+    avatarUpdatedAt: user.avatarUpdatedAt,
     role: user.role,
     joinedAt: user.joinedAt,
     currentStreak: user.currentStreak,
@@ -139,6 +143,7 @@ export type LeaderboardRow = {
   username: string;
   displayName: string;
   avatarSlot: number;
+  avatarUpdatedAt: Date | null;
   level: LevelProgress;
   currentStreak: number;
   attempts: number;
@@ -162,6 +167,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardRow[]> {
       username: users.username,
       displayName: users.displayName,
       avatarSlot: users.avatarSlot,
+      avatarUpdatedAt: users.avatarUpdatedAt,
       currentStreak: users.currentStreak,
       xp: xpSum,
       attempts: sql<number>`coalesce(sum(${dailyStats.attempts}), 0)::int`,
@@ -175,6 +181,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardRow[]> {
       users.username,
       users.displayName,
       users.avatarSlot,
+      users.avatarUpdatedAt,
       users.currentStreak,
     )
     .orderBy(desc(xpSum))
@@ -187,6 +194,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardRow[]> {
       username: row.username,
       displayName: row.displayName,
       avatarSlot: row.avatarSlot,
+      avatarUpdatedAt: row.avatarUpdatedAt,
       level: levelFromXp(Number(row.xp)),
       currentStreak: row.currentStreak,
       attempts,

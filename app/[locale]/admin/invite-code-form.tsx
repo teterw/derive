@@ -4,10 +4,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Check, Copy } from "lucide-react";
-import {
-  createInviteCodeAction,
-  type AdminState,
-} from "@/lib/admin/actions";
+import { createInviteCodeAction, type AdminState } from "@/lib/admin/actions";
 import { formatInviteCode } from "@/lib/auth/invite";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -48,7 +45,13 @@ export function InviteCodeForm({ locale }: { locale: string }) {
         </div>
         <div className="w-28">
           <Field label={t("maxUses")}>
-            <Input name="maxUses" type="number" min={1} max={100} defaultValue={1} />
+            <Input
+              name="maxUses"
+              type="number"
+              min={1}
+              max={100}
+              defaultValue={1}
+            />
           </Field>
         </div>
         <div className="w-36">

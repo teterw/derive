@@ -89,7 +89,9 @@ export async function getLeeches(userId: string): Promise<SkillId[]> {
   const rows = await db
     .select({ skillId: skillReviews.skillId })
     .from(skillReviews)
-    .where(and(eq(skillReviews.userId, userId), sql`${skillReviews.lapses} >= 4`));
+    .where(
+      and(eq(skillReviews.userId, userId), sql`${skillReviews.lapses} >= 4`),
+    );
   return rows.map((row) => row.skillId).filter(hasSkill);
 }
 

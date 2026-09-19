@@ -18,9 +18,7 @@ import { cn } from "@/lib/utils";
  * Free choice produces muddy olives and sickly yellow-greens next to an indigo
  * interface; these twelve all sit at a chroma that holds up on both surfaces.
  */
-const HUES = [
-  248, 268, 292, 316, 340, 4, 22, 40, 152, 172, 192, 214,
-] as const;
+const HUES = [248, 268, 292, 316, 340, 4, 22, 40, 152, 172, 192, 214] as const;
 
 /** A small, stable string hash. Not security; just spread. */
 function hash(seed: string): number {

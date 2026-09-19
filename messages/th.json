@@ -44,7 +44,8 @@
     "backToReview": "ออกจากการทบทวน",
     "backToRules": "กลับไปหน้าสูตร",
     "backToPeople": "กลับไปหน้าผู้คน",
-    "backHome": "กลับหน้าแรก"
+    "backHome": "กลับหน้าแรก",
+    "backToLesson": "กลับไปหน้าบทเรียน"
   },
   "auth": {
     "loginTitle": "เข้าสู่ระบบ",
@@ -189,7 +190,12 @@
     "lengthEndless": "ไม่จำกัด",
     "runDoneBody": "จบรอบแล้ว ผลถูกบันทึกไว้ในสถิติของคุณเรียบร้อย",
     "runAgain": "ฝึกอีกรอบ",
-    "changeSelection": "เปลี่ยนบทที่ฝึก"
+    "changeSelection": "เปลี่ยนบทที่ฝึก",
+    "testPassed": "ผ่านแล้ว",
+    "testFailed": "ยังไม่ผ่าน",
+    "testScore": "ตอบถูก {score} จาก {total} ข้อ · ต้องได้ {needed} ข้อจึงจะผ่าน",
+    "testAgain": "ลองใหม่อีกครั้ง",
+    "backToLesson": "กลับไปอ่านบทเรียน"
   },
   "learn": {
     "title": "เรียน",
@@ -201,7 +207,15 @@
     "pitfalls": "ข้อผิดพลาดที่พบบ่อย",
     "tryThese": "ลองทำดู",
     "tryTheseNote": "กดปุ่มด้านล่างเพื่อฝึกทักษะนี้แบบมีตรวจคำตอบ",
-    "practiceThisSkill": "ฝึกทักษะนี้"
+    "practiceThisSkill": "ฝึกทักษะนี้",
+    "progress": "ผ่านแล้ว {done} จาก {total} บท",
+    "lessonPassed": "ผ่านแล้ว",
+    "lessonNotPassed": "ยังไม่ได้ทดสอบ",
+    "takeTest": "ทำแบบทดสอบบทนี้",
+    "retakeTest": "ทำแบบทดสอบอีกครั้ง",
+    "testExplainer": "แบบทดสอบมี {count} ข้อ ต้องถูกอย่างน้อย {needed} ข้อจึงจะผ่าน",
+    "noTestTitle": "ยังทำแบบทดสอบบทนี้ไม่ได้",
+    "noTestBody": "บทนี้ยังไม่มีคลังโจทย์มากพอสำหรับแบบทดสอบ"
   },
   "rules": {
     "title": "สูตรและกฎ",

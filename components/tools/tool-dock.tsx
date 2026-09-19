@@ -98,7 +98,11 @@ export function ToolDock({
           },
         ]
       : []),
-    { tool: "formulas", icon: <Sigma className="h-4 w-4" />, label: t("formulas") },
+    {
+      tool: "formulas",
+      icon: <Sigma className="h-4 w-4" />,
+      label: t("formulas"),
+    },
     {
       tool: "calculator",
       icon: <CalculatorIcon className="h-4 w-4" />,

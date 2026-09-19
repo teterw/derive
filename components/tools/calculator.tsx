@@ -10,7 +10,12 @@ import { cn } from "@/lib/utils";
  * It uses the same mathjs the answer checker uses, so what it accepts and what
  * the answer box accepts are the same language - no separate syntax to learn.
  */
-const KEYS: { label: string; insert?: string; action?: "clear" | "back" | "equals"; span?: boolean }[] = [
+const KEYS: {
+  label: string;
+  insert?: string;
+  action?: "clear" | "back" | "equals";
+  span?: boolean;
+}[] = [
   { label: "C", action: "clear" },
   { label: "(", insert: "(" },
   { label: ")", insert: ")" },
@@ -42,9 +47,15 @@ const KEYS: { label: string; insert?: string; action?: "clear" | "back" | "equal
   { label: "π", insert: "pi" },
 ];
 
-export function Calculator({ labels }: { labels: { result: string; error: string } }) {
+export function Calculator({
+  labels,
+}: {
+  labels: { result: string; error: string };
+}) {
   const [expression, setExpression] = useState("");
-  const [history, setHistory] = useState<{ input: string; output: string }[]>([]);
+  const [history, setHistory] = useState<{ input: string; output: string }[]>(
+    [],
+  );
 
   function press(key: (typeof KEYS)[number]) {
     if (key.action === "clear") {
@@ -70,7 +81,9 @@ export function Calculator({ labels }: { labels: { result: string; error: string
         typeof value === "number"
           ? String(Math.round(value * 1e10) / 1e10)
           : String(value);
-      setHistory((current) => [{ input: expression, output }, ...current].slice(0, 8));
+      setHistory((current) =>
+        [{ input: expression, output }, ...current].slice(0, 8),
+      );
       setExpression(output);
     } catch {
       setHistory((current) =>
@@ -107,7 +120,8 @@ export function Calculator({ labels }: { labels: { result: string; error: string
             onClick={() => press(key)}
             className={cn(
               "h-11 cursor-pointer rounded-md border border-border font-mono text-sm hover:bg-surface-2",
-              key.action === "equals" && "bg-accent text-accent-fg hover:opacity-90",
+              key.action === "equals" &&
+                "bg-accent text-accent-fg hover:opacity-90",
               key.action === "clear" && "text-wrong",
             )}
           >

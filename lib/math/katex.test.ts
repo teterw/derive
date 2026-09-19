@@ -48,9 +48,7 @@ describe("katexToMath", () => {
   });
 
   it("refuses \\pm rather than guessing a branch", () => {
-    expect(() => katexToMath("1 \\pm \\sqrt{5}")).toThrow(
-      KatexConversionError,
-    );
+    expect(() => katexToMath("1 \\pm \\sqrt{5}")).toThrow(KatexConversionError);
   });
 
   it("refuses commands it does not know", () => {

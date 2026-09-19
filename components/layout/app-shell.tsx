@@ -19,6 +19,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, avatarSeed, avatarUrl } from "@/components/profile/avatar";
 import { BackLink } from "./back-link";
+import { HeaderXp } from "@/components/profile/header-xp";
+import { XpProvider } from "@/components/profile/xp-context";
+import { getTotalXp } from "@/lib/profile/queries";
 import { NavLink } from "./nav-link";
 import { PageTransition } from "./page-transition";
 import { LocaleSwitch } from "./locale-switch";
@@ -73,157 +76,172 @@ export async function AppShell({
 
   const phoneNav = NAV.filter((item) => item.onPhone);
 
+  /*
+   * One indexed sum over this learner's own day rows. It is on every page
+   * because the level is, and a level that only appeared on some pages would
+   * be worse than none.
+   */
+  const totalXp = await getTotalXp(user.id);
+
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-4 px-4">
-          <Link href="/" className="flex items-center gap-2">
-            {/*
+    <XpProvider initialXp={totalXp}>
+      <div className="flex min-h-dvh flex-col">
+        <header className="border-b border-border">
+          <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-4 px-4">
+            <Link href="/" className="flex items-center gap-2">
+              {/*
               `priority` because this is above the fold on every page in the
               app, and the header reflowing after it arrives is the kind of
               small lurch that makes a site feel cheap.
             */}
-            <Image
-              src="/brand/mark.png"
-              alt=""
-              width={40}
-              height={40}
-              priority
-              className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
-            />
-            {/*
+              <Image
+                src="/brand/mark.png"
+                alt=""
+                width={40}
+                height={40}
+                priority
+                className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
+              />
+              {/*
               The tagline tucks under the wordmark and aligns to its right
               edge, so the two read as one lockup rather than as two separate
               things sitting side by side. Stacked it also costs no horizontal
               space, which is why it no longer has to hide on a phone the way
               it did when it sat alongside.
             */}
-            <span className="flex flex-col justify-center">
-              {/*
+              <span className="flex flex-col justify-center">
+                {/*
                 `whitespace-nowrap`: at 390px, with the avatar now in the
                 header too, "Derive" was breaking across two lines mid-word.
               */}
-              <span className="whitespace-nowrap text-base font-semibold leading-tight tracking-tight">
-                {tApp("name")}
+                <span className="whitespace-nowrap text-base font-semibold leading-tight tracking-tight">
+                  {tApp("name")}
+                </span>
+                <span className="self-end whitespace-nowrap text-[10px] leading-tight text-muted">
+                  {tApp("tagline")}
+                </span>
               </span>
-              <span className="self-end whitespace-nowrap text-[10px] leading-tight text-muted">
-                {tApp("tagline")}
-              </span>
-            </span>
-          </Link>
+            </Link>
 
-          <nav className="hidden items-center gap-1 text-sm lg:flex">
-            {NAV.map((item) => (
-              <NavLink key={item.href} href={item.href} variant="header">
-                {t(item.key)}
-              </NavLink>
-            ))}
-            {user.role === "admin" ? (
-              <NavLink href="/admin" variant="header">
-                {t("admin")}
-              </NavLink>
-            ) : null}
-          </nav>
+            <nav className="hidden items-center gap-1 text-sm lg:flex">
+              {NAV.map((item) => (
+                <NavLink key={item.href} href={item.href} variant="header">
+                  {t(item.key)}
+                </NavLink>
+              ))}
+              {user.role === "admin" ? (
+                <NavLink href="/admin" variant="header">
+                  {t("admin")}
+                </NavLink>
+              ) : null}
+            </nav>
 
-          <div className="ml-auto flex items-center gap-2">
-            {/*
+            <div className="ml-auto flex items-center gap-2">
+              {/*
               Your own face is the way in to your profile - the convention
               everywhere, and it saves a word of chrome in a header that is
               already tight on a phone.
             */}
-            {/*
+              {/*
               A ring rather than a bar: the avatar is round and an underline
               beneath a circle reads as a mistake. Same accent, same meaning.
             */}
-            <NavLink
-              href={`/u/${user.username}`}
-              variant="avatar"
-              title={t("profile")}
-              aria-label={t("profile")}
-            >
-              <Avatar
-                seed={avatarSeed(user.username, user.avatarSlot)}
-                src={avatarUrl(user.username, user.avatarUpdatedAt)}
-                size={28}
-                className="h-7 w-7"
-              />
-            </NavLink>
-            <LocaleSwitch />
-            <ThemeToggle label={tCommon("theme")} />
-            <form action={logoutAction}>
-              <input type="hidden" name="locale" value={locale} />
-              <Button
-                type="submit"
-                variant="ghost"
-                size="icon"
-                title={t("logout")}
-                aria-label={t("logout")}
+              <NavLink
+                href={`/u/${user.username}`}
+                variant="avatar"
+                title={t("profile")}
+                aria-label={t("profile")}
               >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </form>
+                <Avatar
+                  seed={avatarSeed(user.username, user.avatarSlot)}
+                  src={avatarUrl(user.username, user.avatarUpdatedAt)}
+                  size={28}
+                  className="h-7 w-7"
+                />
+              </NavLink>
+              {/*
+              The level rides next to your own face, which is the only place it
+              belongs - the alternative was a second profile card in the body of
+              the page, and two faces on one screen saying the same thing.
+            */}
+              <HeaderXp />
+              <LocaleSwitch />
+              <ThemeToggle label={tCommon("theme")} />
+              <form action={logoutAction}>
+                <input type="hidden" name="locale" value={locale} />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="icon"
+                  title={t("logout")}
+                  aria-label={t("logout")}
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
           </div>
-        </div>
 
-        {/*
+          {/*
           A scrolling strip beats a hidden menu at any width below the laptop
           layout. On a phone it carries only what the bottom bar does not, so
           the two never repeat each other; from `sm` up, where there is no
           bottom bar, it carries everything.
         */}
-        <nav className="mx-auto flex w-full max-w-5xl gap-1 overflow-x-auto px-4 pb-2 text-sm lg:hidden">
-          {NAV.map((item) => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              variant="strip"
-              className={cn(item.onPhone && "hidden sm:block")}
-            >
-              {t(item.key)}
-            </NavLink>
-          ))}
-          {/*
+          <nav className="mx-auto flex w-full max-w-5xl gap-1 overflow-x-auto px-4 pb-2 text-sm lg:hidden">
+            {NAV.map((item) => (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                variant="strip"
+                className={cn(item.onPhone && "hidden sm:block")}
+              >
+                {t(item.key)}
+              </NavLink>
+            ))}
+            {/*
             Admin rides in the strip rather than the header below `lg`. In the
             header it was the item that pushed a 390px phone over the edge, and
             it is the least-used destination of the lot.
           */}
-          {user.role === "admin" ? (
-            <NavLink href="/admin" variant="strip">
-              {t("admin")}
-            </NavLink>
-          ) : null}
-        </nav>
-      </header>
+            {user.role === "admin" ? (
+              <NavLink href="/admin" variant="strip">
+                {t("admin")}
+              </NavLink>
+            ) : null}
+          </nav>
+        </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 pb-24 sm:pb-8">
-        {/*
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 pb-24 sm:pb-8">
+          {/*
           Above the transition, not inside it: the way out of a page should not
           fade in and out as the page changes, and on a slow render it is the
           one control that wants to be there immediately.
         */}
-        {back ? (
-          <div className="mb-4">
-            <BackLink href={back.href} label={back.label} />
-          </div>
-        ) : null}
-        <PageTransition>{children}</PageTransition>
-      </main>
+          {back ? (
+            <div className="mb-4">
+              <BackLink href={back.href} label={back.label} />
+            </div>
+          ) : null}
+          <PageTransition>{children}</PageTransition>
+        </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface sm:hidden">
-        <ul className="flex">
-          {phoneNav.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.href} className="flex-1">
-                <NavLink href={item.href} variant="tab">
-                  <Icon className="h-5 w-5" />
-                  {t(item.key)}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-    </div>
+        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface sm:hidden">
+          <ul className="flex">
+            {phoneNav.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.href} className="flex-1">
+                  <NavLink href={item.href} variant="tab">
+                    <Icon className="h-5 w-5" />
+                    {t(item.key)}
+                  </NavLink>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </div>
+    </XpProvider>
   );
 }

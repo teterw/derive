@@ -74,7 +74,9 @@ const field = () => document.querySelector("math-field");
 
 async function renderReady() {
   render(<Harness />);
-  await waitFor(() => expect(frame().getAttribute("data-mathfield")).toBe("on"));
+  await waitFor(() =>
+    expect(frame().getAttribute("data-mathfield")).toBe("on"),
+  );
 }
 
 describe("AnswerInput with the maths field", () => {
@@ -123,10 +125,7 @@ describe("AnswerInput with the maths field", () => {
 
     await user.click(screen.getByRole("button", { name: "÷" }));
 
-    expect(executeCommand).toHaveBeenCalledWith([
-      "insert",
-      "\\frac{#@}{#?}",
-    ]);
+    expect(executeCommand).toHaveBeenCalledWith(["insert", "\\frac{#@}{#?}"]);
   });
 
   it("uses a radical for the root key, not the letters sqrt", async () => {
@@ -258,7 +257,9 @@ describe("AnswerInput with the maths field", () => {
         </NextIntlClientProvider>,
       );
       await waitFor(() =>
-        expect((field() as unknown as { readonly: boolean } | null)?.readonly).toBe(true),
+        expect(
+          (field() as unknown as { readonly: boolean } | null)?.readonly,
+        ).toBe(true),
       );
       executeCommand.mockClear();
 

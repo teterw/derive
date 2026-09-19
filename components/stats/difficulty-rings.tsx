@@ -33,12 +33,14 @@ export function DifficultyRings({
   return (
     <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4">
       {counts.map((count) => {
-        const share =
-          count.attempts === 0 ? 0 : count.correct / count.attempts;
+        const share = count.attempts === 0 ? 0 : count.correct / count.attempts;
         const dash = CIRCUMFERENCE * share;
 
         return (
-          <li key={count.difficulty} className="flex flex-col items-center gap-2">
+          <li
+            key={count.difficulty}
+            className="flex flex-col items-center gap-2"
+          >
             <div className="relative">
               <svg
                 width={SIZE}

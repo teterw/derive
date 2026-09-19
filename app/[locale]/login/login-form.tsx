@@ -54,7 +54,9 @@ export function LoginForm({ locale, next }: { locale: string; next: string }) {
         {t("rememberMe")}
       </label>
 
-      {state?.error ? <FormError>{t(`errors.${state.error}`)}</FormError> : null}
+      {state?.error ? (
+        <FormError>{t(`errors.${state.error}`)}</FormError>
+      ) : null}
 
       <SubmitButton label={t("login")} />
     </form>

@@ -11,7 +11,6 @@ import { hashSessionToken, newSessionToken } from "./token";
 
 export type SessionUser = Omit<User, "passwordHash">;
 
-
 /**
  * Creates a session row and sets the cookie. The raw token exists only in the
  * cookie; the database holds only its HMAC.
@@ -58,7 +57,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     .select({ session: sessions, user: users })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
-    .where(and(eq(sessions.tokenHash, tokenHash), gt(sessions.expiresAt, new Date())))
+    .where(
+      and(
+        eq(sessions.tokenHash, tokenHash),
+        gt(sessions.expiresAt, new Date()),
+      ),
+    )
     .limit(1);
 
   const row = rows[0];
@@ -91,7 +95,9 @@ export async function destroySession(): Promise<void> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
   if (token) {
-    await db.delete(sessions).where(eq(sessions.tokenHash, hashSessionToken(token)));
+    await db
+      .delete(sessions)
+      .where(eq(sessions.tokenHash, hashSessionToken(token)));
   }
   store.delete(SESSION_COOKIE);
 }

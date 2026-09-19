@@ -125,8 +125,7 @@ export function ExamRunner({
    */
   useEffect(() => {
     if (timeLimitSec <= 0) return;
-    const deadline =
-      Date.now() + Math.max(0, timeLimitSec - elapsedSec) * 1000;
+    const deadline = Date.now() + Math.max(0, timeLimitSec - elapsedSec) * 1000;
 
     const tick = () => {
       const left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
@@ -275,7 +274,9 @@ export function ExamRunner({
 
       <section className="space-y-5">
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Badge>{skillNames[question.skillId]?.[locale] ?? question.skillId}</Badge>
+          <Badge>
+            {skillNames[question.skillId]?.[locale] ?? question.skillId}
+          </Badge>
           <Badge tone="accent">
             {difficultyLabels[question.difficulty]?.[locale]}
           </Badge>
@@ -309,9 +310,7 @@ export function ExamRunner({
             onChange={setDraft}
             onSubmit={submit}
             disabled={Boolean(answered) || pending}
-            state={
-              answered ? (answered.correct ? "correct" : "wrong") : "idle"
-            }
+            state={answered ? (answered.correct ? "correct" : "wrong") : "idle"}
           />
         )}
 
@@ -410,7 +409,10 @@ export function ExamRunner({
             {answered.correctAnswer ? (
               <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted">
                 {t("theAnswerIs")}{" "}
-                <AnswerText value={answered.correctAnswer} className="text-fg" />
+                <AnswerText
+                  value={answered.correctAnswer}
+                  className="text-fg"
+                />
               </p>
             ) : null}
 

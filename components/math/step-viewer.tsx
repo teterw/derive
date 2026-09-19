@@ -93,13 +93,7 @@ export function StepViewer({
   );
 }
 
-export function RuleChip({
-  ruleId,
-  name,
-}: {
-  ruleId: string;
-  name: string;
-}) {
+export function RuleChip({ ruleId, name }: { ruleId: string; name: string }) {
   return (
     <Link
       href={`/rules/${ruleId}`}

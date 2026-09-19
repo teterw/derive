@@ -10,6 +10,11 @@ import { getLesson, hasLesson } from "@/content/lessons";
 import { allRules, getRule } from "@/content/rules";
 import { generateQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
+import {
+  LESSON_TEST_LENGTH,
+  passMark,
+  getLessonStates,
+} from "@/lib/learn/progress";
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge, Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Tex } from "@/components/math/katex";
@@ -44,11 +49,15 @@ export default async function LessonPage({
   const t = await getTranslations("learn");
 
   const tNav = await getTranslations("nav");
+
   const active = locale as Locale;
 
   const skill = getSkill(skillId);
   const topic = getTopic(skill.topicId);
   const lesson = getLesson(skillId);
+
+  const lessonStates = await getLessonStates(user.id);
+  const passed = lessonStates.get(skill.id)?.passed ?? false;
 
   const examples = lesson.examples.map((example) => ({
     ...example,
@@ -182,12 +191,38 @@ export default async function LessonPage({
             </ol>
             <p className="text-xs text-muted">{t("tryTheseNote")}</p>
           </Card>
-          <Link
-            href={`/practice/run?skills=${skill.id}&difficulty=1,2`}
-            className="inline-flex h-12 w-full items-center justify-center rounded-md bg-accent px-6 font-medium text-accent-fg hover:opacity-90"
-          >
-            {t("practiceThisSkill")}
-          </Link>
+          {/*
+            Two doors, and they do different things.
+
+            The test is the one that counts: a fixed set of questions with a
+            line under them, which ticks this lesson off if enough are right.
+            Practice is the old endless one, for when you want to drill without
+            anything being recorded about whether you have "got it".
+
+            The test leads because it is the one with a consequence, but they
+            are the same size - practice is not a lesser option, it is what you
+            do before you are ready to be tested.
+          */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link
+              href={`/learn/${skill.id}/test`}
+              className="inline-flex h-12 items-center justify-center rounded-md bg-accent px-6 font-medium text-accent-fg hover:opacity-90"
+            >
+              {passed ? t("retakeTest") : t("takeTest")}
+            </Link>
+            <Link
+              href={`/practice/run?skills=${skill.id}&difficulty=1,2`}
+              className="inline-flex h-12 items-center justify-center rounded-md border border-border px-6 font-medium hover:bg-surface-2"
+            >
+              {t("practiceThisSkill")}
+            </Link>
+          </div>
+          <p className="text-center text-xs text-muted">
+            {t("testExplainer", {
+              count: LESSON_TEST_LENGTH,
+              needed: passMark(),
+            })}
+          </p>
         </section>
       </article>
     </AppShell>

@@ -50,7 +50,12 @@ export function parseQuestionId(id: string): QuestionRef | null {
   const generatorId = parts.join(":");
 
   if (!Number.isInteger(seed) || seed < 0 || seed > MAX_SEED) return null;
-  if (difficulty !== 1 && difficulty !== 2 && difficulty !== 3 && difficulty !== 4) {
+  if (
+    difficulty !== 1 &&
+    difficulty !== 2 &&
+    difficulty !== 3 &&
+    difficulty !== 4
+  ) {
     return null;
   }
   try {
@@ -87,7 +92,9 @@ export function normalizeConfig(raw: {
    */
   const rawLength = raw.length;
   const length =
-    typeof rawLength === "number" && Number.isFinite(rawLength) && rawLength >= 1
+    typeof rawLength === "number" &&
+    Number.isFinite(rawLength) &&
+    rawLength >= 1
       ? Math.min(MAX_RUN_LENGTH, Math.floor(rawLength))
       : null;
 
@@ -215,7 +222,9 @@ function shuffled<T>(items: T[], random: () => number): T[] {
 export function reachableSkills(config: PracticeConfig): SkillId[] {
   return config.skillIds.filter((skillId) => {
     const available = difficultiesForSkill(skillId);
-    return config.difficulties.some((difficulty) => available.includes(difficulty));
+    return config.difficulties.some((difficulty) =>
+      available.includes(difficulty),
+    );
   });
 }
 
@@ -234,7 +243,10 @@ export function reachableSkills(config: PracticeConfig): SkillId[] {
  * by more than one. Difficulty and generator are still drawn at random within
  * the skill, because that variety is wanted.
  */
-export function planQuestions(config: PracticeConfig, length: number): QuestionRef[] {
+export function planQuestions(
+  config: PracticeConfig,
+  length: number,
+): QuestionRef[] {
   const reachable = reachableSkills(config);
   if (reachable.length === 0) {
     throw new Error("No content matches this practice configuration");

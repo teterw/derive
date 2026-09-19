@@ -160,7 +160,9 @@ export function SettingsForm({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setSlot((current) => (current + 1) % AVATAR_SEEDS)}
+                onClick={() =>
+                  setSlot((current) => (current + 1) % AVATAR_SEEDS)
+                }
               >
                 <Shuffle className="h-4 w-4" />
                 {t("nextAvatar")}
@@ -242,7 +244,9 @@ export function SettingsForm({
           </span>
         ) : null}
         {state?.error ? (
-          <span className="text-sm text-wrong">{t(`error.${state.error}`)}</span>
+          <span className="text-sm text-wrong">
+            {t(`error.${state.error}`)}
+          </span>
         ) : null}
       </div>
     </form>

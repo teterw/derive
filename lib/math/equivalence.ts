@@ -19,7 +19,12 @@ const POSITIVE_SAMPLES = [
 ];
 const MIXED_SAMPLES = [
   ...POSITIVE_SAMPLES,
-  -0.4472, -1.1547, -2.2361, -3.3166, -4.7958, -5.6569,
+  -0.4472,
+  -1.1547,
+  -2.2361,
+  -3.3166,
+  -4.7958,
+  -5.6569,
 ];
 
 export class MathParseError extends Error {}
@@ -55,7 +60,11 @@ function asComplex(value: unknown): { re: number; im: number } | null {
     return Number.isFinite(value) ? { re: value, im: 0 } : null;
   }
   if (typeof value === "object" && value !== null) {
-    const candidate = value as { re?: unknown; im?: unknown; toNumber?: unknown };
+    const candidate = value as {
+      re?: unknown;
+      im?: unknown;
+      toNumber?: unknown;
+    };
     if (typeof candidate.re === "number" && typeof candidate.im === "number") {
       return Number.isFinite(candidate.re) && Number.isFinite(candidate.im)
         ? { re: candidate.re, im: candidate.im }

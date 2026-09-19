@@ -13,8 +13,9 @@ import {
   type SubmitResult,
 } from "@/lib/practice/actions";
 import { submitAnswerAction } from "@/lib/practice/actions";
+import { recordLessonTestAction } from "@/lib/learn/actions";
+import type { LessonResult } from "@/lib/learn/progress";
 import type { PracticeConfig } from "@/lib/practice/session";
-import type { XpAward } from "@/lib/stats/constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
 import {
@@ -22,7 +23,7 @@ import {
   type AnswerInputHandle,
 } from "@/components/math/answer-input";
 import { AnswerText } from "@/components/math/answer-text";
-import { XpMeter } from "@/components/profile/xp-meter";
+import { useXpReporter } from "@/components/profile/xp-context";
 import { MathText } from "@/components/math/math-text";
 import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
@@ -44,29 +45,25 @@ export function PracticeRunner({
   first,
   queue,
   mode = "practice",
-  startingXp = 0,
-  learner,
+  assess,
   ruleNames,
   skillNames,
   difficultyLabels,
 }: {
   config: PracticeConfig;
   first: PublicQuestion;
-  /** Lifetime XP as the server knew it when the page was rendered. */
-  startingXp?: number;
-  /** Who is answering, for the level card. */
-  learner?: {
-    username: string;
-    displayName: string;
-    avatarSeed: string;
-    avatarSrc: string | null;
-  };
   /**
    * Review mode walks a fixed list of missed questions instead of drawing a
    * fresh one each time, so the learner meets the identical question again.
    */
   queue?: PublicQuestion[];
   mode?: "practice" | "review";
+  /**
+   * Set when this run is a lesson's test rather than practice. The score is
+   * filed when the queue runs out, and the finish screen says whether it
+   * passed. Only meaningful with a queue - a test with no end cannot be sat.
+   */
+  assess?: { skillId: string };
   ruleNames: Record<string, { th: string; en: string }>;
   skillNames: Record<string, { th: string; en: string }>;
   difficultyLabels: Record<number, { th: string; en: string }>;
@@ -92,22 +89,13 @@ export function PracticeRunner({
   const [finished, setFinished] = useState(false);
 
   /*
-   * Lifetime XP, starting from what the server knew when the page loaded and
-   * moving as questions are answered. Kept here rather than refetched: the
-   * server has already told us exactly what each attempt was worth, and asking
-   * it again after every answer would be a round trip to learn a number we
-   * were handed.
+   * XP goes to the header, where the learner's own face already is. The runner
+   * only says what was earned; the level and the award are drawn up there.
    */
-  const [totalXp, setTotalXp] = useState(startingXp);
+  const reportXp = useXpReporter();
 
-  /*
-   * The last award, with an id of its own. Two identical awards in a row are
-   * two events, and keying the display on the contents would make the second
-   * one invisible - React reuses a node with the same key and the animation
-   * does not replay.
-   */
-  const [award, setAward] = useState<(XpAward & { id: number }) | null>(null);
-  const awardId = useRef(0);
+  /** The verdict on a lesson test, once the queue has run out and it is filed. */
+  const [verdict, setVerdict] = useState<LessonResult | null>(null);
 
   // Set in an effect, not during render: reading the clock while rendering is
   // impure and React may render more than once.
@@ -142,16 +130,8 @@ export function PracticeRunner({
       setOutcome(result);
       setSteps(result.steps);
       setPhase("answered");
-      /*
-       * A wrong answer still earns something, so this is not inside the branch.
-       * The guard is for a response that arrives without the field: adding
-       * `undefined` makes the total NaN, `levelFromXp` clamps NaN to zero, and
-       * the bar silently drops to level 1 rather than failing.
-       */
-      if (result.award && Number.isFinite(result.award.total)) {
-        setTotalXp((current) => current + result.award.total);
-        setAward({ ...result.award, id: awardId.current++ });
-      }
+      // A wrong answer still earns something, so this is not inside a branch.
+      reportXp(result.award);
       setTally((current) => {
         const streak = result.result.correct ? current.streak + 1 : 0;
         return {
@@ -169,6 +149,7 @@ export function PracticeRunner({
     pending,
     phase,
     question.id,
+    reportXp,
     revealedBeforeAnswering,
   ]);
 
@@ -178,6 +159,23 @@ export function PracticeRunner({
       const position = queueIndex + 1;
       if (position >= queue.length) {
         setFinished(true);
+        /*
+         * Filed here, at the one moment the run is known to be over, rather
+         * than from an effect watching `finished` - which would fire again on
+         * any later re-render and post the same test twice.
+         */
+        if (assess) {
+          startTransition(async () => {
+            setVerdict(
+              await recordLessonTestAction({
+                skillId: assess.skillId,
+                correct: tally.correct,
+                asked: tally.asked,
+                locale,
+              }),
+            );
+          });
+        }
         return;
       }
       setQueueIndex(position);
@@ -189,7 +187,17 @@ export function PracticeRunner({
       reset(await nextQuestionAction(config));
       inputRef.current?.focus();
     });
-  }, [config, pending, queue, queueIndex, reset]);
+  }, [
+    assess,
+    config,
+    locale,
+    pending,
+    queue,
+    queueIndex,
+    reset,
+    tally.asked,
+    tally.correct,
+  ]);
 
   const explain = useCallback(() => {
     if (steps) return;
@@ -266,13 +274,51 @@ export function PracticeRunner({
   if (finished) {
     return (
       <div className="mx-auto w-full max-w-2xl space-y-6 text-center">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          {t("queueDone")}
-        </h2>
+        {/*
+          A test says whether you passed before it says anything else, because
+          that is the only thing anyone is looking for on this screen.
+        */}
+        {assess ? (
+          <div className="space-y-2">
+            <div
+              className={cn(
+                "mx-auto flex size-14 items-center justify-center rounded-full",
+                verdict?.passed
+                  ? "bg-correct/15 text-correct"
+                  : "bg-wrong/15 text-wrong",
+              )}
+            >
+              {verdict?.passed ? (
+                <Check className="size-7" />
+              ) : (
+                <X className="size-7" />
+              )}
+            </div>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {verdict?.passed ? t("testPassed") : t("testFailed")}
+            </h2>
+            {verdict ? (
+              <p className="text-sm text-muted">
+                {t("testScore", {
+                  score: verdict.score,
+                  total: tally.asked,
+                  needed: verdict.needed,
+                })}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {t("queueDone")}
+          </h2>
+        )}
+
         <Scoreboard tally={tally} labels={t} />
-        <p className="text-sm text-muted">
-          {mode === "review" ? t("queueDoneBody") : t("runDoneBody")}
-        </p>
+        {assess ? null : (
+          <p className="text-sm text-muted">
+            {mode === "review" ? t("queueDoneBody") : t("runDoneBody")}
+          </p>
+        )}
 
         {/*
          * A finished run is the one moment a learner is certain to be at a
@@ -295,13 +341,13 @@ export function PracticeRunner({
                 window.location.href = url.toString();
               }}
             >
-              {t("runAgain")}
+              {assess ? t("testAgain") : t("runAgain")}
             </Button>
             <Link
-              href="/practice"
+              href={assess ? `/learn/${assess.skillId}` : "/practice"}
               className="text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
             >
-              {t("changeSelection")}
+              {assess ? t("backToLesson") : t("changeSelection")}
             </Link>
           </div>
         ) : null}
@@ -311,30 +357,7 @@ export function PracticeRunner({
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-8 pb-16 sm:pb-0">
-      {/*
-        The learner on the left, the session tally on the right, one row.
-
-        The card wants to be near the top and out of the way, and the tally was
-        already a centred row of three numbers with empty space either side - so
-        they share it. The award hangs below the card, out of the flow, into
-        space that is otherwise blank.
-      */}
-      <div className="flex items-start justify-between gap-4">
-        {learner ? (
-          <XpMeter
-            username={learner.username}
-            displayName={learner.displayName}
-            avatarSeed={learner.avatarSeed}
-            avatarSrc={learner.avatarSrc}
-            totalXp={totalXp}
-            award={award}
-            className="shrink-0"
-          />
-        ) : (
-          <div />
-        )}
-        <Scoreboard tally={tally} labels={t} />
-      </div>
+      <Scoreboard tally={tally} labels={t} />
 
       {queue ? (
         <p className="text-center font-mono text-xs tabular-nums text-muted">

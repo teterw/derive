@@ -29,7 +29,15 @@ export function FormulaSheet({
     const needle = query.trim().toLowerCase();
     if (!needle) return rules;
     return rules.filter((rule) =>
-      [rule.id, rule.name.th, rule.name.en, rule.plain.th, rule.plain.en, rule.mnemonic?.th ?? "", rule.mnemonic?.en ?? ""]
+      [
+        rule.id,
+        rule.name.th,
+        rule.name.en,
+        rule.plain.th,
+        rule.plain.en,
+        rule.mnemonic?.th ?? "",
+        rule.mnemonic?.en ?? "",
+      ]
         .join(" ")
         .toLowerCase()
         .includes(needle),

@@ -66,7 +66,12 @@ export function SlideOver({
       >
         <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
           <h2 className="text-sm font-medium">{title}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label="close">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            aria-label="close"
+          >
             <X className="h-4 w-4" />
           </Button>
         </header>

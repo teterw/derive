@@ -41,11 +41,19 @@ describe("the ladder", () => {
    */
   it("drops two rungs for a wrong answer", () => {
     // 16 is rung 3, so two back is rung 1 - three days, not one.
-    const at16: Schedule = { intervalDays: 16, consecutiveCorrect: 3, lapses: 0 };
+    const at16: Schedule = {
+      intervalDays: 16,
+      consecutiveCorrect: 3,
+      lapses: 0,
+    };
     expect(afterReview(at16, false).intervalDays).toBe(3);
 
     // 35 is rung 4, so two back is rung 2.
-    const at35: Schedule = { intervalDays: 35, consecutiveCorrect: 4, lapses: 0 };
+    const at35: Schedule = {
+      intervalDays: 35,
+      consecutiveCorrect: 4,
+      lapses: 0,
+    };
     expect(afterReview(at35, false).intervalDays).toBe(7);
   });
 
@@ -56,7 +64,11 @@ describe("the ladder", () => {
   });
 
   it("resets the streak on a lapse but never the lapse count", () => {
-    const strong: Schedule = { intervalDays: 35, consecutiveCorrect: 6, lapses: 2 };
+    const strong: Schedule = {
+      intervalDays: 35,
+      consecutiveCorrect: 6,
+      lapses: 2,
+    };
     const lapsed = afterReview(strong, false);
     expect(lapsed.consecutiveCorrect).toBe(0);
     expect(lapsed.lapses).toBe(3);
@@ -69,7 +81,11 @@ describe("the ladder", () => {
 
   it("copes with an interval that is not on the ladder", () => {
     // A hand-edited row, or a ladder that changed under existing data.
-    const odd: Schedule = { intervalDays: 22, consecutiveCorrect: 1, lapses: 0 };
+    const odd: Schedule = {
+      intervalDays: 22,
+      consecutiveCorrect: 1,
+      lapses: 0,
+    };
     expect(rungOf(22)).toBe(3); // the 16 rung
     expect(afterReview(odd, true).intervalDays).toBe(35);
     expect(afterReview(odd, false).intervalDays).toBe(LADDER[1]);
@@ -78,7 +94,9 @@ describe("the ladder", () => {
 
 describe("leeches", () => {
   it("names a skill that keeps being lost", () => {
-    expect(isLeech({ intervalDays: 1, consecutiveCorrect: 0, lapses: 3 })).toBe(false);
+    expect(isLeech({ intervalDays: 1, consecutiveCorrect: 0, lapses: 3 })).toBe(
+      false,
+    );
     expect(
       isLeech({ intervalDays: 1, consecutiveCorrect: 0, lapses: LEECH_LAPSES }),
     ).toBe(true);
@@ -86,7 +104,11 @@ describe("leeches", () => {
 
   it("stays a leech even while it is going well", () => {
     expect(
-      isLeech({ intervalDays: 90, consecutiveCorrect: 5, lapses: LEECH_LAPSES }),
+      isLeech({
+        intervalDays: 90,
+        consecutiveCorrect: 5,
+        lapses: LEECH_LAPSES,
+      }),
     ).toBe(true);
   });
 });

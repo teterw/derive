@@ -85,7 +85,10 @@ export function isLeech(schedule: Schedule): boolean {
  * accurate at does not need asking about tomorrow. Starting everyone at one
  * day would bury them on the first morning and teach them to ignore the count.
  */
-export function startingInterval(emaAccuracy: number, attempts: number): number {
+export function startingInterval(
+  emaAccuracy: number,
+  attempts: number,
+): number {
   if (attempts === 0) return LADDER[0]!;
   if (emaAccuracy >= 0.9) return 7;
   if (emaAccuracy >= 0.7) return 3;
@@ -106,5 +109,7 @@ export function spreadDueDays(
   count: number,
   perDay = MAX_DUE_PER_DAY,
 ): number[] {
-  return Array.from({ length: count }, (_, index) => Math.floor(index / perDay));
+  return Array.from({ length: count }, (_, index) =>
+    Math.floor(index / perDay),
+  );
 }

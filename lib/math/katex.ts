@@ -115,7 +115,7 @@ function convertCommands(source: string): string {
       continue;
     }
 
-    if (rest.startsWith("{") ) {
+    if (rest.startsWith("{")) {
       const [group, after] = readGroup(source, i);
       out += `(${convertCommands(group)})`;
       i = after;

@@ -79,7 +79,9 @@ export function RegisterForm({
         />
       </Field>
 
-      {state?.error ? <FormError>{t(`errors.${state.error}`)}</FormError> : null}
+      {state?.error ? (
+        <FormError>{t(`errors.${state.error}`)}</FormError>
+      ) : null}
 
       <SubmitButton label={t("register")} />
     </form>

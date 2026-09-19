@@ -19,7 +19,6 @@ vi.mock("mathlive", () => {
   throw new Error("mathlive is unavailable in this environment");
 });
 
-
 const answerExamQuestionAction = vi.fn();
 const finishExamAction = vi.fn();
 const setExplainModeAction = vi.fn();
@@ -113,7 +112,10 @@ describe("ExamRunner", () => {
 
     await waitFor(() =>
       expect(answerExamQuestionAction).toHaveBeenCalledWith(
-        expect.objectContaining({ runId: "run-1", questionId: questions[0]!.id }),
+        expect.objectContaining({
+          runId: "run-1",
+          questionId: questions[0]!.id,
+        }),
       ),
     );
     await waitFor(() => expect(answerBox()).toBeDisabled());
@@ -124,10 +126,18 @@ describe("ExamRunner", () => {
     renderExam();
 
     await user.type(answerBox(), "half-written");
-    await user.click(screen.getByRole("button", { name: messages.exam.goToQuestion.replace("{index}", "2") }));
+    await user.click(
+      screen.getByRole("button", {
+        name: messages.exam.goToQuestion.replace("{index}", "2"),
+      }),
+    );
     expect(answerBox().value).toBe("");
 
-    await user.click(screen.getByRole("button", { name: messages.exam.goToQuestion.replace("{index}", "1") }));
+    await user.click(
+      screen.getByRole("button", {
+        name: messages.exam.goToQuestion.replace("{index}", "1"),
+      }),
+    );
     expect(answerBox().value).toBe("half-written");
   });
 
@@ -161,7 +171,9 @@ describe("ExamRunner", () => {
     await user.type(answerBox(), "0{Enter}");
 
     await waitFor(() =>
-      expect(document.querySelector('[data-answer="2, 3"]')).toBeInTheDocument(),
+      expect(
+        document.querySelector('[data-answer="2, 3"]'),
+      ).toBeInTheDocument(),
     );
     expect(document.querySelector(".katex")).not.toBeNull();
   });
@@ -213,7 +225,9 @@ describe("ExamRunner", () => {
       expect(finishExamAction).not.toHaveBeenCalled();
       expect(
         screen.getByText(
-          messages.exam.questionOf.replace("{index}", "1").replace("{total}", "3"),
+          messages.exam.questionOf
+            .replace("{index}", "1")
+            .replace("{total}", "3"),
         ),
       ).toBeInTheDocument();
     });

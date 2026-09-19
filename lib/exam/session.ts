@@ -53,14 +53,15 @@ export function examConfigFromSearchParams(
   const fromTopics = topics
     .filter((topic) => list(params.topic).includes(topic.id))
     .flatMap((topic) => topic.skillIds);
-  const requested = [...new Set([...list(params.skills), ...fromTopics])].filter(
-    (id) => known.has(id),
-  );
+  const requested = [
+    ...new Set([...list(params.skills), ...fromTopics]),
+  ].filter((id) => known.has(id));
 
   const difficulties = list(params.difficulty)
     .map(Number)
-    .filter((value): value is Difficulty =>
-      value === 1 || value === 2 || value === 3 || value === 4,
+    .filter(
+      (value): value is Difficulty =>
+        value === 1 || value === 2 || value === 3 || value === 4,
     );
 
   const count = Number(first(params.count));
@@ -68,7 +69,8 @@ export function examConfigFromSearchParams(
   const explain = first(params.explain);
 
   return {
-    skillIds: requested.length > 0 ? requested : skills.map((skill) => skill.id),
+    skillIds:
+      requested.length > 0 ? requested : skills.map((skill) => skill.id),
     difficulties: difficulties.length > 0 ? difficulties : [1, 2],
     count: (QUESTION_COUNTS as readonly number[]).includes(count) ? count : 20,
     timeLimitSec: (TIME_LIMITS_MINUTES as readonly number[]).includes(minutes)
@@ -143,14 +145,18 @@ export function examConfigToSearchParams(config: ExamConfig): string {
 export function asExamRunConfig(value: unknown): ExamRunConfig | null {
   if (typeof value !== "object" || value === null) return null;
   const candidate = value as Partial<ExamRunConfig>;
-  if (!Array.isArray(candidate.refs) || candidate.refs.length === 0) return null;
+  if (!Array.isArray(candidate.refs) || candidate.refs.length === 0)
+    return null;
   if (!isExplainMode(candidate.explainMode)) return null;
   return {
     skillIds: Array.isArray(candidate.skillIds) ? candidate.skillIds : [],
     difficulties: Array.isArray(candidate.difficulties)
       ? candidate.difficulties
       : [],
-    count: typeof candidate.count === "number" ? candidate.count : candidate.refs.length,
+    count:
+      typeof candidate.count === "number"
+        ? candidate.count
+        : candidate.refs.length,
     timeLimitSec:
       typeof candidate.timeLimitSec === "number" ? candidate.timeLimitSec : 0,
     explainMode: candidate.explainMode,

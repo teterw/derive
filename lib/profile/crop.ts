@@ -43,7 +43,11 @@ export function parseCrop(raw: unknown): AvatarCrop | null {
      * "hard against the left edge" instead of falling back to letting the
      * server choose. Wrong quietly is worse than wrong loudly.
      */
-    if (typeof cx !== "number" || typeof cy !== "number" || typeof zoom !== "number") {
+    if (
+      typeof cx !== "number" ||
+      typeof cy !== "number" ||
+      typeof zoom !== "number"
+    ) {
       return null;
     }
     if (![cx, cy, zoom].every(Number.isFinite)) return null;

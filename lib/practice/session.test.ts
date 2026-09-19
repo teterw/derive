@@ -36,7 +36,9 @@ const skillOf = (id: string) => getGenerator(id).skillId;
 describe("planQuestions", () => {
   it("asks for exactly the number of questions requested", () => {
     for (const length of [1, 3, 5, 12, 37]) {
-      expect(planQuestions(config(), length), String(length)).toHaveLength(length);
+      expect(planQuestions(config(), length), String(length)).toHaveLength(
+        length,
+      );
     }
   });
 
@@ -45,17 +47,21 @@ describe("planQuestions", () => {
     const chosen = reachableSkills(config());
     const plan = planQuestions(config(), chosen.length);
 
-    expect([...new Set(plan.map((ref) => skillOf(ref.generatorId)))].sort()).toEqual(
-      [...chosen].sort(),
-    );
+    expect(
+      [...new Set(plan.map((ref) => skillOf(ref.generatorId)))].sort(),
+    ).toEqual([...chosen].sort());
   });
 
   it("asks every skill once before asking any skill twice", () => {
     const chosen = reachableSkills(config());
     const plan = planQuestions(config(), chosen.length * 2);
 
-    const firstRound = plan.slice(0, chosen.length).map((r) => skillOf(r.generatorId));
-    const secondRound = plan.slice(chosen.length).map((r) => skillOf(r.generatorId));
+    const firstRound = plan
+      .slice(0, chosen.length)
+      .map((r) => skillOf(r.generatorId));
+    const secondRound = plan
+      .slice(chosen.length)
+      .map((r) => skillOf(r.generatorId));
 
     expect(new Set(firstRound).size).toBe(chosen.length);
     expect(new Set(secondRound).size).toBe(chosen.length);
@@ -107,7 +113,11 @@ describe("planQuestions", () => {
   });
 
   it("refuses a configuration nothing can be made for", () => {
-    const empty = { ...config(), skillIds: [], difficulties: [] } as PracticeConfig;
+    const empty = {
+      ...config(),
+      skillIds: [],
+      difficulties: [],
+    } as PracticeConfig;
     expect(() => planQuestions({ ...empty, skillIds: [] }, 5)).toThrow();
   });
 });

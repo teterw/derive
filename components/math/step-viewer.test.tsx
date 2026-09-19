@@ -44,7 +44,9 @@ describe("StepViewer", () => {
     const user = userEvent.setup();
     renderStepViewer();
 
-    await user.click(screen.getByRole("button", { name: messages.practice.nextStep }));
+    await user.click(
+      screen.getByRole("button", { name: messages.practice.nextStep }),
+    );
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 

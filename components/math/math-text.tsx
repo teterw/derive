@@ -43,8 +43,7 @@ export function classify(token: string): Strength {
 }
 
 export type Segment =
-  | { kind: "text"; value: string }
-  | { kind: "math"; value: string };
+  { kind: "text"; value: string } | { kind: "math"; value: string };
 
 /** Splits a sentence into prose and maths. Exported for its tests. */
 export function segment(text: string): Segment[] {

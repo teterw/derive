@@ -45,7 +45,8 @@ export async function saveProfileAction(
 
   const displayName = String(formData.get("displayName") ?? "").trim();
   if (displayName.length === 0) return { error: "displayNameRequired" };
-  if (displayName.length > DISPLAY_NAME_MAX) return { error: "displayNameTooLong" };
+  if (displayName.length > DISPLAY_NAME_MAX)
+    return { error: "displayNameTooLong" };
 
   /*
    * The picture. Three cases: a new file, an explicit removal, or neither -

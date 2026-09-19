@@ -50,7 +50,7 @@ const skillNames = Object.fromEntries(
 const first = generateQuestion("quad.solve-factor-simple", 7, 1);
 const second = generateQuestion("quad.solve-factor-simple", 8, 1);
 
-function renderRunner(startingXp = 0) {
+function renderRunner() {
   render(
     <NextIntlClientProvider locale="th" messages={messages}>
       <PracticeRunner
@@ -63,13 +63,6 @@ function renderRunner(startingXp = 0) {
           seed: 1,
         }}
         first={toPublicQuestion(first)}
-        startingXp={startingXp}
-        learner={{
-          username: "teterw",
-          displayName: "teterw",
-          avatarSeed: "teterw#0",
-          avatarSrc: null,
-        }}
         ruleNames={ruleNames}
         skillNames={skillNames}
         difficultyLabels={DIFFICULTY_LABELS}
@@ -237,127 +230,6 @@ describe("PracticeRunner", () => {
 
     await waitFor(() => expect(nextQuestionAction).toHaveBeenCalled());
     await waitFor(() => expect(answerBox().value).toBe(""));
-  });
-
-  /**
-   * The level card reports something the server decided, so it has to move by
-   * the amount the server actually wrote, and it has to show the same itemised
-   * reasons. A response arriving without the award must not take the total to
-   * NaN - that failure is silent, because `levelFromXp` clamps NaN to zero and
-   * the bar simply sits at level 1 saying nothing.
-   */
-  describe("the level card", () => {
-    const meter = () => screen.getByRole("progressbar");
-
-    it("starts where the server says the learner is", () => {
-      // 150 XP is level 2, 50 of the way into a 150 span.
-      renderRunner(150);
-      expect(meter()).toHaveAttribute("aria-valuenow", "50");
-      expect(meter()).toHaveAttribute("aria-valuemax", "150");
-      // The level sits on the learner's own card, beside their name. Found by
-      // title: a bare "2" appears in several places on this screen.
-      const badge = screen.getByTitle(
-        messages.profile.level.replace("{level}", "2"),
-      );
-      expect(badge).toHaveTextContent("2");
-      expect(screen.getByText("teterw")).toBeInTheDocument();
-    });
-
-    it("moves by what the answer earned", async () => {
-      submitAnswerAction.mockResolvedValue({
-        result: { correct: true },
-        correctAnswer: "2, 3",
-        steps: first.steps,
-        award: {
-          parts: [
-            { key: "answered", amount: 1 },
-            { key: "correct", amount: 5 },
-            { key: "perfect", amount: 2 },
-            { key: "streak", amount: 1 },
-          ],
-          total: 9,
-        },
-      });
-      const user = userEvent.setup();
-      renderRunner(150);
-
-      await user.type(answerBox(), "2, 3{Enter}");
-
-      await waitFor(() =>
-        expect(meter()).toHaveAttribute("aria-valuenow", "59"),
-      );
-      expect(screen.getByText("+9")).toBeInTheDocument();
-    });
-
-    /**
-     * The breakdown is the reason this exists. A bare total says something
-     * happened; "+2 no hints" says what the learner did well.
-     */
-    it("itemises where the XP came from", async () => {
-      submitAnswerAction.mockResolvedValue({
-        result: { correct: true },
-        correctAnswer: "2, 3",
-        steps: first.steps,
-        award: {
-          parts: [
-            { key: "answered", amount: 1 },
-            { key: "correct", amount: 5 },
-            { key: "perfect", amount: 2 },
-          ],
-          total: 8,
-        },
-      });
-      const user = userEvent.setup();
-      renderRunner(150);
-
-      await user.type(answerBox(), "2, 3{Enter}");
-
-      await waitFor(() => expect(screen.getByText("+8")).toBeInTheDocument());
-      for (const [label, amount] of [
-        [messages.xp.answered, "+1"],
-        [messages.xp.correct, "+5"],
-        [messages.xp.perfect, "+2"],
-      ]) {
-        expect(screen.getByText(label!)).toBeInTheDocument();
-        expect(screen.getByText(amount!)).toBeInTheDocument();
-      }
-      // Nothing claims a streak bonus that was not awarded.
-      expect(screen.queryByText(messages.xp.streak)).not.toBeInTheDocument();
-    });
-
-    it("earns something for a wrong answer too", async () => {
-      submitAnswerAction.mockResolvedValue({
-        result: { correct: false, reason: "wrong" },
-        correctAnswer: "2, 3",
-        steps: first.steps,
-        award: { parts: [{ key: "answered", amount: 2 }], total: 2 },
-      });
-      const user = userEvent.setup();
-      renderRunner(150);
-
-      await user.type(answerBox(), "5{Enter}");
-
-      await waitFor(() =>
-        expect(meter()).toHaveAttribute("aria-valuenow", "52"),
-      );
-    });
-
-    it("holds still rather than going to NaN if the field is missing", async () => {
-      submitAnswerAction.mockResolvedValue({
-        result: { correct: true },
-        correctAnswer: "2, 3",
-        steps: first.steps,
-      });
-      const user = userEvent.setup();
-      renderRunner(150);
-
-      await user.type(answerBox(), "2, 3{Enter}");
-
-      await waitFor(() =>
-        expect(screen.getByText(messages.practice.correct)).toBeInTheDocument(),
-      );
-      expect(meter()).toHaveAttribute("aria-valuenow", "50");
-    });
   });
 
   it("gives one hint at a time, in order", async () => {

@@ -50,7 +50,9 @@ export function Heatmap({
 
   // Pad the start so every column is a full week beginning on Monday.
   const first = days[0];
-  const leading = first ? (new Date(`${first.day}T00:00:00Z`).getUTCDay() + 6) % 7 : 0;
+  const leading = first
+    ? (new Date(`${first.day}T00:00:00Z`).getUTCDay() + 6) % 7
+    : 0;
   const cells: (HeatmapDay | null)[] = [
     ...Array.from({ length: leading }, () => null),
     ...days,
@@ -88,7 +90,11 @@ export function Heatmap({
               aria-hidden
             >
               {columns.map((column, index) => {
-                const label = monthLabel(column, columns[index - 1], monthNames);
+                const label = monthLabel(
+                  column,
+                  columns[index - 1],
+                  monthNames,
+                );
                 return (
                   <span
                     key={index}

@@ -18,7 +18,6 @@ vi.mock("mathlive", () => {
   throw new Error("mathlive is unavailable in this environment");
 });
 
-
 /**
  * The keypad exists so that maths can be typed on a phone. What matters is
  * that what it inserts is what the answer checker accepts - a private format
@@ -104,9 +103,9 @@ describe("AnswerInput", () => {
     await user.click(screen.getByRole("button", { name: "x²" }));
 
     expect(value()).toBe("x^2");
-    expect(
-      checkAnswer({ kind: "exact", value: "x*x" }, value()).correct,
-    ).toBe(true);
+    expect(checkAnswer({ kind: "exact", value: "x*x" }, value()).correct).toBe(
+      true,
+    );
   });
 
   /**
@@ -154,9 +153,7 @@ describe("AnswerInput", () => {
 
       await user.type(box(), "2x +");
 
-      expect(preview().textContent).toContain(
-        messages.practice.cannotReadYet,
-      );
+      expect(preview().textContent).toContain(messages.practice.cannotReadYet);
     });
 
     it("recovers as soon as the input is complete again", async () => {

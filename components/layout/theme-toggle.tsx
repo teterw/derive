@@ -59,7 +59,9 @@ export function ThemeToggle({ label }: { label: string }) {
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => writeTheme(ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length]!)}
+      onClick={() =>
+        writeTheme(ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length]!)
+      }
       title={label}
       aria-label={label}
     >

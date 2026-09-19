@@ -23,7 +23,6 @@ import { cropRegion, type AvatarCrop } from "./crop";
  *   pixels; `limitInputPixels` refuses before allocating.
  */
 
-
 /**
  * A ceiling on decoded pixels, not on file size. Sharp refuses anything above
  * this before allocating, which is what stops a small file that claims to be
@@ -34,7 +33,6 @@ const MAX_INPUT_PIXELS = 50_000_000;
 export type AvatarResult =
   | { ok: true; bytes: Buffer; type: string }
   | { ok: false; error: "tooLarge" | "wrongType" | "notAnImage" | "empty" };
-
 
 /**
  * Checks the *bytes*, not the declared type.
@@ -82,7 +80,10 @@ export async function prepareAvatar(
   if (input.length > MAX_UPLOAD_BYTES) return { ok: false, error: "tooLarge" };
 
   const sniffed = sniff(input);
-  if (!sniffed || !ACCEPTED_TYPES.includes(sniffed as (typeof ACCEPTED_TYPES)[number])) {
+  if (
+    !sniffed ||
+    !ACCEPTED_TYPES.includes(sniffed as (typeof ACCEPTED_TYPES)[number])
+  ) {
     return { ok: false, error: "wrongType" };
   }
 
@@ -127,4 +128,3 @@ export async function prepareAvatar(
     return { ok: false, error: "notAnImage" };
   }
 }
-

@@ -84,7 +84,10 @@ describe("NavLink", () => {
       </>,
     );
 
-    expect(screen.getByText("Practice")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("Practice")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     expect(screen.getByText("Review")).not.toHaveAttribute("aria-current");
   });
 
@@ -95,7 +98,10 @@ describe("NavLink", () => {
         Practice
       </NavLink>,
     );
-    expect(screen.getByText("Practice")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("Practice")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 
   it("shows the state visually as well, in every surface", () => {

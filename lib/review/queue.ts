@@ -39,17 +39,19 @@ export async function getReviewQueue(
     limit ${limit}
   `);
 
-  return result.rows
-    .map((row) => ({
-      generatorId: String(row.generator_id),
-      seed: Number(row.seed),
-      difficulty: Number(row.difficulty) as Difficulty,
-      skillId: String(row.skill_id),
-      topicId: String(row.topic_id),
-      missedAt: new Date(String(row.created_at)),
-    }))
-    // A generator that has since been removed cannot be replayed.
-    .filter((item) => hasGenerator(item.generatorId));
+  return (
+    result.rows
+      .map((row) => ({
+        generatorId: String(row.generator_id),
+        seed: Number(row.seed),
+        difficulty: Number(row.difficulty) as Difficulty,
+        skillId: String(row.skill_id),
+        topicId: String(row.topic_id),
+        missedAt: new Date(String(row.created_at)),
+      }))
+      // A generator that has since been removed cannot be replayed.
+      .filter((item) => hasGenerator(item.generatorId))
+  );
 }
 
 export async function getReviewCount(userId: string): Promise<number> {

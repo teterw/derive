@@ -234,7 +234,10 @@ function constantValue(node: MathNode): number | null {
 function forEachSqrt(node: MathNode, visit: (argument: MathNode) => void) {
   node.traverse((current) => {
     if (current.type !== "FunctionNode") return;
-    const fn = current as unknown as { fn: { name?: string }; args: MathNode[] };
+    const fn = current as unknown as {
+      fn: { name?: string };
+      args: MathNode[];
+    };
     if (fn.fn?.name === "sqrt" && fn.args[0]) visit(fn.args[0]);
   });
 }

@@ -102,7 +102,10 @@ describe("checkAnswer - sets", () => {
   });
 
   it("but calls a wrong root wrong, not incomplete", () => {
-    expect(checkAnswer(roots, "7")).toEqual({ correct: false, reason: "wrong" });
+    expect(checkAnswer(roots, "7")).toEqual({
+      correct: false,
+      reason: "wrong",
+    });
   });
 
   it("rejects a repeated root standing in for two", () => {

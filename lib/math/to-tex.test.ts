@@ -95,10 +95,10 @@ describe("toTex", () => {
           continue;
         }
         if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
-        expect(a, `${source} -> ${tex} at ${JSON.stringify(scope)}`).toBeCloseTo(
-          b,
-          9,
-        );
+        expect(
+          a,
+          `${source} -> ${tex} at ${JSON.stringify(scope)}`,
+        ).toBeCloseTo(b, 9);
       }
     }
   });
@@ -146,14 +146,8 @@ function texToMath(tex: string): string {
       /\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*)\}/g,
       "(($1)/($2))",
     );
-    text = text.replace(
-      /\\sqrt\{((?:[^{}]|\{[^{}]*\})*)\}/g,
-      "sqrt(($1))",
-    );
-    text = text.replace(
-      /\^\{((?:[^{}]|\{[^{}]*\})*)\}/g,
-      "^($1)",
-    );
+    text = text.replace(/\\sqrt\{((?:[^{}]|\{[^{}]*\})*)\}/g, "sqrt(($1))");
+    text = text.replace(/\^\{((?:[^{}]|\{[^{}]*\})*)\}/g, "^($1)");
   }
   return text
     .replace(/\\left\(/g, "(")

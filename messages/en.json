@@ -44,7 +44,8 @@
     "backToReview": "Leave review",
     "backToRules": "Back to formulas",
     "backToPeople": "Back to people",
-    "backHome": "Back to home"
+    "backHome": "Back to home",
+    "backToLesson": "Back to the lesson"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -189,7 +190,12 @@
     "lengthEndless": "No limit",
     "runDoneBody": "That is the run. Everything you answered is already in your stats.",
     "runAgain": "Practise again",
-    "changeSelection": "Change what you practise"
+    "changeSelection": "Change what you practise",
+    "testPassed": "Passed",
+    "testFailed": "Not this time",
+    "testScore": "{score} of {total} right · {needed} needed to pass",
+    "testAgain": "Try again",
+    "backToLesson": "Back to the lesson"
   },
   "learn": {
     "title": "Learn",
@@ -201,7 +207,15 @@
     "pitfalls": "Common mistakes",
     "tryThese": "Try these",
     "tryTheseNote": "Use the button below to practise this skill with marking.",
-    "practiceThisSkill": "Practise this skill"
+    "practiceThisSkill": "Practise this skill",
+    "progress": "{done} of {total} lessons passed",
+    "lessonPassed": "Passed",
+    "lessonNotPassed": "Not passed yet",
+    "takeTest": "Take the test",
+    "retakeTest": "Retake the test",
+    "testExplainer": "{count} questions. Get {needed} right to pass.",
+    "noTestTitle": "No test for this lesson yet",
+    "noTestBody": "This lesson does not have enough questions behind it yet."
   },
   "rules": {
     "title": "Formulas and rules",

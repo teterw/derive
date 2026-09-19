@@ -46,7 +46,10 @@ function tokenize(source: string): Token[] {
       continue;
     }
 
-    if (/[0-9]/.test(char) || (char === "." && /[0-9]/.test(source[index + 1] ?? ""))) {
+    if (
+      /[0-9]/.test(char) ||
+      (char === "." && /[0-9]/.test(source[index + 1] ?? ""))
+    ) {
       let text = "";
       while (index < source.length && /[0-9.]/.test(source[index]!)) {
         text += source[index];
@@ -133,7 +136,8 @@ class Parser {
 
   parse(): Rendered {
     const node = this.parseSum();
-    if (this.position !== this.tokens.length) throw new ParseError("trailing input");
+    if (this.position !== this.tokens.length)
+      throw new ParseError("trailing input");
     return node;
   }
 
@@ -141,7 +145,8 @@ class Parser {
     let left = this.parseProduct();
     for (;;) {
       const token = this.peek();
-      if (token?.kind !== "op" || (token.text !== "+" && token.text !== "-")) break;
+      if (token?.kind !== "op" || (token.text !== "+" && token.text !== "-"))
+        break;
       this.next();
       const right = this.parseProduct();
       left = {
@@ -176,7 +181,11 @@ class Parser {
       }
 
       // Implicit multiplication: a value immediately followed by another value.
-      if (token?.kind === "number" || token?.kind === "name" || token?.kind === "open") {
+      if (
+        token?.kind === "number" ||
+        token?.kind === "name" ||
+        token?.kind === "open"
+      ) {
         const right = this.parseUnary();
         left = {
           tex: `${wrap(left, PRODUCT)}${wrap(right, PRODUCT)}`,

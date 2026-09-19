@@ -79,7 +79,9 @@ describe("prepareAvatar", () => {
    * PNG. It gets past the sniff and has to fail in the decoder.
    */
   it("refuses something wearing a PNG header", async () => {
-    const header = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const header = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
     const liar = Buffer.concat([header, Buffer.alloc(256, 0x41)]);
     const result = await prepareAvatar(liar);
     expect(result.ok).toBe(false);
@@ -144,7 +146,12 @@ describe("prepareAvatar", () => {
   it("takes the square the crop asks for", async () => {
     // Left half indigo, right half black - so the crop is checkable by colour.
     const split = await sharp({
-      create: { width: 400, height: 400, channels: 3, background: { r: 0, g: 0, b: 0 } },
+      create: {
+        width: 400,
+        height: 400,
+        channels: 3,
+        background: { r: 0, g: 0, b: 0 },
+      },
     })
       .composite([
         {
@@ -174,7 +181,9 @@ describe("prepareAvatar", () => {
       (await sharp(bytes).stats()).channels[2]!.mean; // blue channel
 
     // The indigo half is much bluer than the black half.
-    expect(await meanOf(left.bytes)).toBeGreaterThan(await meanOf(right.bytes) + 50);
+    expect(await meanOf(left.bytes)).toBeGreaterThan(
+      (await meanOf(right.bytes)) + 50,
+    );
   });
 
   it("keeps the first frame of an animation rather than the animation", async () => {

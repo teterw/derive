@@ -33,9 +33,10 @@ describe("dailyRefs", () => {
       const day = date.toISOString().slice(0, 10);
 
       for (const ref of dailyRefs(day)) {
-        expect(hasGenerator(ref.generatorId), `${day}: ${ref.generatorId}`).toBe(
-          true,
-        );
+        expect(
+          hasGenerator(ref.generatorId),
+          `${day}: ${ref.generatorId}`,
+        ).toBe(true);
         // And the question it names actually builds.
         const question = generateQuestion(
           ref.generatorId,

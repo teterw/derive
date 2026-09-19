@@ -43,7 +43,9 @@ export function dailyRefs(day: string = bangkokDay()): QuestionRef[] {
     const skillId = rng.pick(available);
     const supported = difficultiesForSkill(skillId);
     const wanted = DAILY_SHAPE[index]!;
-    const difficulty = supported.includes(wanted) ? wanted : rng.pick(supported);
+    const difficulty = supported.includes(wanted)
+      ? wanted
+      : rng.pick(supported);
     const generator = rng.pick(generatorsForSkillAt(skillId, difficulty));
 
     refs.push({

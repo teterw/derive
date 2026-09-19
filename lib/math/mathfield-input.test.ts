@@ -32,13 +32,18 @@ describe("input from the maths field", () => {
   });
 
   it("marks a wrong answer wrong, whichever way it was built", () => {
-    const result = checkAnswer({ kind: "exact", value: "3*sqrt(2)" }, "\\sqrt{18}+1");
+    const result = checkAnswer(
+      { kind: "exact", value: "3*sqrt(2)" },
+      "\\sqrt{18}+1",
+    );
     expect(result.correct).toBe(false);
   });
 
   it("reads an empty box as empty rather than as a syntax error", () => {
     // What the field holds the moment the fraction key is pressed.
-    expect(() => normalizeInput("\\frac{\\placeholder{}}{\\placeholder{}}")).not.toThrow();
+    expect(() =>
+      normalizeInput("\\frac{\\placeholder{}}{\\placeholder{}}"),
+    ).not.toThrow();
     expect(() => normalizeInput("\\frac{2}{\\placeholder{}}")).not.toThrow();
     expect(() => normalizeInput("\\sqrt{\\placeholder{}}")).not.toThrow();
   });
@@ -58,16 +63,13 @@ describe("input from the maths field", () => {
     expect(checkAnswer({ kind: "exact", value: "x^2" }, "x^{2}").correct).toBe(
       true,
     );
-    expect(checkAnswer({ kind: "exact", value: "2*x^3" }, "2x^{3}").correct).toBe(
-      true,
-    );
+    expect(
+      checkAnswer({ kind: "exact", value: "2*x^3" }, "2x^{3}").correct,
+    ).toBe(true);
   });
 
   it("still handles a set of roots built in the field", () => {
-    const result = checkAnswer(
-      { kind: "set", values: ["2", "-5"] },
-      "2,-5",
-    );
+    const result = checkAnswer({ kind: "set", values: ["2", "-5"] }, "2,-5");
     expect(result.correct).toBe(true);
   });
 

@@ -36,7 +36,9 @@ describe("normalizeMathfieldLatex", () => {
   });
 
   it("normalises inside a braced group too", () => {
-    expect(normalizeMathfieldLatex("\\frac{x^12}{2}")).toBe("\\frac{x^{12}}{2}");
+    expect(normalizeMathfieldLatex("\\frac{x^12}{2}")).toBe(
+      "\\frac{x^{12}}{2}",
+    );
     expect(normalizeMathfieldLatex("\\sqrt{x^10}")).toBe("\\sqrt{x^{10}}");
   });
 
@@ -46,7 +48,14 @@ describe("normalizeMathfieldLatex", () => {
    * a layer of braces per character typed.
    */
   it("is idempotent", () => {
-    for (const input of ["x^12", "x^{12}", "x^12+3", "\\frac{x^12}{2}", "x^-2", "a_1"]) {
+    for (const input of [
+      "x^12",
+      "x^{12}",
+      "x^12+3",
+      "\\frac{x^12}{2}",
+      "x^-2",
+      "a_1",
+    ]) {
       const once = normalizeMathfieldLatex(input);
       expect(normalizeMathfieldLatex(once), input).toBe(once);
     }
@@ -54,7 +63,17 @@ describe("normalizeMathfieldLatex", () => {
 
   it("survives a half-typed expression without throwing", () => {
     // Every prefix of a real edit - `^` with nothing after it is a real state.
-    for (const input of ["", "x", "x^", "x^{", "x^{}", "x^1", "x^12", "\\fra", "\\frac{"]) {
+    for (const input of [
+      "",
+      "x",
+      "x^",
+      "x^{",
+      "x^{}",
+      "x^1",
+      "x^12",
+      "\\fra",
+      "\\frac{",
+    ]) {
       expect(() => normalizeMathfieldLatex(input), input).not.toThrow();
     }
     expect(normalizeMathfieldLatex("x^")).toBe("x^");

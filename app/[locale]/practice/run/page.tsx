@@ -15,6 +15,7 @@ import {
   planQuestions,
 } from "@/lib/practice/session";
 import { getTotalXp } from "@/lib/profile/queries";
+import { avatarSeed, avatarUrl } from "@/components/profile/avatar";
 import { AppShell } from "@/components/layout/app-shell";
 import { ToolDock } from "@/components/tools/tool-dock";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -112,6 +113,12 @@ export default async function PracticeRunPage({
         skillNames={skillNames}
         difficultyLabels={DIFFICULTY_LABELS}
         startingXp={startingXp}
+        learner={{
+          username: user.username,
+          displayName: user.displayName,
+          avatarSeed: avatarSeed(user.username, user.avatarSlot),
+          avatarSrc: avatarUrl(user.username, user.avatarUpdatedAt),
+        }}
       />
       <ToolDock
         rules={allRules}

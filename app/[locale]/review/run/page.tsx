@@ -11,6 +11,7 @@ import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
 import { normalizeConfig } from "@/lib/practice/session";
 import { getTotalXp } from "@/lib/profile/queries";
+import { avatarSeed, avatarUrl } from "@/components/profile/avatar";
 import { AppShell } from "@/components/layout/app-shell";
 import { ToolDock } from "@/components/tools/tool-dock";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -85,6 +86,12 @@ export default async function ReviewRunPage({
     >
       <PracticeRunner
         startingXp={startingXp}
+        learner={{
+          username: user.username,
+          displayName: user.displayName,
+          avatarSeed: avatarSeed(user.username, user.avatarSlot),
+          avatarSrc: avatarUrl(user.username, user.avatarUpdatedAt),
+        }}
         mode="review"
         config={normalizeConfig({
           skillIds: [...new Set(queue.map((item) => item.skillId))],

@@ -20,10 +20,63 @@ export function masteryLevel(attempts: number, ema: number): MasteryLevel {
   return 3;
 }
 
-/** XP per attempt, weighted by difficulty. Deliberately simple for now. */
-export function xpFor(difficulty: number, correct: boolean): number {
-  const base = [0, 4, 6, 9, 13][difficulty] ?? 4;
-  return correct ? base : Math.round(base / 3);
+/**
+ * XP per attempt, itemised.
+ *
+ * It used to be one number. Showing a total on its own tells a learner that
+ * something happened but not what they did well, which is the part worth
+ * knowing - "+2 for no hints" is feedback and "+8" is a noise. So an award is
+ * a list of named parts and the runner shows them.
+ *
+ * The totals land where the single number used to: a plain correct answer is
+ * still 4/6/9/13 by difficulty, and a wrong one is still worth something,
+ * because turning up and being wrong is how the app is meant to be used.
+ */
+export type XpPartKey = "answered" | "correct" | "perfect" | "streak";
+
+export type XpPart = { key: XpPartKey; amount: number };
+
+export type XpAward = { parts: XpPart[]; total: number };
+
+/** For answering at all, right or wrong. */
+export const XP_ANSWERED = 1;
+/** For a correct answer, by difficulty. */
+const XP_CORRECT = [0, 3, 5, 8, 12] as const;
+/** For getting it right with no hints and no working revealed. */
+export const XP_PERFECT = 2;
+/** One point per this many consecutive correct answers... */
+export const XP_STREAK_EVERY = 3;
+/** ...up to this, so a long streak cannot outweigh the question itself. */
+export const XP_STREAK_MAX = 5;
+
+export function xpFor(
+  difficulty: number,
+  correct: boolean,
+  extras: {
+    /** Consecutive correct answers *including* this one. */
+    streak?: number;
+    hintsUsed?: number;
+    stepsRevealed?: boolean;
+  } = {},
+): XpAward {
+  const parts: XpPart[] = [{ key: "answered", amount: XP_ANSWERED }];
+
+  if (correct) {
+    parts.push({
+      key: "correct",
+      amount: XP_CORRECT[difficulty] ?? XP_CORRECT[1],
+    });
+
+    if (!extras.hintsUsed && !extras.stepsRevealed) {
+      parts.push({ key: "perfect", amount: XP_PERFECT });
+    }
+
+    const streak = Math.max(0, Math.floor(extras.streak ?? 0));
+    const bonus = Math.min(XP_STREAK_MAX, Math.floor(streak / XP_STREAK_EVERY));
+    if (bonus > 0) parts.push({ key: "streak", amount: bonus });
+  }
+
+  return { parts, total: parts.reduce((sum, part) => sum + part.amount, 0) };
 }
 
 /** A question answered faster than this was almost certainly not answered. */

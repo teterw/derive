@@ -14,6 +14,7 @@ import {
 } from "@/lib/practice/actions";
 import { submitAnswerAction } from "@/lib/practice/actions";
 import type { PracticeConfig } from "@/lib/practice/session";
+import type { XpAward } from "@/lib/stats/constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
 import {
@@ -44,6 +45,7 @@ export function PracticeRunner({
   queue,
   mode = "practice",
   startingXp = 0,
+  learner,
   ruleNames,
   skillNames,
   difficultyLabels,
@@ -52,6 +54,13 @@ export function PracticeRunner({
   first: PublicQuestion;
   /** Lifetime XP as the server knew it when the page was rendered. */
   startingXp?: number;
+  /** Who is answering, for the level card. */
+  learner?: {
+    username: string;
+    displayName: string;
+    avatarSeed: string;
+    avatarSrc: string | null;
+  };
   /**
    * Review mode walks a fixed list of missed questions instead of drawing a
    * fresh one each time, so the learner meets the identical question again.
@@ -90,6 +99,15 @@ export function PracticeRunner({
    * were handed.
    */
   const [totalXp, setTotalXp] = useState(startingXp);
+
+  /*
+   * The last award, with an id of its own. Two identical awards in a row are
+   * two events, and keying the display on the contents would make the second
+   * one invisible - React reuses a node with the same key and the animation
+   * does not replay.
+   */
+  const [award, setAward] = useState<(XpAward & { id: number }) | null>(null);
+  const awardId = useRef(0);
 
   // Set in an effect, not during render: reading the clock while rendering is
   // impure and React may render more than once.
@@ -130,9 +148,10 @@ export function PracticeRunner({
        * `undefined` makes the total NaN, `levelFromXp` clamps NaN to zero, and
        * the bar silently drops to level 1 rather than failing.
        */
-      setTotalXp((current) =>
-        Number.isFinite(result.xp) ? current + result.xp : current,
-      );
+      if (result.award && Number.isFinite(result.award.total)) {
+        setTotalXp((current) => current + result.award.total);
+        setAward({ ...result.award, id: awardId.current++ });
+      }
       setTally((current) => {
         const streak = result.result.correct ? current.streak + 1 : 0;
         return {
@@ -292,9 +311,30 @@ export function PracticeRunner({
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-8 pb-16 sm:pb-0">
-      <Scoreboard tally={tally} labels={t} />
+      {/*
+        The learner on the left, the session tally on the right, one row.
 
-      <XpMeter totalXp={totalXp} />
+        The card wants to be near the top and out of the way, and the tally was
+        already a centred row of three numbers with empty space either side - so
+        they share it. The award hangs below the card, out of the flow, into
+        space that is otherwise blank.
+      */}
+      <div className="flex items-start justify-between gap-4">
+        {learner ? (
+          <XpMeter
+            username={learner.username}
+            displayName={learner.displayName}
+            avatarSeed={learner.avatarSeed}
+            avatarSrc={learner.avatarSrc}
+            totalXp={totalXp}
+            award={award}
+            className="shrink-0"
+          />
+        ) : (
+          <div />
+        )}
+        <Scoreboard tally={tally} labels={t} />
+      </div>
 
       {queue ? (
         <p className="text-center font-mono text-xs tabular-nums text-muted">

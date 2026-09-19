@@ -6,6 +6,7 @@ import type { L, Misconception, PublicQuestion, Step } from "@/content/types";
 import { checkAnswer, type CheckResult } from "@/lib/math/check";
 import { getSessionUser } from "@/lib/auth/session";
 import { recordAttempt } from "@/lib/stats/record";
+import type { XpAward } from "@/lib/stats/constants";
 import { countPracticeCorrect, currentPracticeRunId } from "./run";
 import { recordReview } from "@/lib/review/due";
 import {
@@ -52,8 +53,8 @@ export type SubmitResult = {
    * "wrong" and a lesson.
    */
   misconception?: L;
-  /** What this attempt earned, so the meter can show it moving. */
-  xp: number;
+  /** What this attempt earned, itemised, so the meter can show why. */
+  award: XpAward;
 };
 
 export async function submitAnswerAction(input: {
@@ -83,7 +84,7 @@ export async function submitAnswerAction(input: {
    */
   const runId = await currentPracticeRunId(userId, mode);
 
-  const { xp } = await recordAttempt({
+  const { award } = await recordAttempt({
     userId,
     mode,
     ...(runId ? { runId } : {}),
@@ -107,7 +108,7 @@ export async function submitAnswerAction(input: {
 
   return {
     result,
-    xp,
+    award,
     correctAnswer: displayAnswer(question),
     steps: question.steps,
     ...(result.correct

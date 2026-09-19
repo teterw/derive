@@ -58,6 +58,17 @@ export const users = pgTable(
     currentStreak: integer("current_streak").notNull().default(0),
     longestStreak: integer("longest_streak").notNull().default(0),
     lastActiveDay: date("last_active_day"),
+    /**
+     * Consecutive correct answers, across sessions, reset by a wrong one.
+     *
+     * Distinct from `currentStreak`, which counts *days*. This one pays the
+     * streak part of an XP award, and XP is decided on the server - so it
+     * cannot be the tally the runner keeps, which arrives from a browser and
+     * would let anyone claim any bonus they liked. A column rather than a
+     * count over recent attempts: it is read and written on every answer, and
+     * that is the one place worth not spending a query.
+     */
+    answerStreak: integer("answer_streak").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -302,6 +313,38 @@ export const skillMastery = pgTable(
     correct: integer("correct").notNull().default(0),
     emaAccuracy: real("ema_accuracy").notNull().default(0),
     level: integer("level").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.skillId] })],
+);
+
+/**
+ * Which lessons a learner has passed, and how well.
+ *
+ * Separate from `skill_mastery` on purpose. Mastery is a rolling opinion that
+ * drifts up and down with recent accuracy; this is a fact about an event - you
+ * sat this lesson's test and you passed it. A checklist that unticked itself
+ * because your average slipped would be useless as a checklist, and the daily
+ * challenge draws on this rather than on mastery for the same reason: "what
+ * have I been taught" should not change while you sleep.
+ *
+ * `bestScore` is kept so retaking a passed lesson can still improve something,
+ * and so the page can say how close a failed attempt came.
+ */
+export const lessonProgress = pgTable(
+  "lesson_progress",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    skillId: text("skill_id").notNull(),
+    /** Set on the first pass and never cleared. Null means not passed yet. */
+    passedAt: timestamp("passed_at", { withTimezone: true }),
+    /** Best proportion correct across every attempt at this lesson's test. */
+    bestScore: real("best_score").notNull().default(0),
+    attempts: integer("attempts").notNull().default(0),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

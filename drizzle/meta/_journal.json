@@ -36,6 +36,13 @@
       "when": 1789794811997,
       "tag": "0004_cheerful_hellcat",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789807610199,
+      "tag": "0005_nosy_black_cat",
+      "breakpoints": true
     }
   ]
 }

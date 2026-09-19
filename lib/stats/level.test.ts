@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  compactXp,
-  levelFromXp,
-  totalXpForLevel,
-  xpForLevel,
-} from "./level";
+import { compactXp, levelFromXp, totalXpForLevel, xpForLevel } from "./level";
 
 describe("the level curve", () => {
   it("starts everyone at level 1 with nothing earned", () => {

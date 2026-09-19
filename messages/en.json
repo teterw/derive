@@ -405,5 +405,11 @@
     "dragToPosition": "Drag the picture to position it.",
     "zoom": "Zoom",
     "resetPosition": "Reset position"
+  },
+  "xp": {
+    "answered": "answered",
+    "correct": "correct",
+    "perfect": "no hints",
+    "streak": "streak"
   }
 }

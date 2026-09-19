@@ -10,12 +10,7 @@
  */
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../lib/db";
-import {
-  attempts,
-  dailyStats,
-  skillMastery,
-  users,
-} from "../lib/db/schema";
+import { attempts, dailyStats, skillMastery, users } from "../lib/db/schema";
 import { hashPassword } from "../lib/auth/password";
 import { createRng } from "../content/rng";
 import { generateQuestion, generators } from "../content/generators";
@@ -137,7 +132,9 @@ async function seed() {
       dayTotals.attempts += 1;
       dayTotals.correct += marked.correct ? 1 : 0;
       dayTotals.timeMs += timeMs;
-      dayTotals.xp += xpFor(difficulty, marked.correct);
+      // Demo history has no streak or hint record to draw on, so this is the
+      // plain award: what the question was worth, nothing on top.
+      dayTotals.xp += xpFor(difficulty, marked.correct, { hintsUsed: 1 }).total;
       daily.set(day, dayTotals);
 
       const skillTotals = mastery.get(question.skillId) ?? {
@@ -208,7 +205,11 @@ async function seed() {
   const lastActive = [...qualifying].sort().at(-1) ?? null;
   await db
     .update(users)
-    .set({ currentStreak: current, longestStreak: longest, lastActiveDay: lastActive })
+    .set({
+      currentStreak: current,
+      longestStreak: longest,
+      lastActiveDay: lastActive,
+    })
     .where(eq(users.id, userId));
 
   const [check] = await db

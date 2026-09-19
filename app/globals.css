@@ -230,23 +230,44 @@ body {
  * above it, and it is `pointer-events: none` at the element so it cannot take a
  * click from the answer box while it is in the air.
  */
+/*
+ * The award under the level card: rises into place, holds long enough to be
+ * read, then leaves. The hold is most of the duration - an award that is still
+ * moving while you are reading it is just harder to read.
+ */
 @keyframes xp-award {
   from {
     opacity: 0;
-    transform: translateY(6px) scale(0.9);
+    transform: translateY(8px);
   }
-  25% {
+  12%,
+  80% {
     opacity: 1;
-    transform: translateY(-2px) scale(1);
+    transform: none;
   }
   to {
     opacity: 0;
-    transform: translateY(-22px) scale(1);
+    transform: translateY(-6px);
   }
 }
 
 .xp-award {
-  animation: xp-award 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: xp-award 2600ms ease-out both;
+}
+
+/* Reaching a new level, on the level number itself. */
+@keyframes xp-levelup {
+  0%,
+  100% {
+    transform: none;
+  }
+  35% {
+    transform: scale(1.35);
+  }
+}
+
+.xp-levelup {
+  animation: xp-levelup 700ms ease-out;
 }
 
 /*

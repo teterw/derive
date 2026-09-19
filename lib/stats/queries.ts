@@ -88,8 +88,7 @@ export async function getStreak(userId: string): Promise<StreakInfo> {
    */
   const alive =
     user?.lastActiveDay != null &&
-    (user.lastActiveDay === today ||
-      user.lastActiveDay === previousDay(today));
+    (user.lastActiveDay === today || user.lastActiveDay === previousDay(today));
 
   return {
     current: alive ? (user?.current ?? 0) : 0,
@@ -348,9 +347,7 @@ export type PersonalBests = {
   fastestSprints: { topicId: TopicId; ms: number }[];
 };
 
-export async function getPersonalBests(
-  userId: string,
-): Promise<PersonalBests> {
+export async function getPersonalBests(userId: string): Promise<PersonalBests> {
   // Gaps and islands: consecutive correct answers share (rn - rnByOutcome).
   const streak = await db.execute(sql`
     with ordered as (

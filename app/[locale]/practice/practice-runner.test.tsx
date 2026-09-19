@@ -64,6 +64,12 @@ function renderRunner(startingXp = 0) {
         }}
         first={toPublicQuestion(first)}
         startingXp={startingXp}
+        learner={{
+          username: "teterw",
+          displayName: "teterw",
+          avatarSeed: "teterw#0",
+          avatarSrc: null,
+        }}
         ruleNames={ruleNames}
         skillNames={skillNames}
         difficultyLabels={DIFFICULTY_LABELS}
@@ -92,7 +98,13 @@ describe("PracticeRunner", () => {
       result: { correct: true },
       correctAnswer: "2, 3",
       steps: first.steps,
-      xp: 6,
+      award: {
+        parts: [
+          { key: "answered", amount: 1 },
+          { key: "correct", amount: 5 },
+        ],
+        total: 6,
+      },
     });
     const user = userEvent.setup();
     renderRunner();
@@ -113,7 +125,13 @@ describe("PracticeRunner", () => {
       result: { correct: false, reason: "wrong" },
       correctAnswer: "2, 3",
       steps: first.steps,
-      xp: 6,
+      award: {
+        parts: [
+          { key: "answered", amount: 1 },
+          { key: "correct", amount: 5 },
+        ],
+        total: 6,
+      },
     });
     const user = userEvent.setup();
     renderRunner();
@@ -134,7 +152,13 @@ describe("PracticeRunner", () => {
       result: { correct: false, reason: "wrong" },
       correctAnswer: "3*sqrt(2)",
       steps: first.steps,
-      xp: 6,
+      award: {
+        parts: [
+          { key: "answered", amount: 1 },
+          { key: "correct", amount: 5 },
+        ],
+        total: 6,
+      },
     });
     const user = userEvent.setup();
     renderRunner();
@@ -165,7 +189,13 @@ describe("PracticeRunner", () => {
       },
       correctAnswer: "2*sqrt(2)",
       steps: first.steps,
-      xp: 6,
+      award: {
+        parts: [
+          { key: "answered", amount: 1 },
+          { key: "correct", amount: 5 },
+        ],
+        total: 6,
+      },
     });
     const user = userEvent.setup();
     renderRunner();
@@ -184,7 +214,13 @@ describe("PracticeRunner", () => {
       result: { correct: true },
       correctAnswer: "2, 3",
       steps: first.steps,
-      xp: 6,
+      award: {
+        parts: [
+          { key: "answered", amount: 1 },
+          { key: "correct", amount: 5 },
+        ],
+        total: 6,
+      },
     });
     nextQuestionAction.mockResolvedValue(toPublicQuestion(second));
     const user = userEvent.setup();
@@ -204,13 +240,13 @@ describe("PracticeRunner", () => {
   });
 
   /**
-   * The bar is the one thing on this screen that reports something the server
-   * decided, so it has to move by the amount the server actually wrote. It
-   * reads the XP off the response rather than recomputing it, and a response
-   * that arrives without the field must not take it to NaN - which is silent,
-   * because `levelFromXp` clamps NaN to zero and the bar just shows level 1.
+   * The level card reports something the server decided, so it has to move by
+   * the amount the server actually wrote, and it has to show the same itemised
+   * reasons. A response arriving without the award must not take the total to
+   * NaN - that failure is silent, because `levelFromXp` clamps NaN to zero and
+   * the bar simply sits at level 1 saying nothing.
    */
-  describe("the level bar", () => {
+  describe("the level card", () => {
     const meter = () => screen.getByRole("progressbar");
 
     it("starts where the server says the learner is", () => {
@@ -218,9 +254,13 @@ describe("PracticeRunner", () => {
       renderRunner(150);
       expect(meter()).toHaveAttribute("aria-valuenow", "50");
       expect(meter()).toHaveAttribute("aria-valuemax", "150");
-      expect(
-        screen.getByText(messages.profile.level.replace("{level}", "2")),
-      ).toBeInTheDocument();
+      // The level sits on the learner's own card, beside their name. Found by
+      // title: a bare "2" appears in several places on this screen.
+      const badge = screen.getByTitle(
+        messages.profile.level.replace("{level}", "2"),
+      );
+      expect(badge).toHaveTextContent("2");
+      expect(screen.getByText("teterw")).toBeInTheDocument();
     });
 
     it("moves by what the answer earned", async () => {
@@ -228,7 +268,15 @@ describe("PracticeRunner", () => {
         result: { correct: true },
         correctAnswer: "2, 3",
         steps: first.steps,
-        xp: 9,
+        award: {
+          parts: [
+            { key: "answered", amount: 1 },
+            { key: "correct", amount: 5 },
+            { key: "perfect", amount: 2 },
+            { key: "streak", amount: 1 },
+          ],
+          total: 9,
+        },
       });
       const user = userEvent.setup();
       renderRunner(150);
@@ -241,12 +289,48 @@ describe("PracticeRunner", () => {
       expect(screen.getByText("+9")).toBeInTheDocument();
     });
 
+    /**
+     * The breakdown is the reason this exists. A bare total says something
+     * happened; "+2 no hints" says what the learner did well.
+     */
+    it("itemises where the XP came from", async () => {
+      submitAnswerAction.mockResolvedValue({
+        result: { correct: true },
+        correctAnswer: "2, 3",
+        steps: first.steps,
+        award: {
+          parts: [
+            { key: "answered", amount: 1 },
+            { key: "correct", amount: 5 },
+            { key: "perfect", amount: 2 },
+          ],
+          total: 8,
+        },
+      });
+      const user = userEvent.setup();
+      renderRunner(150);
+
+      await user.type(answerBox(), "2, 3{Enter}");
+
+      await waitFor(() => expect(screen.getByText("+8")).toBeInTheDocument());
+      for (const [label, amount] of [
+        [messages.xp.answered, "+1"],
+        [messages.xp.correct, "+5"],
+        [messages.xp.perfect, "+2"],
+      ]) {
+        expect(screen.getByText(label!)).toBeInTheDocument();
+        expect(screen.getByText(amount!)).toBeInTheDocument();
+      }
+      // Nothing claims a streak bonus that was not awarded.
+      expect(screen.queryByText(messages.xp.streak)).not.toBeInTheDocument();
+    });
+
     it("earns something for a wrong answer too", async () => {
       submitAnswerAction.mockResolvedValue({
         result: { correct: false, reason: "wrong" },
         correctAnswer: "2, 3",
         steps: first.steps,
-        xp: 2,
+        award: { parts: [{ key: "answered", amount: 2 }], total: 2 },
       });
       const user = userEvent.setup();
       renderRunner(150);

@@ -16,6 +16,7 @@ import {
   STREAK_MIN_ATTEMPTS,
   masteryLevel,
   xpFor,
+  type XpAward,
 } from "./constants";
 
 export type AttemptRecord = {
@@ -39,11 +40,29 @@ export type AttemptRecord = {
  */
 export async function recordAttempt(
   record: AttemptRecord,
-): Promise<{ xp: number }> {
+): Promise<{ award: XpAward }> {
   const day = bangkokDay();
   const timeMs = clampTime(record.timeMs);
   const difficulty = record.question.difficulty;
-  const xp = xpFor(difficulty, record.isCorrect);
+
+  /*
+   * The streak is advanced here, before the award is worked out, so the answer
+   * that reaches a multiple of three is the one that is paid for it. It is read
+   * from the row rather than taken from the runner's tally: XP is decided on
+   * the server, and a number that arrived from a browser would let anyone claim
+   * any bonus they liked.
+   */
+  const answerStreak = await advanceAnswerStreak(
+    record.userId,
+    record.isCorrect,
+  );
+
+  const award = xpFor(difficulty, record.isCorrect, {
+    streak: answerStreak,
+    hintsUsed: record.hintsUsed,
+    stepsRevealed: record.stepsRevealed,
+  });
+  const xp = award.total;
 
   await db.insert(attempts).values({
     userId: record.userId,
@@ -92,11 +111,35 @@ export async function recordAttempt(
   }
 
   /*
-   * Handed back rather than recomputed by the caller. The number the learner is
-   * shown has to be the number that was written, and two calls to `xpFor` is
-   * the sort of thing that agrees until someone changes the curve.
+   * Handed back rather than recomputed by the caller. The numbers the learner
+   * is shown have to be the ones that were written, and two calls to `xpFor`
+   * is the sort of thing that agrees until someone changes the curve.
    */
-  return { xp };
+  return { award };
+}
+
+/**
+ * Moves the consecutive-correct counter and returns where it now stands.
+ *
+ * One statement: reading then writing would let two answers submitted close
+ * together both read the same value and both write the same streak. `returning`
+ * means the value paid out is the value stored, which matters because this is
+ * the only part of an award that depends on anything but the current answer.
+ */
+async function advanceAnswerStreak(
+  userId: string,
+  correct: boolean,
+): Promise<number> {
+  const [row] = await db
+    .update(users)
+    .set({
+      answerStreak: correct ? sql`${users.answerStreak} + 1` : 0,
+      lastSeenAt: new Date(),
+    })
+    .where(eq(users.id, userId))
+    .returning({ streak: users.answerStreak });
+
+  return row?.streak ?? 0;
 }
 
 function clampTime(value: number): number {

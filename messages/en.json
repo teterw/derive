@@ -136,7 +136,26 @@
     "devTools": "Development tools",
     "devToolsNote": "For development only. These affect your own account and nobody else's.",
     "resetMyDaily": "Reset my daily",
-    "resetMyDailyHelp": "Deletes your own run for today so you can take it again. Today's attempts, streak and statistics are rolled back with it."
+    "resetMyDailyHelp": "Deletes your own run for today so you can take it again. Today's attempts, streak and statistics are rolled back with it.",
+    "overview": "At a glance",
+    "statUsers": "Accounts",
+    "statAdmins": "Admins",
+    "statActiveToday": "Active today",
+    "statActiveThisWeek": "Active this week",
+    "statAttemptsToday": "Answers today",
+    "statAttemptsTotal": "Answers all time",
+    "statDailyToday": "Dailies finished",
+    "statLessonsPassed": "Lessons passed",
+    "devToolsHelp": "Every one of these touches your own account only, never anyone else's.",
+    "resetMyLessons": "Untick my lessons",
+    "passAllLessons": "Pass every lesson",
+    "resetMyStreak": "Clear my answer streak",
+    "level": "Level",
+    "lessons": "Lessons",
+    "streakCol": "Streak",
+    "promote": "Make admin",
+    "demote": "Remove admin",
+    "thisIsYou": "You"
   },
   "practice": {
     "setupTitle": "Set up a practice run",
@@ -381,7 +400,8 @@
       "easy": "A warm-up. Less XP.",
       "normal": "Climbs from easy to hard.",
       "hard": "Starts mid, ends hard. Most XP."
-    }
+    },
+    "adminReset": "Reset today's challenge"
   },
   "profile": {
     "joined": "Joined {date}",

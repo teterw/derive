@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { and, asc, eq } from "drizzle-orm";
-import { CalendarDays, Flame } from "lucide-react";
+import { CalendarDays, Flame, RotateCcw } from "lucide-react";
 import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
@@ -23,6 +23,8 @@ import { asExamRunConfig } from "@/lib/exam/session";
 import { bangkokDay, bangkokStamp } from "@/lib/stats/day";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { resetMyDailyAction } from "@/lib/admin/actions";
 import { ToolDock } from "@/components/tools/tool-dock";
 import { ExamRunner } from "../exam/[runId]/exam-runner";
 import { ExamResults } from "../exam/[runId]/exam-results";
@@ -58,6 +60,7 @@ export default async function DailyPage({
   const active = locale as Locale;
 
   const day = bangkokDay();
+  const admin = user.role === "admin";
 
   /*
    * Four round trips, run one after another, only two of which depended on
@@ -84,7 +87,9 @@ export default async function DailyPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-accent" />
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("title")}
+          </h1>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Flame className="h-4 w-4 text-accent" />
@@ -93,6 +98,23 @@ export default async function DailyPage({
         </div>
       </div>
       <p className="text-sm text-muted">{t("subtitle", { day })}</p>
+
+      {/*
+        The reset lives here as well as on the admin page, because here is where
+        it is wanted: you have just finished the day's five, you want to see the
+        finish screen again, and the alternative is a trip through the nav to a
+        page about invite codes. Admin-only and only ever the caller's own run -
+        the action re-reads the session and does not take a user id.
+      */}
+      {admin ? (
+        <form action={resetMyDailyAction}>
+          <input type="hidden" name="locale" value={locale} />
+          <Button type="submit" variant="ghost" size="sm">
+            <RotateCcw className="size-4" />
+            {t("adminReset")}
+          </Button>
+        </form>
+      ) : null}
     </header>
   );
 
@@ -123,7 +145,9 @@ export default async function DailyPage({
                 className="flex flex-col gap-1 rounded-lg border border-border px-4 py-3 transition-colors hover:border-accent hover:bg-accent/5"
               >
                 <span className="font-medium">{t(`band.${band}`)}</span>
-                <span className="text-xs text-muted">{t(`bandNote.${band}`)}</span>
+                <span className="text-xs text-muted">
+                  {t(`bandNote.${band}`)}
+                </span>
               </Link>
             ))}
           </div>

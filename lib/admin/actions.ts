@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { routing, type Locale } from "@/i18n/routing";
 import { db } from "@/lib/db";
-import { inviteCodes } from "@/lib/db/schema";
+import { inviteCodes, lessonProgress, users } from "@/lib/db/schema";
+import { skills } from "@/content/topics";
 import { getSessionUser } from "@/lib/auth/session";
 import { generateInviteCode } from "@/lib/auth/invite";
 import { resetDailyRun } from "@/lib/daily/challenge";
@@ -104,6 +105,111 @@ export async function resetMyDailyAction(formData: FormData): Promise<void> {
   revalidatePath(`/${locale}/admin`);
   revalidatePath(`/${locale}/daily`);
   revalidatePath(`/${locale}/stats`);
+}
+
+/** Everything an admin tool touching the caller's own rows wants revalidated. */
+function revalidateSelf(locale: Locale): void {
+  for (const path of ["admin", "daily", "stats", "learn"]) {
+    revalidatePath(`/${locale}/${path}`);
+  }
+}
+
+/**
+ * Unticks every lesson for the caller.
+ *
+ * The checklist and the daily's "only what you have been taught" rule are both
+ * built on `lesson_progress`, and both are hard to work on from the far side of
+ * having passed everything. The rows go entirely rather than having `passedAt`
+ * cleared, so `attempts` on them starts from zero too and a later pass reads as
+ * a first pass.
+ *
+ * The attempts made while sitting those tests are left alone. They are real
+ * answers to real questions and belong in the statistics; this unticks a
+ * checklist, it does not rewrite history.
+ */
+export async function resetMyLessonsAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminUser();
+  const locale = readLocale(formData);
+
+  await db.delete(lessonProgress).where(eq(lessonProgress.userId, admin.id));
+
+  revalidateSelf(locale);
+}
+
+/**
+ * Marks every lesson passed for the caller.
+ *
+ * The other half of the same problem: the daily draws from passed lessons, so
+ * checking what it does with a full curriculum otherwise means sitting fourteen
+ * ten-question tests. `bestScore` is left at whatever was really earned - this
+ * opens the gate, it does not invent a score.
+ */
+export async function passAllLessonsAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminUser();
+  const locale = readLocale(formData);
+  const now = new Date();
+
+  await db
+    .insert(lessonProgress)
+    .values(
+      skills.map((skill) => ({
+        userId: admin.id,
+        skillId: skill.id,
+        passedAt: now,
+        bestScore: 1,
+        attempts: 0,
+        updatedAt: now,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: [lessonProgress.userId, lessonProgress.skillId],
+      // Only the gate moves. A real best score is not overwritten by this.
+      set: { passedAt: now, updatedAt: now },
+    });
+
+  revalidateSelf(locale);
+}
+
+/**
+ * Puts the caller's consecutive-correct counter back to zero.
+ *
+ * The streak part of an XP award is the one piece that depends on history
+ * rather than on the answer in front of you, which makes it the one piece you
+ * cannot check by answering a question.
+ */
+export async function resetMyStreakAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminUser();
+  const locale = readLocale(formData);
+
+  await db.update(users).set({ answerStreak: 0 }).where(eq(users.id, admin.id));
+
+  revalidateSelf(locale);
+}
+
+/**
+ * Promotes or demotes another account.
+ *
+ * On an invite-only site this is the one piece of user management that is
+ * genuinely needed: somebody has to be able to hand over, or to take it back
+ * from an account that should not have it.
+ *
+ * You cannot change your own role. Not because demoting yourself is
+ * catastrophic - another admin could put it back - but because on a site with
+ * one admin it is unrecoverable through the interface, and the only way out is
+ * the database.
+ */
+export async function setUserRoleAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminUser();
+  const locale = readLocale(formData);
+
+  const userId = String(formData.get("userId") ?? "");
+  const role = String(formData.get("role") ?? "");
+  if (role !== "admin" && role !== "user") return;
+  if (userId === "" || userId === admin.id) return;
+
+  await db.update(users).set({ role }).where(eq(users.id, userId));
+
+  revalidatePath(`/${locale}/admin`);
 }
 
 function clampInt(

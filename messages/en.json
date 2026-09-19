@@ -386,6 +386,9 @@
     },
     "uploadPicture": "Upload a picture",
     "removePicture": "Remove picture",
-    "pictureNote": "Cropped to a square, and any location data in the file is removed."
+    "pictureNote": "Cropped to a square, and any location data in the file is removed.",
+    "dragToPosition": "Drag the picture to position it.",
+    "zoom": "Zoom",
+    "resetPosition": "Reset position"
   }
 }

@@ -1,12 +1,15 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Shuffle, Upload, X } from "lucide-react";
 import { saveProfileAction, type ProfileState } from "@/lib/profile/actions";
 import { BIO_MAX, DISPLAY_NAME_MAX } from "@/lib/profile/limits";
 import { ACCEPTED_TYPES } from "@/lib/profile/limits";
 import { Avatar, avatarSeed, AVATAR_SEEDS } from "@/components/profile/avatar";
+import { AvatarEditor } from "@/components/profile/avatar-editor";
+import type { AvatarCrop } from "@/lib/profile/crop";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/field";
 
@@ -40,51 +43,71 @@ export function SettingsForm({
   };
 }) {
   const t = useTranslations("settings");
-  const [state, action, pending] = useActionState<ProfileState, FormData>(
+  const [state, action, actionPending] = useActionState<ProfileState, FormData>(
     saveProfileAction,
     null,
   );
+  /*
+   * The form submits by hand, so the action has to be dispatched inside a
+   * transition. `pending` covers both the dispatch and the action itself,
+   * otherwise the button un-disables for a frame between the two.
+   */
+  const [submitting, startTransition] = useTransition();
+  const pending = actionPending || submitting;
 
   const [slot, setSlot] = useState(initial.avatarSlot);
   const [bio, setBio] = useState(initial.bio);
 
   const fileRef = useRef<HTMLInputElement>(null);
-  /** An object URL for the file just chosen, shown before anything is saved. */
-  const [preview, setPreview] = useState<string | null>(null);
+  /** The file just chosen, handed to the editor. */
+  const [picked, setPicked] = useState<File | null>(null);
+  /** What the editor produced: a downscaled image and the chosen framing. */
+  const [edited, setEdited] = useState<{ blob: Blob; crop: AvatarCrop } | null>(
+    null,
+  );
   const [removing, setRemoving] = useState(false);
-
-  /*
-   * An object URL holds the file in memory until it is revoked, so each new
-   * choice releases the previous one and unmounting releases the last.
-   */
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview);
-    };
-  }, [preview]);
 
   function onPick(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    setPreview((current) => {
-      if (current) URL.revokeObjectURL(current);
-      return URL.createObjectURL(file);
-    });
+    setPicked(file);
     setRemoving(false);
   }
 
   function clearPicture() {
-    setPreview((current) => {
-      if (current) URL.revokeObjectURL(current);
-      return null;
-    });
+    setPicked(null);
+    setEdited(null);
     if (fileRef.current) fileRef.current.value = "";
     // Only a *saved* picture needs the server told to delete it.
     setRemoving(Boolean(initial.avatarUrl));
   }
 
+  /**
+   * The form is submitted by hand so the editor's downscaled output goes up
+   * instead of the original file.
+   *
+   * This is what makes upload work on a real deployment: a phone photo is four
+   * or five megabytes and a server action caps the body at one, so the
+   * original never arrived - it failed inside the framework, before any of our
+   * code, which is why the error was unhelpful.
+   */
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+
+    // Never send the raw file; it is only ever the editor's input.
+    data.delete("avatar");
+
+    if (edited) {
+      data.set("avatar", edited.blob, "avatar.webp");
+      data.set("avatarCrop", JSON.stringify(edited.crop));
+    }
+
+    startTransition(() => action(data));
+  }
+
   return (
-    <form action={action} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-6">
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="avatarSlot" value={slot} />
 
@@ -94,10 +117,18 @@ export function SettingsForm({
         it is picked rather than after saving, because choosing the wrong photo
         and finding out on the next page is a bad way to learn.
       */}
-      <div className="flex items-center gap-4">
+      {picked ? (
+        <AvatarEditor
+          file={picked}
+          onChange={setEdited}
+          onCancel={clearPicture}
+        />
+      ) : null}
+
+      <div className={cn("flex items-center gap-4", picked && "hidden")}>
         <Avatar
           seed={avatarSeed(username, slot)}
-          src={preview ?? (removing ? null : initial.avatarUrl)}
+          src={removing ? null : initial.avatarUrl}
           size={80}
           className="h-20 w-20"
         />
@@ -114,7 +145,7 @@ export function SettingsForm({
               {t("uploadPicture")}
             </Button>
 
-            {preview || (initial.avatarUrl && !removing) ? (
+            {initial.avatarUrl && !removing ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -138,7 +169,7 @@ export function SettingsForm({
           </div>
 
           <p className="text-xs text-muted">
-            {preview || (initial.avatarUrl && !removing)
+            {initial.avatarUrl && !removing
               ? t("pictureNote")
               : t("avatarNote", { count: AVATAR_SEEDS })}
           </p>

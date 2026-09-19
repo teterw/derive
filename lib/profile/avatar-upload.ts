@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import { ACCEPTED_TYPES, AVATAR_SIZE, MAX_UPLOAD_BYTES } from "./limits";
+import { cropRegion, type AvatarCrop } from "./crop";
 
 /**
  * Turning an uploaded file into an avatar we are willing to serve.
@@ -33,6 +34,7 @@ const MAX_INPUT_PIXELS = 50_000_000;
 export type AvatarResult =
   | { ok: true; bytes: Buffer; type: string }
   | { ok: false; error: "tooLarge" | "wrongType" | "notAnImage" | "empty" };
+
 
 /**
  * Checks the *bytes*, not the declared type.
@@ -72,7 +74,10 @@ function sniff(bytes: Buffer): string | null {
  * these failures is a thing a person did rather than a fault, and each needs
  * its own message in two languages.
  */
-export async function prepareAvatar(input: Buffer): Promise<AvatarResult> {
+export async function prepareAvatar(
+  input: Buffer,
+  crop?: AvatarCrop | null,
+): Promise<AvatarResult> {
   if (input.length === 0) return { ok: false, error: "empty" };
   if (input.length > MAX_UPLOAD_BYTES) return { ok: false, error: "tooLarge" };
 
@@ -82,15 +87,36 @@ export async function prepareAvatar(input: Buffer): Promise<AvatarResult> {
   }
 
   try {
-    const bytes = await sharp(input, {
+    /*
+     * `rotate()` first, always. It applies the EXIF orientation and drops the
+     * EXIF with it - and it has to happen before anything reads the width and
+     * height, because a portrait photo off a phone is very often stored
+     * landscape with a "turn me" flag. Cropping the stored orientation would
+     * take the square from the wrong part of the picture entirely.
+     */
+    const upright = sharp(input, {
       limitInputPixels: MAX_INPUT_PIXELS,
       // An animated GIF becomes its first frame; an avatar does not animate.
       animated: false,
-    })
-      .rotate() // Applies the EXIF orientation, then drops the EXIF with it.
+    }).rotate();
+
+    const prepared = await upright.toBuffer();
+    const meta = await sharp(prepared).metadata();
+    const width = meta.width ?? 0;
+    const height = meta.height ?? 0;
+    if (width === 0 || height === 0) return { ok: false, error: "notAnImage" };
+
+    const pipeline = sharp(prepared);
+
+    if (crop) {
+      pipeline.extract(cropRegion(width, height, crop));
+    }
+
+    const bytes = await pipeline
       .resize(AVATAR_SIZE, AVATAR_SIZE, {
         fit: "cover",
-        position: "attention", // Crop towards the face rather than the centre.
+        // Without a chosen crop, guess at the interesting part.
+        position: crop ? "centre" : "attention",
       })
       .webp({ quality: 82 })
       .toBuffer();
@@ -101,3 +127,4 @@ export async function prepareAvatar(input: Buffer): Promise<AvatarResult> {
     return { ok: false, error: "notAnImage" };
   }
 }
+

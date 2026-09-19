@@ -137,6 +137,46 @@ describe("prepareAvatar", () => {
     expect(after.exif).toBeUndefined();
   });
 
+  /**
+   * A chosen crop is the whole point of the editor: without one the server
+   * guesses, and on a group photo it guesses wrong.
+   */
+  it("takes the square the crop asks for", async () => {
+    // Left half indigo, right half black - so the crop is checkable by colour.
+    const split = await sharp({
+      create: { width: 400, height: 400, channels: 3, background: { r: 0, g: 0, b: 0 } },
+    })
+      .composite([
+        {
+          input: await sharp({
+            create: {
+              width: 200,
+              height: 400,
+              channels: 3,
+              background: { r: 90, g: 82, b: 231 },
+            },
+          })
+            .png()
+            .toBuffer(),
+          left: 0,
+          top: 0,
+        },
+      ])
+      .png()
+      .toBuffer();
+
+    const left = await prepareAvatar(split, { cx: 0.12, cy: 0.5, zoom: 4 });
+    const right = await prepareAvatar(split, { cx: 0.88, cy: 0.5, zoom: 4 });
+    expect(left.ok && right.ok).toBe(true);
+    if (!left.ok || !right.ok) return;
+
+    const meanOf = async (bytes: Buffer) =>
+      (await sharp(bytes).stats()).channels[2]!.mean; // blue channel
+
+    // The indigo half is much bluer than the black half.
+    expect(await meanOf(left.bytes)).toBeGreaterThan(await meanOf(right.bytes) + 50);
+  });
+
   it("keeps the first frame of an animation rather than the animation", async () => {
     const gif = await sharp({
       create: {

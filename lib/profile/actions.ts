@@ -9,6 +9,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { AVATAR_SEEDS } from "@/components/profile/avatar";
 import { BIO_MAX, DISPLAY_NAME_MAX } from "./limits";
 import { prepareAvatar } from "./avatar-upload";
+import { parseCrop } from "./crop";
 
 export type ProfileState = { error?: string; saved?: boolean } | null;
 
@@ -67,8 +68,15 @@ export async function saveProfileAction(
       avatarUpdatedAt: null,
     };
   } else if (picture instanceof File && picture.size > 0) {
+    /*
+     * The crop comes from the editor and is checked before it reaches sharp:
+     * a NaN or a negative zoom would otherwise fail inside `extract` with an
+     * error about the region rather than about the input, taking the whole
+     * upload with it. Absent or unparseable means "decide for us".
+     */
     const prepared = await prepareAvatar(
       Buffer.from(await picture.arrayBuffer()),
+      parseCrop(formData.get("avatarCrop")),
     );
     if (!prepared.ok) return { error: `avatar.${prepared.error}` };
     avatarFields = {

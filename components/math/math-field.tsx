@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
+import { normalizeMathfieldLatex } from "@/lib/math/mathfield-latex";
 
 /**
  * A real maths input: the field itself shows `√` and a fraction bar, not the
@@ -106,9 +107,46 @@ export function MathField({
         field.setAttribute("aria-label", ariaLabel);
         field.className = className ?? "";
 
+        /*
+         * The value is repaired on the way out - see `normalizeMathfieldLatex`
+         * for what MathLive gets wrong. The repaired string goes to the parent,
+         * whose state then differs from `field.value`, so the effect below
+         * writes it back and the field re-renders with the exponent it should
+         * have had. That round trip is the fix for the *display*, not only for
+         * the stored answer, which is what a learner actually complained about.
+         */
         field.addEventListener("input", () => {
-          callbacks.current.onChange(field.value);
+          callbacks.current.onChange(normalizeMathfieldLatex(field.value));
         });
+
+        /*
+         * `^` is handled here rather than by MathLive, because MathLive gets it
+         * wrong. Its own handling of a typed `^` builds a superscript that the
+         * *next* character falls straight out of: type `x`, `^`, `1`, `2` and
+         * the field shows a small 1 and a full-size 2, with the value to match.
+         * Subscripts are fine, and 0.110.0 is the newest release, so there is
+         * nothing to upgrade to.
+         *
+         * Its `insert` command builds the same superscript correctly - the
+         * caret lands inside the group and stays there - so the key is routed
+         * to that instead. Recorded from a live field:
+         *
+         *   typed `^` then 123        -> x^123     the bug
+         *   insert `^{#0}` then 123   -> x^{123}   what this does
+         *
+         * Capture phase, because MathLive listens deeper in its own shadow DOM
+         * and would otherwise insert the character before this ran.
+         */
+        field.addEventListener(
+          "keydown",
+          (event) => {
+            if ((event as KeyboardEvent).key !== "^" || field.readonly) return;
+            event.preventDefault();
+            event.stopPropagation();
+            field.executeCommand(["insert", "^{#0}"]);
+          },
+          true,
+        );
 
         field.addEventListener("keydown", (event) => {
           if ((event as KeyboardEvent).key !== "Enter") return;

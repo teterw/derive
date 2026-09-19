@@ -206,6 +206,86 @@ describe("AnswerInput with the maths field", () => {
     });
   });
 
+  /**
+   * MathLive's own handling of a typed `^` builds a superscript that the next
+   * character falls out of - `x`, `^`, `1`, `2` renders a small 1 and a
+   * full-size 2. Its `insert` command builds the same thing correctly, so the
+   * key is routed there. Recorded from a live field: typed gives `x^123`,
+   * inserted gives `x^{123}`.
+   */
+  describe("the caret key", () => {
+    function fireCaret(element: Element) {
+      const event = new KeyboardEvent("keydown", {
+        key: "^",
+        bubbles: true,
+        cancelable: true,
+      });
+      element.dispatchEvent(event);
+      return event;
+    }
+
+    it("builds a superscript group rather than letting MathLive type it", async () => {
+      await renderReady();
+      executeCommand.mockClear();
+
+      fireCaret(field()!);
+
+      expect(executeCommand).toHaveBeenCalledWith(["insert", "^{#0}"]);
+    });
+
+    /**
+     * MathLive listens deeper in its own shadow DOM, so the default has to be
+     * stopped or the character is inserted as well as the group.
+     */
+    it("stops MathLive seeing the key at all", async () => {
+      await renderReady();
+
+      const event = fireCaret(field()!);
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it("leaves the key alone once the question is answered", async () => {
+      render(
+        <NextIntlClientProvider locale="th" messages={messages}>
+          <AnswerInput
+            value="2"
+            onChange={() => {}}
+            onSubmit={() => {}}
+            disabled
+            state="correct"
+          />
+        </NextIntlClientProvider>,
+      );
+      await waitFor(() =>
+        expect((field() as unknown as { readonly: boolean } | null)?.readonly).toBe(true),
+      );
+      executeCommand.mockClear();
+
+      fireCaret(field()!);
+
+      expect(executeCommand).not.toHaveBeenCalled();
+    });
+  });
+
+  /**
+   * The second line of defence. Whatever the field ends up holding - a pasted
+   * expression, a keyboard layout where the key interception does not fire -
+   * what leaves this component is braced, so the stored answer and the answer
+   * shown back are right even when the field's own value is not.
+   */
+  it("repairs an unbraced exponent on the way out", async () => {
+    await renderReady();
+
+    const mounted = field() as unknown as { value: string };
+    mounted.value = "x^12";
+    field()!.dispatchEvent(new Event("input", { bubbles: true }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("value").textContent).toBe("x^{12}"),
+    );
+  });
+
   it("turns the field read-only rather than leaving it live once answered", async () => {
     render(
       <NextIntlClientProvider locale="th" messages={messages}>

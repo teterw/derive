@@ -270,12 +270,20 @@ class Parser {
 /**
  * True when the text is already LaTeX rather than typed plain text.
  *
- * A backslash is the tell: the plain-text answer format has no use for one,
- * and every LaTeX command starts with it. Answers built in the maths field
+ * A backslash is the usual tell: the plain-text answer format has no use for
+ * one, and every LaTeX command starts with it. Answers built in the maths field
  * arrive this way and should be rendered as they are.
+ *
+ * A braced superscript is the other tell, and leaving it out was a bug. The
+ * maths field produces `x^{12}` for an exponent with no command anywhere in it,
+ * so a backslash-only test called that plain text, handed it to the plain-text
+ * parser, got nothing back - braces are not part of that grammar - and fell
+ * through to the monospace branch. The learner's answer was then displayed as
+ * the literal characters `x^{12}`. `lib/math/check.ts` already tests for both,
+ * for the same reason; these two are meant to agree.
  */
 export function looksLikeLatex(source: string): boolean {
-  return /\\[a-zA-Z]/.test(source);
+  return /\\[a-zA-Z]/.test(source) || /[\^_]\s*\{/.test(source);
 }
 
 /**

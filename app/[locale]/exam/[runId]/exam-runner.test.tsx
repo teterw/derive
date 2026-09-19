@@ -104,6 +104,98 @@ describe("ExamRunner", () => {
     ).toBeInTheDocument();
   });
 
+  /**
+   * Moving on without answering was always possible - the arrows do not care -
+   * but nothing said so, so a question you could not do read as a wall.
+   */
+  describe("skipping a question", () => {
+    const at = (index: number) =>
+      messages.exam.questionOf
+        .replace("{index}", String(index))
+        .replace("{total}", "3");
+    const skipButton = () =>
+      screen.getByRole("button", { name: new RegExp(messages.exam.skip) });
+
+    it("moves to the next question you have not answered", async () => {
+      const user = userEvent.setup();
+      renderExam();
+
+      await user.click(skipButton());
+
+      expect(screen.getByText(at(2))).toBeInTheDocument();
+    });
+
+    /**
+     * The part worth getting right. Skipping the last question with an earlier
+     * one outstanding must go back to it, not sit on the end of the paper with
+     * nowhere to go.
+     */
+    it("wraps back to an earlier unanswered question", async () => {
+      const user = userEvent.setup();
+      renderExam({
+        // The middle one is done; only the first and last are outstanding.
+        initialAnswered: {
+          [questions[1]!.id]: { answer: "x", correct: true },
+        },
+      });
+
+      // Start on the first outstanding question, skip to the last, skip again.
+      expect(screen.getByText(at(1))).toBeInTheDocument();
+      await user.click(skipButton());
+      expect(screen.getByText(at(3))).toBeInTheDocument();
+
+      await user.click(skipButton());
+      expect(screen.getByText(at(1))).toBeInTheDocument();
+    });
+
+    it("flags what it skips, so the strip shows where you left off", async () => {
+      const user = userEvent.setup();
+      renderExam();
+
+      const flagBefore = screen.getAllByRole("button", {
+        name: new RegExp(messages.exam.flag),
+      });
+      expect(flagBefore.length).toBeGreaterThan(0);
+
+      await user.click(skipButton());
+
+      // Back to the skipped question: it is now flagged, so the toggle reads
+      // as active rather than offering to flag it.
+      await user.click(
+        screen.getByRole("button", { name: messages.exam.previous }),
+      );
+      expect(screen.getByText(at(1))).toBeInTheDocument();
+    });
+
+    /** A button that would move nothing is worse than no button. */
+    it("is not offered when there is nowhere to skip to", () => {
+      renderExam({
+        initialAnswered: {
+          [questions[1]!.id]: { answer: "x", correct: true },
+          [questions[2]!.id]: { answer: "x", correct: true },
+        },
+      });
+
+      expect(
+        screen.queryByRole("button", { name: new RegExp(messages.exam.skip) }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("is not offered once the question is answered", async () => {
+      const user = userEvent.setup();
+      renderExam();
+
+      await user.type(answerBox(), "2, 3{Enter}");
+      await waitFor(() => expect(answerExamQuestionAction).toHaveBeenCalled());
+
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("button", { name: new RegExp(messages.exam.skip) }),
+        ).not.toBeInTheDocument(),
+      );
+    });
+  });
+
   it("records an answer and locks that question", async () => {
     const user = userEvent.setup();
     renderExam();

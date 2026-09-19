@@ -10,7 +10,14 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Check, ChevronLeft, ChevronRight, Flag, X } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Flag,
+  SkipForward,
+  X,
+} from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import type { PublicQuestion, Step } from "@/content/types";
 import {
@@ -185,6 +192,37 @@ export function ExamRunner({
     });
   }, [question.id]);
 
+  /**
+   * Leave this one for now.
+   *
+   * Moving on without answering was always possible - the arrows do not care -
+   * but nothing said so, so a question you could not do felt like a wall rather
+   * than something to come back to. This says so.
+   *
+   * It goes to the next question you have *not* answered rather than simply the
+   * next one, which matters at the end of a paper: skipping the last question
+   * with three unanswered earlier ones should take you to one of those, not sit
+   * on the final question with nowhere to go. The search wraps for the same
+   * reason.
+   *
+   * It flags as it goes, so the strip above shows where you left things and the
+   * finish panel can offer them back. Skipping is a decision to return, not a
+   * decision to give up - and if it turns out to be the latter, the unanswered
+   * warning on finishing already covers it.
+   */
+  const skip = useCallback(() => {
+    if (answered) return;
+
+    setFlagged((current) => new Set(current).add(question.id));
+
+    const order = questions.map((_, position) => position);
+    const rest = [...order.slice(index + 1), ...order.slice(0, index)];
+    const target = rest.find(
+      (position) => !answers[questions[position]!.id],
+    );
+    if (target !== undefined) setIndex(target);
+  }, [answered, answers, index, question.id, questions]);
+
   const changeExplainMode = useCallback(
     (mode: ExplainMode) => {
       setExplainMode(mode);
@@ -353,6 +391,18 @@ export function ExamRunner({
               {t("checkAnswer")}
             </Button>
           )}
+
+          {/*
+            Only while the question is open, and only while there is somewhere
+            to skip *to*. On the last unanswered question the button would move
+            nothing, and a button that does nothing is worse than no button.
+          */}
+          {!answered && unanswered.length > 1 ? (
+            <Button variant="ghost" onClick={skip}>
+              <SkipForward className="h-4 w-4" />
+              {t("skip")}
+            </Button>
+          ) : null}
 
           <Button
             variant={flagged.has(question.id) ? "secondary" : "ghost"}

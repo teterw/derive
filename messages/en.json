@@ -284,7 +284,8 @@
     "finishDaily": "Finish today's set",
     "unansweredWarning": "{count} question(s) are still unanswered. Finishing now records them as not answered.",
     "keepGoing": "Keep going",
-    "finishAnyway": "Finish anyway"
+    "finishAnyway": "Finish anyway",
+    "skip": "Skip for now"
   },
   "review": {
     "title": "Review",

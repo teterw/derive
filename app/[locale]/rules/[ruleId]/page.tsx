@@ -26,6 +26,8 @@ export default async function RulePage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("rules");
+
+  const tNav = await getTranslations("nav");
   const active = locale as Locale;
   const rule = getRule(ruleId);
 
@@ -35,7 +37,11 @@ export default async function RulePage({
   );
 
   return (
-    <AppShell locale={active} user={user}>
+    <AppShell
+      locale={active}
+      user={user}
+      back={{ href: "/rules", label: tNav("backToRules") }}
+    >
       <article className="mx-auto w-full max-w-2xl space-y-8">
         <header className="space-y-3">
           <Link href="/rules" className="text-xs text-muted hover:text-fg">

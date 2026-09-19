@@ -37,7 +37,14 @@
     "daily": "Daily",
     "people": "People",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "backToLearn": "Back to lessons",
+    "backToPractice": "Leave practice",
+    "backToExam": "Leave the exam",
+    "backToReview": "Leave review",
+    "backToRules": "Back to formulas",
+    "backToPeople": "Back to people",
+    "backHome": "Back to home"
   },
   "auth": {
     "loginTitle": "Log in",

@@ -42,6 +42,8 @@ export default async function LessonPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("learn");
+
+  const tNav = await getTranslations("nav");
   const active = locale as Locale;
 
   const skill = getSkill(skillId);
@@ -62,13 +64,14 @@ export default async function LessonPage({
   );
 
   return (
-    <AppShell locale={active} user={user}>
+    <AppShell
+      locale={active}
+      user={user}
+      back={{ href: "/learn", label: tNav("backToLearn") }}
+    >
       <article className="mx-auto w-full max-w-3xl space-y-8">
         <header className="space-y-2">
-          <Link
-            href="/learn"
-            className="text-xs text-muted hover:text-fg"
-          >
+          <Link href="/learn" className="text-xs text-muted hover:text-fg">
             {topic.name[active]}
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">

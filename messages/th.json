@@ -37,7 +37,14 @@
     "daily": "โจทย์ประจำวัน",
     "people": "ผู้คน",
     "profile": "โปรไฟล์",
-    "settings": "ตั้งค่า"
+    "settings": "ตั้งค่า",
+    "backToLearn": "กลับไปหน้าเรียน",
+    "backToPractice": "ออกจากการฝึก",
+    "backToExam": "ออกจากการสอบ",
+    "backToReview": "ออกจากการทบทวน",
+    "backToRules": "กลับไปหน้าสูตร",
+    "backToPeople": "กลับไปหน้าผู้คน",
+    "backHome": "กลับหน้าแรก"
   },
   "auth": {
     "loginTitle": "เข้าสู่ระบบ",

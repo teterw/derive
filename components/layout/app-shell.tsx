@@ -18,6 +18,7 @@ import { logoutAction } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, avatarSeed, avatarUrl } from "@/components/profile/avatar";
+import { BackLink } from "./back-link";
 import { NavLink } from "./nav-link";
 import { PageTransition } from "./page-transition";
 import { LocaleSwitch } from "./locale-switch";
@@ -55,10 +56,16 @@ export async function AppShell({
   locale,
   user,
   children,
+  back,
 }: {
   locale: Locale;
   user: SessionUser;
   children: React.ReactNode;
+  /**
+   * Where "up" goes from this page, for pages you can be inside. Top-level
+   * destinations pass nothing - see `BackLink` for why they should not.
+   */
+  back?: { href: string; label: string };
 }) {
   const t = await getTranslations("nav");
   const tCommon = await getTranslations("common");
@@ -189,6 +196,16 @@ export async function AppShell({
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 pb-24 sm:pb-8">
+        {/*
+          Above the transition, not inside it: the way out of a page should not
+          fade in and out as the page changes, and on a slow render it is the
+          one control that wants to be there immediately.
+        */}
+        {back ? (
+          <div className="mb-4">
+            <BackLink href={back.href} label={back.label} />
+          </div>
+        ) : null}
         <PageTransition>{children}</PageTransition>
       </main>
 

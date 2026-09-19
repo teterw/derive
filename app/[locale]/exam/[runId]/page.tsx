@@ -37,6 +37,8 @@ export default async function ExamRunPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("exam");
+
+  const tNav = await getTranslations("nav");
   const active = locale as Locale;
 
   const [run] = await db
@@ -61,7 +63,11 @@ export default async function ExamRunPage({
 
   if (run.finishedAt) {
     return (
-      <AppShell locale={active} user={user}>
+      <AppShell
+        locale={active}
+        user={user}
+        back={{ href: "/exam", label: tNav("backToExam") }}
+      >
         <ExamResults
           locale={active}
           run={{
@@ -110,7 +116,11 @@ export default async function ExamRunPage({
   }
 
   return (
-    <AppShell locale={active} user={user}>
+    <AppShell
+      locale={active}
+      user={user}
+      back={{ href: "/exam", label: tNav("backToExam") }}
+    >
       <ExamRunner
         runId={runId}
         questions={questions.map(toPublicQuestion)}

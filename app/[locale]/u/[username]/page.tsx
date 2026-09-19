@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
-import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  getFormatter,
+  getTranslations,
+  setRequestLocale,
+} from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Award, Settings, Target, TrendingUp } from "lucide-react";
 import { routing, type Locale } from "@/i18n/routing";
@@ -31,6 +35,8 @@ export default async function ProfilePage({
 
   const viewer = await requireUser(locale);
   const t = await getTranslations("profile");
+
+  const tNav = await getTranslations("nav");
   const tStats = await getTranslations("stats");
   const format = await getFormatter();
   const active = locale as Locale;
@@ -53,7 +59,11 @@ export default async function ProfilePage({
   const isMe = viewer.username === profile.username;
 
   return (
-    <AppShell locale={active} user={viewer}>
+    <AppShell
+      locale={active}
+      user={viewer}
+      back={{ href: "/people", label: tNav("backToPeople") }}
+    >
       <ProfileCard
         profile={profile}
         labels={{
@@ -120,10 +130,7 @@ export default async function ProfilePage({
       </Card>
 
       <div className="mt-6">
-        <Link
-          href="/people"
-          className="text-sm text-accent hover:underline"
-        >
+        <Link href="/people" className="text-sm text-accent hover:underline">
           {t("seeEveryone")}
         </Link>
       </div>

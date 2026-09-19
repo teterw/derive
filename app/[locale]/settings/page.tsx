@@ -20,6 +20,8 @@ export default async function SettingsPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("settings");
+
+  const tNav = await getTranslations("nav");
   const active = locale as Locale;
 
   const [row] = await db
@@ -36,7 +38,11 @@ export default async function SettingsPage({
   if (!row) notFound();
 
   return (
-    <AppShell locale={active} user={user}>
+    <AppShell
+      locale={active}
+      user={user}
+      back={{ href: "/", label: tNav("backHome") }}
+    >
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-sm text-muted">{t("subtitle")}</p>

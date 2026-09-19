@@ -24,9 +24,12 @@ Beyond the phase plan: the **daily challenge** from
 `docs/CONTENT-PIPELINE.md` §6 is built.
 
 Green as of this commit: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(331 tests in 29 files), `pnpm build`, `pnpm smoke` (41 checks against the real
+(332 tests in 29 files), `pnpm build`, `pnpm smoke` (41 checks against the real
 database), `pnpm render-check` (15 pages, signed in), `pnpm check:contrast`,
 `pnpm vars`.
+
+**Next session: Phase 5, the weekly content session** (`docs/CONTENT-PIPELINE.md`
+§5). Phases 0-4 are all built. Start with `pnpm content:coverage`.
 
 `pnpm render-check` needs a server already listening on port 3000 — it does not
 start one. Without it every page "fails" with `fetch failed`, which looks far
@@ -96,11 +99,15 @@ determinism and variety.
 | Every page actually renders | `pnpm render-check` — fetches each page as a signed-in user, and asserts that a page shipping KaTeX markup also ships the KaTeX stylesheet |
 | The chart palette is colourblind-safe | the data-viz validator, against both surfaces — not eyeballed |
 
-What is **not** covered: the *feel*. The first real session with the app
-produced six findings that no test could have caught, all now fixed — see
-"Round two" below. Expect more of the same from the second session; that is
-what this kind of testing is for, and it is worth more per hour than anything
-else on this list.
+What is **not** covered: the *feel*, and anything only visible on screen.
+Three rounds of using the app have now produced eleven findings that no test
+caught, including **a headline feature that had never once worked** (round
+four, below). Every round has paid for itself several times over.
+
+**Open the app before and after any visible change.** Not `pnpm build`, not
+the test suite - a browser. The failure mode is never a crash; it is a feature
+quietly serving its fallback, or a formula rendering as unstyled text, and
+both look exactly like success from the terminal.
 
 **Compiling is not rendering.** `pnpm build` was green for a long stretch during
 which every formula in the app rendered as unstyled fallback text, because
@@ -171,6 +178,38 @@ the code. Each is worth recording because each was invisible to the tests.
    caller's own run, and rebuilds `daily_stats` for the day from the attempts
    that survive rather than clearing it - the learner may also have practised
    this morning, and that is not the daily's to delete. Nine smoke checks.
+
+## Round four — the first browser pass
+
+The first session where the app was actually opened and looked at, rather than
+verified through tests. Two bugs and a pile of UI debt, none of which any test
+could have caught.
+
+1. **The maths field had never worked.** `menuItems` was set before the element
+   was attached; MathLive throws "Mathfield not mounted" for a detached
+   element; that throw landed in the same `catch` as a failed download. So
+   every learner silently got the plain-text fallback and the feature looked
+   like it had never shipped. **The jsdom stub was the reason the tests missed
+   it** — it accepted the assignment happily. A stub more permissive than the
+   real thing tests nothing; it now throws exactly where MathLive throws.
+2. **Two focus rings on the answer box.** The field carried its own 2px radius
+   inside the wrapper's 8px one, and the global `:focus-visible` rule drew an
+   outline *inside* the box. The wrapper owns the shape and the focus state
+   now.
+3. **The sentences came out.** Dashboard action tiles each explained what
+   "ฝึกโจทย์" means; practice setup tiles carried a summary plus "มีระดับ 1, 2,
+   3, 4" on all fourteen. Tiles now carry *state* (a review count, a tick) and
+   formulas. Keyboard shortcuts are keycaps rather than a run-on sentence.
+4. **Phone layout.** Three stat cards stacked into three full-width rows; the
+   sticky start button sat under the tab bar, invisible; Thai month names
+   wrapped onto two lines in the heatmap (each label slot is one 11px column);
+   the tool dock landed on the keypad however it was laid out, so on a phone it
+   is now one button that opens the rest.
+
+**Responsive work needs a rig.** `resize_window` does not change the viewport
+when the browser is maximised. Rendering the app inside iframes at 390 / 768 /
+1200 side by side does work - media queries respect the frame width - and
+finding three layout bugs in one screenshot is worth the setup.
 
 ## Where to pick up
 

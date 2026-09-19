@@ -4,6 +4,7 @@ import { hasLocale } from "next-intl";
 import { and, asc, eq } from "drizzle-orm";
 import { CalendarDays, Flame } from "lucide-react";
 import { routing, type Locale } from "@/i18n/routing";
+import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { attempts, runs } from "@/lib/db/schema";
@@ -11,7 +12,13 @@ import { allRules } from "@/content/rules";
 import { skills } from "@/content/topics";
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
-import { findOrCreateDailyRun, getDailyStreak } from "@/lib/daily/challenge";
+import {
+  findDailyRun,
+  findOrCreateDailyRun,
+  getDailyStreak,
+  isDailyBand,
+} from "@/lib/daily/challenge";
+import { getPassedSkillIds } from "@/lib/learn/progress";
 import { asExamRunConfig } from "@/lib/exam/session";
 import { bangkokDay, bangkokStamp } from "@/lib/stats/day";
 import { AppShell } from "@/components/layout/app-shell";
@@ -28,12 +35,18 @@ const skillNames = Object.fromEntries(
 );
 
 /**
- * โจทย์ประจำวัน. The same five questions for everyone, every day, built from
- * generators that already exist - "new problems dropped" without new problems
+ * โจทย์ประจำวัน. Five questions a day, built from generators that already
+ * exist - "new problems dropped" without new problems
  * (docs/CONTENT-PIPELINE.md §6).
+ *
+ * They used to be the same five for everyone in the country. They are now drawn
+ * from the lessons this learner has passed, which is worth the loss: a daily
+ * challenge that asks about things you have not been taught is not a challenge,
+ * it is a wall. It is still fixed for the day, so it cannot be rerolled.
  */
 export default async function DailyPage({
   params,
+  searchParams,
 }: PageProps<"/[locale]/daily">) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
@@ -52,10 +65,79 @@ export default async function DailyPage({
    * id is known its row and its attempts can be fetched together - so this is
    * two waves rather than four queues, against a database in another country.
    */
-  const [{ id: runId }, streak] = await Promise.all([
-    findOrCreateDailyRun(user.id, day),
+  const query = await searchParams;
+  const wanted = Array.isArray(query.band) ? query.band[0] : query.band;
+
+  /*
+   * The run is not created just by looking at the page any more - an unstarted
+   * day is where the band is chosen, and creating it to render it would make
+   * that choice for them. It is started by picking one.
+   */
+  const [started, streak, passedSkillIds] = await Promise.all([
+    findDailyRun(user.id, day),
     getDailyStreak(user.id),
+    getPassedSkillIds(user.id),
   ]);
+
+  const header = (
+    <header className="mb-6 space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-5 w-5 text-accent" />
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Flame className="h-4 w-4 text-accent" />
+          <span className="text-muted">{t("streak")}</span>
+          <span className="font-mono tabular-nums">{streak.current}</span>
+        </div>
+      </div>
+      <p className="text-sm text-muted">{t("subtitle", { day })}</p>
+    </header>
+  );
+
+  /*
+   * Not started yet: choose how hard today is. Plain links rather than a form,
+   * so the choice is an ordinary navigation that works with JavaScript off and
+   * can be read straight off the URL.
+   */
+  if (!started && !isDailyBand(wanted)) {
+    return (
+      <AppShell locale={active} user={user}>
+        {header}
+        <Card className="space-y-4">
+          <div className="space-y-1">
+            <CardTitle className="text-base">{t("chooseBand")}</CardTitle>
+            <CardDescription>
+              {passedSkillIds.length > 0
+                ? t("fromPassed", { count: passedSkillIds.length })
+                : t("fromEverything")}
+            </CardDescription>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {(["easy", "normal", "hard"] as const).map((band) => (
+              <Link
+                key={band}
+                href={`/daily?band=${band}`}
+                className="flex flex-col gap-1 rounded-lg border border-border px-4 py-3 transition-colors hover:border-accent hover:bg-accent/5"
+              >
+                <span className="font-medium">{t(`band.${band}`)}</span>
+                <span className="text-xs text-muted">{t(`bandNote.${band}`)}</span>
+              </Link>
+            ))}
+          </div>
+
+          <p className="text-xs text-muted">{t("bandOncePerDay")}</p>
+        </Card>
+      </AppShell>
+    );
+  }
+
+  const { id: runId } = await findOrCreateDailyRun(user.id, day, {
+    skillIds: passedSkillIds,
+    band: isDailyBand(wanted) ? wanted : undefined,
+  });
 
   const [[run], rows] = await Promise.all([
     db
@@ -77,25 +159,6 @@ export default async function DailyPage({
 
   const questions = config.refs.map((ref) =>
     generateQuestion(ref.generatorId, ref.seed, ref.difficulty),
-  );
-
-  const header = (
-    <header className="mb-6 space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-accent" />
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("title")}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Flame className="h-4 w-4 text-accent" />
-          <span className="text-muted">{t("streak")}</span>
-          <span className="font-mono tabular-nums">{streak.current}</span>
-        </div>
-      </div>
-      <p className="text-sm text-muted">{t("subtitle", { day })}</p>
-    </header>
   );
 
   if (run.finishedAt) {

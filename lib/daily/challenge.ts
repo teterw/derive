@@ -21,28 +21,73 @@ import { bangkokDay, previousDay } from "@/lib/stats/day";
  */
 export const DAILY_QUESTIONS = 5;
 
-/** A warm-up that climbs: easy, medium, medium, hard, challenge. */
-const DAILY_SHAPE: Difficulty[] = [1, 2, 2, 3, 4];
+/**
+ * How hard the day is, chosen before you start.
+ *
+ * Every band climbs, because a warm-up that opens on the hardest question is
+ * one most people close. They differ in where the climb starts and ends. XP
+ * needs no special handling: `xpFor` already pays by difficulty, so a harder
+ * band is worth more for exactly the reason it should be.
+ */
+export const DAILY_BANDS = {
+  easy: [1, 1, 2, 2, 2],
+  normal: [1, 2, 2, 3, 4],
+  hard: [2, 3, 3, 4, 4],
+} as const satisfies Record<string, Difficulty[]>;
+
+export type DailyBand = keyof typeof DAILY_BANDS;
+
+export const DEFAULT_BAND: DailyBand = "normal";
+
+export function isDailyBand(value: unknown): value is DailyBand {
+  return typeof value === "string" && value in DAILY_BANDS;
+}
 
 const MAX_SEED = 2 ** 31 - 1;
 
 /**
- * Deterministic from the day alone. No database, no user - two people opening
- * the app in different provinces get the identical five questions.
+ * The day's five questions.
+ *
+ * It used to be deterministic from the date alone, so everyone in the country
+ * opened the same five. That is gone, and deliberately: a daily challenge that
+ * asks about lessons you have not been taught is not a challenge, it is a wall.
+ * `skillIds` narrows it to what the learner has actually passed.
+ *
+ * Still deterministic, which is the part that mattered - the seed is the day,
+ * the band and the skill set, so reloading, switching language or coming back
+ * after lunch gives the same five. Two learners who have passed the same
+ * lessons and picked the same band do still get the same day.
  */
-export function dailyRefs(day: string = bangkokDay()): QuestionRef[] {
-  const rng = createRng(seedFromString(`derive-daily:${day}`));
+export function dailyRefs(
+  day: string = bangkokDay(),
+  options: { skillIds?: readonly string[]; band?: DailyBand } = {},
+): QuestionRef[] {
+  const band = options.band ?? DEFAULT_BAND;
+  const shape = DAILY_BANDS[band];
 
-  const available = skills
+  const everything = skills
     .map((skill) => skill.id)
     .filter((skillId) => difficultiesForSkill(skillId).length > 0)
     .sort();
+
+  /*
+   * Falling back to everything is not a lapse in the rule, it is the only
+   * sensible day one: an account that has passed nothing would otherwise have
+   * no daily at all, on the morning it is most likely to be opened. The page
+   * says as much rather than leaving it to be inferred.
+   */
+  const chosen = (options.skillIds ?? []).filter((id) => everything.includes(id));
+  const available = chosen.length > 0 ? [...chosen].sort() : everything;
+
+  const rng = createRng(
+    seedFromString(`derive-daily:${day}:${band}:${available.join(",")}`),
+  );
 
   const refs: QuestionRef[] = [];
   for (let index = 0; index < DAILY_QUESTIONS; index++) {
     const skillId = rng.pick(available);
     const supported = difficultiesForSkill(skillId);
-    const wanted = DAILY_SHAPE[index]!;
+    const wanted = shape[index]!;
     const difficulty = supported.includes(wanted)
       ? wanted
       : rng.pick(supported);
@@ -65,18 +110,30 @@ export type DailyRunConfig = {
   skillIds: string[];
   difficulties: Difficulty[];
   count: number;
+  /** Which band was chosen. Stored so a reload cannot change the day's shape. */
+  band: DailyBand;
+  /** Whether this day was drawn from passed lessons or from everything. */
+  fromPassed: boolean;
 };
 
-export function dailyConfig(day: string = bangkokDay()): DailyRunConfig {
-  const refs = dailyRefs(day);
+export function dailyConfig(
+  day: string = bangkokDay(),
+  options: { skillIds?: readonly string[]; band?: DailyBand } = {},
+): DailyRunConfig {
+  const band = options.band ?? DEFAULT_BAND;
+  const passed = options.skillIds ?? [];
+  const refs = dailyRefs(day, { skillIds: passed, band });
+
   return {
     day,
     refs,
     explainMode: "onWrong",
     timeLimitSec: 0,
-    skillIds: [],
+    skillIds: [...passed],
     difficulties: [...new Set(refs.map((ref) => ref.difficulty))],
     count: refs.length,
+    band,
+    fromPassed: passed.length > 0,
   };
 }
 
@@ -84,10 +141,17 @@ export function dailyConfig(day: string = bangkokDay()): DailyRunConfig {
  * Finds today's run for this user, or starts it. Keyed on the day inside the
  * config, so opening the page twice cannot produce two runs.
  */
-export async function findOrCreateDailyRun(
+/**
+ * Today's run if it has been started, without starting it.
+ *
+ * The page needs to know the difference: an unstarted day is where the band is
+ * chosen, and creating the run just to look at it would take that choice away
+ * by making it for them.
+ */
+export async function findDailyRun(
   userId: string,
   day: string = bangkokDay(),
-): Promise<{ id: string; finished: boolean }> {
+): Promise<{ id: string; finished: boolean } | null> {
   const [existing] = await db
     .select({ id: runs.id, finishedAt: runs.finishedAt })
     .from(runs)
@@ -100,11 +164,27 @@ export async function findOrCreateDailyRun(
     )
     .limit(1);
 
-  if (existing) {
-    return { id: existing.id, finished: existing.finishedAt !== null };
-  }
+  return existing
+    ? { id: existing.id, finished: existing.finishedAt !== null }
+    : null;
+}
 
-  const config = dailyConfig(day);
+export async function findOrCreateDailyRun(
+  userId: string,
+  day: string = bangkokDay(),
+  options: { skillIds?: readonly string[]; band?: DailyBand } = {},
+): Promise<{ id: string; finished: boolean }> {
+  const existing = await findDailyRun(userId, day);
+
+  /*
+   * An existing run wins over whatever was asked for. The band is chosen once
+   * a day: letting a second visit re-pick it would mean opening the page,
+   * seeing a hard question and switching to easy, which is not a choice, it is
+   * a reroll.
+   */
+  if (existing) return existing;
+
+  const config = dailyConfig(day, options);
   const [created] = await db
     .insert(runs)
     .values({

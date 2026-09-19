@@ -62,25 +62,45 @@ export function NavLink({
         "transition-colors",
         variant === "header" &&
           cn(
-            // The bar sits on the header's lower edge, nearest the content it
-            // belongs to.
-            "relative rounded px-2 py-1",
+            /*
+             * Icon beside the label, and the bar on the header's lower edge,
+             * nearest the content it belongs to. The icons are the difference
+             * between a row of words and something that reads as navigation -
+             * a destination is recognised by its shape long before its name is
+             * read, which matters most for the person who does not yet know
+             * what "ทบทวน" is going to do.
+             */
+            // `whitespace-nowrap` and `shrink-0`: with an icon beside it, a
+            // long Thai label like โจทย์ประจำวัน was being broken mid-word to
+            // make the row fit, which looked like a rendering fault.
+            "relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5",
             active
-              ? "text-fg after:absolute after:inset-x-2 after:-bottom-[13px] after:h-0.5 after:rounded-full after:bg-accent"
+              ? "text-fg after:absolute after:inset-x-2.5 after:-bottom-[13px] after:h-0.5 after:rounded-full after:bg-accent"
               : "text-muted hover:bg-surface-2 hover:text-fg",
           ),
         variant === "strip" &&
           cn(
-            "shrink-0 rounded px-2 py-1",
+            /*
+             * Chips, not words. A scrolling row of bare text gives the eye
+             * nothing to land on and no sign that it scrolls; an outlined chip
+             * has an edge, so a half-visible one at the right reads as "there
+             * is more that way" rather than as a truncation.
+             */
+            "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5",
             active
-              ? "bg-accent/10 text-accent"
-              : "text-muted hover:bg-surface-2 hover:text-fg",
+              ? "border-accent bg-accent/10 text-accent"
+              : "border-border text-muted hover:border-fg/30 hover:text-fg",
           ),
         variant === "tab" &&
           cn(
-            // Mirrors the header: a bar on the edge nearest the content, which
-            // on a bottom bar is the top one.
-            "relative flex flex-col items-center gap-0.5 py-2 text-[10px]",
+            /*
+             * Mirrors the header: a bar on the edge nearest the content, which
+             * on a bottom bar is the top one. `pb-[max(...)]` keeps the labels
+             * clear of the home indicator on a phone without adding a gap on
+             * one that has none.
+             */
+            "relative flex flex-col items-center gap-1 pt-2.5 text-[10px] font-medium",
+            "pb-[max(0.625rem,env(safe-area-inset-bottom))]",
             active
               ? "text-accent before:absolute before:inset-x-5 before:top-0 before:h-0.5 before:rounded-full before:bg-accent"
               : "text-muted active:text-accent",

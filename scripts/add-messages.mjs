@@ -90,28 +90,53 @@ try {
   fail(`input is not JSON: ${error.message}`);
 }
 
+/**
+ * A leaf is a node carrying the locales themselves; anything else is a group.
+ *
+ * Groups nest, because the message files do - `practice.formError.<reason>` was
+ * there long before this script was. Treating every second level as a leaf is
+ * what the first version did, and it rejected perfectly good input.
+ */
+const isLeaf = (node) =>
+  node !== null &&
+  typeof node === "object" &&
+  ["th", "en"].some((locale) => locale in node);
+
+/** Every leaf in the batch, with the path it will be written to. */
+function leaves(node, path = []) {
+  if (isLeaf(node)) return [[path, node]];
+  if (node === null || typeof node !== "object") {
+    fail(`${path.join(".") || "input"} is neither a group nor a translation`);
+  }
+  return Object.entries(node).flatMap(([key, child]) => leaves(child, [...path, key]));
+}
+
+const entries = leaves(input);
+
 // Every key needs both locales, or this script is the thing that breaks parity.
-for (const [namespace, keys] of Object.entries(input)) {
-  for (const [key, values] of Object.entries(keys)) {
-    for (const locale of ["th", "en"]) {
-      if (typeof values[locale] !== "string" || values[locale].trim() === "") {
-        fail(`${namespace}.${key} has no ${locale} string`);
-      }
+for (const [path, values] of entries) {
+  if (path.length < 2) fail(`${path.join(".")} needs a namespace`);
+  for (const locale of ["th", "en"]) {
+    if (typeof values[locale] !== "string" || values[locale].trim() === "") {
+      fail(`${path.join(".")} has no ${locale} string`);
     }
   }
 }
 
-const added = Object.values(input).reduce((n, keys) => n + Object.keys(keys).length, 0);
+const added = entries.length;
 
 for (const locale of ["th", "en"]) {
   const path = join(root, "messages", `${locale}.json`);
   const messages = JSON.parse(await readFile(path, "utf8"));
 
-  for (const [namespace, keys] of Object.entries(input)) {
-    messages[namespace] ??= {};
-    for (const [key, values] of Object.entries(keys)) {
-      messages[namespace][key] = values[locale];
+  for (const [path, values] of entries) {
+    // Walk to the parent, making groups as needed, then set the leaf.
+    let node = messages;
+    for (const key of path.slice(0, -1)) {
+      if (node[key] === undefined || typeof node[key] !== "object") node[key] = {};
+      node = node[key];
     }
+    node[path[path.length - 1]] = values[locale];
   }
 
   await writeFile(path, JSON.stringify(messages, null, 2) + "\n", "utf8");

@@ -367,7 +367,21 @@
     "backHome": "Back to the dashboard",
     "cardTitle": "Daily challenge",
     "cardBody": "Today's five questions, not done yet",
-    "cardDone": "Done for today"
+    "cardDone": "Done for today",
+    "chooseBand": "How hard is today?",
+    "fromPassed": "Drawn from the {count} lessons you have passed.",
+    "fromEverything": "You have not passed a lesson yet, so today is drawn from everything. Pass one and your daily will follow what you have learned.",
+    "bandOncePerDay": "Once a day. Picked is picked, until tomorrow.",
+    "band": {
+      "easy": "Gentle",
+      "normal": "Normal",
+      "hard": "Hard"
+    },
+    "bandNote": {
+      "easy": "A warm-up. Less XP.",
+      "normal": "Climbs from easy to hard.",
+      "hard": "Starts mid, ends hard. Most XP."
+    }
   },
   "profile": {
     "joined": "Joined {date}",

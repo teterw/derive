@@ -8,6 +8,7 @@ import {
   FileText,
   LogOut,
   RotateCw,
+  ShieldCheck,
   Sigma,
   Users,
 } from "lucide-react";
@@ -87,7 +88,7 @@ export async function AppShell({
     <XpProvider initialXp={totalXp}>
       <div className="flex min-h-dvh flex-col">
         <header className="border-b border-border">
-          <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-4 px-4">
+          <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-4 px-4">
             <Link href="/" className="flex items-center gap-2">
               {/*
               `priority` because this is above the fold on every page in the
@@ -123,14 +124,19 @@ export async function AppShell({
               </span>
             </Link>
 
-            <nav className="hidden items-center gap-1 text-sm lg:flex">
-              {NAV.map((item) => (
-                <NavLink key={item.href} href={item.href} variant="header">
-                  {t(item.key)}
-                </NavLink>
-              ))}
+            <nav className="hidden items-center gap-0.5 text-sm xl:flex">
+              {NAV.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink key={item.href} href={item.href} variant="header">
+                    <Icon className="size-4 shrink-0" aria-hidden />
+                    {t(item.key)}
+                  </NavLink>
+                );
+              })}
               {user.role === "admin" ? (
                 <NavLink href="/admin" variant="header">
+                  <ShieldCheck className="size-4 shrink-0" aria-hidden />
                   {t("admin")}
                 </NavLink>
               ) : null}
@@ -188,17 +194,27 @@ export async function AppShell({
           the two never repeat each other; from `sm` up, where there is no
           bottom bar, it carries everything.
         */}
-          <nav className="mx-auto flex w-full max-w-5xl gap-1 overflow-x-auto px-4 pb-2 text-sm lg:hidden">
-            {NAV.map((item) => (
-              <NavLink
-                key={item.href}
-                href={item.href}
-                variant="strip"
-                className={cn(item.onPhone && "hidden sm:block")}
-              >
-                {t(item.key)}
-              </NavLink>
-            ))}
+          {/*
+            `[scrollbar-width:none]` and the webkit rule: a horizontal
+            scrollbar under a 32px row of chips is taller than the gap it sits
+            in and makes the header look broken. The row still scrolls, and a
+            chip cut off at the right edge is what says so.
+          */}
+          <nav className="mx-auto flex w-full max-w-7xl gap-1.5 overflow-x-auto px-4 pb-2.5 text-sm [-ms-overflow-style:none] [scrollbar-width:none] xl:hidden [&::-webkit-scrollbar]:hidden">
+            {NAV.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.href}
+                  href={item.href}
+                  variant="strip"
+                  className={cn(item.onPhone && "hidden sm:inline-flex")}
+                >
+                  <Icon className="size-3.5 shrink-0" aria-hidden />
+                  {t(item.key)}
+                </NavLink>
+              );
+            })}
             {/*
             Admin rides in the strip rather than the header below `lg`. In the
             header it was the item that pushed a 390px phone over the edge, and
@@ -206,6 +222,7 @@ export async function AppShell({
           */}
             {user.role === "admin" ? (
               <NavLink href="/admin" variant="strip">
+                <ShieldCheck className="size-3.5 shrink-0" aria-hidden />
                 {t("admin")}
               </NavLink>
             ) : null}

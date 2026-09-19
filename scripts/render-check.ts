@@ -12,6 +12,7 @@
  * history to render, but any account will do.
  */
 
+import { JSDOM } from "jsdom";
 import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
 import { sessions, users } from "../lib/db/schema";
@@ -142,6 +143,67 @@ async function main() {
   process.exit(failures === 0 ? 0 : 1);
 }
 
+/**
+ * The accessibility failures that can honestly be judged from served HTML.
+ *
+ * Three of them: a control with no accessible name, an image with no alt at
+ * all, and a page with no heading or with several. Each was real when this was
+ * written - the practice runner had no h1, and the daily page had two because
+ * the results block brought its own.
+ *
+ * ## What is deliberately not here, and why
+ *
+ * Whether a field has a label cannot be answered from this response, and the
+ * attempt is recorded because the failure was instructive. React streams: a
+ * checkbox on the exam page arrives as a bare `<input>` inside
+ * `<div hidden id="S:2">`, and a script later moves it inside the `<label>`
+ * that rendered in the shell. Reading the bytes finds an input with no label
+ * and is wrong - the live DOM has all fourteen correctly labelled.
+ *
+ * Two workarounds were tried and both were worse. Skipping `[hidden]` content
+ * reported every page as having no h1, because the staging areas are where most
+ * of a streamed page lives. Treating a control as labelled if any copy of it is
+ * labelled did not help either, because the orphan is the only copy there is.
+ *
+ * Answering it properly needs a browser that runs the placement scripts, which
+ * is a heavier dependency than this check is worth today. The labelling audit
+ * that found the formula page's unnamed search box and topic filter was done by
+ * hand against the live DOM, which is the only place the question has an answer.
+ */
+function accessibilityNotes(html: string): string[] {
+  const { window } = new JSDOM(html);
+  const doc = window.document;
+  const notes: string[] = [];
+
+  const named = (el: Element): boolean =>
+    (
+      el.getAttribute("aria-label") ??
+      el.getAttribute("title") ??
+      el.textContent ??
+      ""
+    ).trim() !== "" || el.querySelector("img[alt]:not([alt=''])") !== null;
+
+  const nameless = [...doc.querySelectorAll("button, a[href]")].filter(
+    (el) => !named(el),
+  );
+  if (nameless.length > 0) {
+    notes.push(`${nameless.length} control(s) with no accessible name`);
+  }
+
+  // `alt=""` is a decision - the image is decorative. No alt at all is not.
+  const noAlt = [...doc.querySelectorAll("img")].filter(
+    (el) => el.getAttribute("alt") === null,
+  );
+  if (noAlt.length > 0) notes.push(`${noAlt.length} image(s) with no alt`);
+
+  const h1s = doc.querySelectorAll("h1").length;
+  if (h1s === 0) notes.push("no h1");
+  if (h1s > 1) notes.push(`${h1s} h1 elements - a page has one beginning`);
+
+  window.close();
+  return notes;
+}
+
 async function checkPage(path: string, token: string): Promise<Result> {
   const notes: string[] = [];
   let response: Response;
@@ -188,6 +250,8 @@ async function checkPage(path: string, token: string): Promise<Result> {
   if (/Application error|Internal Server Error|digest&quot;/.test(html)) {
     notes.push("the page rendered an error boundary");
   }
+
+  notes.push(...accessibilityNotes(html));
 
   // Every page in this app shows the shell.
   if (!html.includes("Derive")) notes.push("the app shell is missing");

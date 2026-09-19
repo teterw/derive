@@ -178,11 +178,18 @@ export function SettingsForm({
         </div>
       </div>
 
+      {/*
+        `hidden` takes this out of the accessibility tree entirely, so the
+        visible button beside it is what gets announced and the name here is
+        belt and braces. It costs nothing and it is the difference between a
+        working control and an unnamed one if that class ever changes.
+      */}
       <input
         ref={fileRef}
         type="file"
         name="avatar"
         accept={ACCEPTED_TYPES.join(",")}
+        aria-label={t("uploadPicture")}
         className="hidden"
         onChange={onPick}
       />

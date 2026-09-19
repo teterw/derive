@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from "node:fs";
-import { join, sep } from "node:path";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import th from "@/messages/th.json";
 

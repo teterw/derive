@@ -197,6 +197,7 @@ export default async function DailyPage({
         <p className="mb-6 text-sm text-muted">{t("doneBody")}</p>
         <ExamResults
           locale={active}
+          headingLevel={2}
           run={{
             total: run.total,
             correct: run.correct,

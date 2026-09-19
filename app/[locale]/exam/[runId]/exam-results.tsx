@@ -33,8 +33,14 @@ export function ExamResults({
   skillNames,
   difficultyLabels,
   labels,
+  headingLevel = 1,
 }: {
   locale: Locale;
+  /**
+   * 1 where this block is the page, 2 where it sits under a page heading of
+   * its own - the daily, which has already said what day it is.
+   */
+  headingLevel?: 1 | 2;
   run: {
     total: number;
     correct: number;
@@ -71,12 +77,19 @@ export function ExamResults({
     .filter(([, value]) => value.correct < value.asked)
     .map(([skillId]) => skillId);
 
+  /*
+   * On the exam results page this block *is* the page, so its title is the
+   * h1. On the daily page it sits under a heading of the day's own, and a
+   * second h1 there tells a screen reader the page has two beginnings.
+   */
+  const Heading = headingLevel === 2 ? "h2" : "h1";
+
   return (
     <div className="mx-auto w-full max-w-3xl space-y-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <Heading className="text-2xl font-semibold tracking-tight">
           {labels.title}
-        </h1>
+        </Heading>
         <p className="text-sm text-muted">{run.startedAtLabel}</p>
       </header>
 

@@ -208,7 +208,10 @@
       "rationalized-denominator": "The denominator must be free of radicals; otherwise any form counts.",
       "scientific-notation": "Must be in scientific notation.",
       "positive-exponents": "No negative exponents; otherwise any form counts."
-    }
+    },
+    "headingPractice": "Practice",
+    "headingReview": "Review",
+    "headingTest": "Lesson test"
   },
   "learn": {
     "title": "Learn",

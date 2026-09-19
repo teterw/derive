@@ -208,7 +208,10 @@
       "rationalized-denominator": "ตัวส่วนต้องไม่ติดกรณฑ์ นอกนั้นเขียนรูปไหนก็ได้",
       "scientific-notation": "ต้องอยู่ในรูปสัญกรณ์วิทยาศาสตร์",
       "positive-exponents": "ต้องไม่มีเลขชี้กำลังติดลบ นอกนั้นเขียนรูปไหนก็ได้"
-    }
+    },
+    "headingPractice": "ฝึกโจทย์",
+    "headingReview": "ทบทวนข้อที่ตอบผิด",
+    "headingTest": "แบบทดสอบประจำบท"
   },
   "learn": {
     "title": "เรียน",

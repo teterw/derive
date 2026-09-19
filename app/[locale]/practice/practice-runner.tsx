@@ -359,6 +359,20 @@ export function PracticeRunner({
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-8 pb-16 sm:pb-0">
+      {/*
+        This screen is deliberately bare - big question, no chrome (PROMPT.md
+        §10) - and it had no heading at all, so to a screen reader the page had
+        no beginning and no name. A visible one would undo the point of the
+        screen; `sr-only` gives it a name without giving it furniture.
+      */}
+      <h1 className="sr-only">
+        {assess
+          ? t("headingTest")
+          : mode === "review"
+            ? t("headingReview")
+            : t("headingPractice")}
+      </h1>
+
       <Scoreboard tally={tally} labels={t} />
 
       {queue ? (

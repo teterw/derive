@@ -57,15 +57,22 @@ export default async function RulesPage({
         method="get"
         className="mt-6 flex flex-wrap gap-2"
       >
+        {/*
+          Both of these carried no name at all - the search box had a
+          placeholder, which is not a label: it disappears the moment you type,
+          and it is not reliably announced. The select had nothing.
+        */}
         <Input
           name="q"
           defaultValue={query}
           placeholder={t("searchPlaceholder")}
+          aria-label={t("searchPlaceholder")}
           className="max-w-xs"
         />
         <select
           name="topic"
           defaultValue={topicId}
+          aria-label={t("allTopics")}
           className="h-10 rounded-md border border-border bg-surface px-3 text-sm"
         >
           <option value="">{t("allTopics")}</option>

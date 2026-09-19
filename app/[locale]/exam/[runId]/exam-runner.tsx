@@ -26,6 +26,7 @@ import { AnswerInput } from "@/components/math/answer-input";
 import { AnswerText } from "@/components/math/answer-text";
 import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
+import { isBlankAnswer } from "@/lib/math/mathfield-latex";
 import { cn } from "@/lib/utils";
 
 type Answered = {
@@ -141,8 +142,10 @@ export function ExamRunner({
 
   const submit = useCallback(() => {
     if (answered || pending) return;
+    // An unfilled box in the maths field is an unfinished answer, not a wrong
+    // one. The same guard the practice runner uses, for the same reason.
+    if (isBlankAnswer(draft)) return;
     const value = draft.trim();
-    if (value === "") return;
     const elapsed = Date.now() - (shownAt.current || Date.now());
 
     startTransition(async () => {
@@ -344,7 +347,7 @@ export function ExamRunner({
             <Button
               variant="primary"
               onClick={submit}
-              disabled={pending || draft.trim() === ""}
+              disabled={pending || isBlankAnswer(draft)}
             >
               <Check className="h-4 w-4" />
               {t("checkAnswer")}

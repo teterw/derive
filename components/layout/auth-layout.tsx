@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { LocaleSwitch } from "./locale-switch";
@@ -24,11 +25,26 @@ export async function AuthLayout({
       </div>
 
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {tApp("name")}
-          </h1>
-          <p className="mt-1 text-sm text-muted">{tApp("tagline")}</p>
+        {/*
+          The one place the full lockup gets to be the hero. Everywhere else
+          the mark rides in a 28px header slot, where the wordmark under it
+          would be illegible anyway.
+
+          The name stays in the markup as the h1, visually hidden: the logo is
+          an image of a word, and a screen reader and a search engine both need
+          the word itself.
+        */}
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Image
+            src="/brand/logo.png"
+            alt=""
+            width={200}
+            height={195}
+            priority
+            className="h-auto w-40"
+          />
+          <h1 className="sr-only">{tApp("name")}</h1>
+          <p className="mt-2 text-sm text-muted">{tApp("tagline")}</p>
         </div>
 
         <Card className="space-y-6">

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import {
   BarChart3,
@@ -53,12 +54,27 @@ export async function AppShell({
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-border">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-4 px-4">
-          <Link href="/" className="flex items-baseline gap-2">
-            <span className="text-base font-semibold tracking-tight">
-              {tApp("name")}
-            </span>
-            <span className="hidden text-xs text-muted sm:inline">
-              {tApp("tagline")}
+          <Link href="/" className="flex items-center gap-2">
+            {/*
+              `priority` because this is above the fold on every page in the
+              app, and the header reflowing after it arrives is the kind of
+              small lurch that makes a site feel cheap.
+            */}
+            <Image
+              src="/brand/mark.png"
+              alt=""
+              width={28}
+              height={28}
+              priority
+              className="h-7 w-7 shrink-0"
+            />
+            <span className="flex items-baseline gap-2">
+              <span className="text-base font-semibold tracking-tight">
+                {tApp("name")}
+              </span>
+              <span className="hidden text-xs text-muted sm:inline">
+                {tApp("tagline")}
+              </span>
             </span>
           </Link>
 

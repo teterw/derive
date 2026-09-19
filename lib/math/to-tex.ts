@@ -112,6 +112,22 @@ function wrap(node: Rendered, minimum: number): string {
   return node.precedence < minimum ? `\\left(${node.tex}\\right)` : node.tex;
 }
 
+/**
+ * A product, written the way it is written by hand.
+ *
+ * `3*sqrt(2)` is `3√2`, not `3 · √2`. The dot is only needed between two
+ * numbers, where dropping it would silently turn 2 times 3 into twenty-three;
+ * everywhere else it is noise, and on this site the noise lands on the "the
+ * correct answer is" line, where an answer that looks more complicated than the
+ * one the learner wrote is actively discouraging.
+ *
+ * The test is what the right-hand side *starts with*, because that is the only
+ * thing that can run into the left.
+ */
+function times(left: string, right: string): string {
+  return /^[0-9.]/.test(right) ? `${left} \\cdot ${right}` : `${left}${right}`;
+}
+
 class Parser {
   private position = 0;
 
@@ -174,7 +190,7 @@ class Parser {
                 precedence: ATOM,
               }
             : {
-                tex: `${wrap(left, PRODUCT)} \\cdot ${wrap(right, PRODUCT)}`,
+                tex: times(wrap(left, PRODUCT), wrap(right, PRODUCT)),
                 precedence: PRODUCT,
               };
         continue;

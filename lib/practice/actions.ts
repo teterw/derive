@@ -2,6 +2,7 @@
 
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { getSkill } from "@/content/topics";
+import type { FormRequirement } from "@/content/types";
 import type { L, Misconception, PublicQuestion, Step } from "@/content/types";
 import { checkAnswer, type CheckResult } from "@/lib/math/check";
 import { getSessionUser } from "@/lib/auth/session";
@@ -55,6 +56,16 @@ export type SubmitResult = {
   misconception?: L;
   /** What this attempt earned, itemised, so the meter can show why. */
   award: XpAward;
+  /**
+   * The shape this skill insists on, or null when any equivalent form counts.
+   *
+   * Sent so the feedback can say what else would have been accepted. That is
+   * the question a learner asks on being shown an answer that looks nothing
+   * like theirs - "would mine have done?" - and the honest answer depends
+   * entirely on this. For a factorising skill it is emphatically not "any
+   * equivalent form": the expanded version is the question, not the answer.
+   */
+  acceptedForm: FormRequirement | null;
 };
 
 export async function submitAnswerAction(input: {
@@ -109,6 +120,7 @@ export async function submitAnswerAction(input: {
   return {
     result,
     award,
+    acceptedForm: skill.strictForm,
     correctAnswer: displayAnswer(question),
     steps: question.steps,
     ...(result.correct

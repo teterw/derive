@@ -81,10 +81,21 @@ function monomial(rng: RNG, difficulty: Difficulty): Built {
     denominator === 1
       ? radical(numeratorCoefficient, b)
       : `\\frac{${radical(numeratorCoefficient, b)}}{${denominator}}`;
+  /*
+   * `1*sqrt(10)` is the same number as `sqrt(10)` and renders as `1 · √10`,
+   * which nobody writes. The answer string is shown to a learner who got it
+   * wrong, so the leading one comes off - the KaTeX beside it has never had it,
+   * via `radical`.
+   */
+  const numeratorMath =
+    numeratorCoefficient === 1
+      ? `sqrt(${b})`
+      : numeratorCoefficient === -1
+        ? `-sqrt(${b})`
+        : `${numeratorCoefficient}*sqrt(${b})`;
+
   const answerMath =
-    denominator === 1
-      ? `${numeratorCoefficient}*sqrt(${b})`
-      : `${numeratorCoefficient}*sqrt(${b})/${denominator}`;
+    denominator === 1 ? numeratorMath : `${numeratorMath}/${denominator}`;
 
   const steps: Step[] = [
     makeStep(

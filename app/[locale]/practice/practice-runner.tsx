@@ -528,6 +528,22 @@ export function PracticeRunner({
                     className="text-fg"
                   />
                 </p>
+
+                {/*
+                  What else would have counted.
+
+                  Being shown one answer invites the question "would mine have
+                  done?", and until now the page had no reply. The reply is not
+                  the same for every skill: where the shape is the point -
+                  factorising, rationalising - the equivalent-but-unfactorised
+                  version is the question rather than the answer, and saying
+                  "any equivalent form" would be a lie that costs marks.
+                */}
+                <p className="text-xs text-muted">
+                  {outcome.acceptedForm
+                    ? t(`accepts.${outcome.acceptedForm}`)
+                    : t("accepts.any")}
+                </p>
               </div>
             ) : null}
           </div>

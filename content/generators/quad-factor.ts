@@ -89,6 +89,21 @@ export const quadFactorCommon: Generator = {
     if (innerGcd > 1) inner[0] = inner[0]! + 1;
 
     const degrees = inner.length === 3 ? [2, 1, 0] : [1, 0];
+
+    /*
+     * One string for both the rendering and the answer.
+     *
+     * There used to be two. The KaTeX one went through `coefficient` and came
+     * out as `4x - 9`; the answer went through string interpolation and came
+     * out as `(4)*x^1 + (-9)`. Both are the same number, so marking was never
+     * affected - but the answer string is what a learner is *shown* when they
+     * get it wrong, and being told the answer is `1 · x · (4 · x¹ + -9)` when
+     * the working directly underneath says `x(4x - 9)` is worse than useless.
+     *
+     * `coefficient` and `sumTerms` produce text that is valid in both: mathjs
+     * reads `4x` as implicit multiplication and `x^2` as a power, which is
+     * exactly what the KaTeX says too.
+     */
     const innerKatex = sumTerms(
       inner.map((value, index) =>
         degrees[index] === 0
@@ -96,13 +111,6 @@ export const quadFactorCommon: Generator = {
           : coefficient(value, degrees[index] === 2 ? "x^2" : "x"),
       ),
     );
-    const innerMath = inner
-      .map((value, index) =>
-        degrees[index] === 0
-          ? `(${value})`
-          : `(${value})*x^${degrees[index]}`,
-      )
-      .join(" + ");
 
     // Expanding: multiply each inner term by outer * x.
     const expandedTerms = inner.map((value, index) => ({
@@ -120,7 +128,7 @@ export const quadFactorCommon: Generator = {
     );
 
     const answerKatex = `${coefficient(outer, "x")}\\left(${innerKatex}\\right)`;
-    const answerMath = `(${outer})*x*(${innerMath})`;
+    const answerMath = `${coefficient(outer, "x")}*(${innerKatex})`;
 
     const splitKatex = sumTerms(
       expandedTerms.map((term, index) => {
@@ -460,11 +468,15 @@ export const quadDiffSquares: Generator = {
     const axSquared = coefficient(a * a, "x^2");
     const stem = `${coefficient(a ** 4, "x^4")} - ${k ** 4}`;
     const answerKatex = `\\left(${ax} - ${k}\\right)\\left(${ax} + ${k}\\right)\\left(${axSquared} + ${k * k}\\right)`;
-    const axMath = a === 1 ? "x" : `${a}*x`;
+    /*
+     * The same `coefficient` text the KaTeX uses. Built by hand, the square
+     * factor came out as `1*x^2 + 25` whenever a was 1, and the learner was
+     * shown `1 · x² + 25` as the answer.
+     */
     return question(quadDiffSquares, rng, difficulty, {
       stem,
       answerKatex,
-      answerMath: `(${axMath} - ${k})*(${axMath} + ${k})*(${a * a}*x^2 + ${k * k})`,
+      answerMath: `(${ax} - ${k})*(${ax} + ${k})*(${axSquared} + ${k * k})`,
       steps: [
         makeStep(
           `\\left(${axSquared}\\right)^2 - \\left(${k * k}\\right)^2`,

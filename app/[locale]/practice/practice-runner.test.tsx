@@ -91,6 +91,7 @@ describe("PracticeRunner", () => {
       result: { correct: true },
       correctAnswer: "2, 3",
       steps: first.steps,
+      acceptedForm: null,
       award: {
         parts: [
           { key: "answered", amount: 1 },
@@ -118,6 +119,7 @@ describe("PracticeRunner", () => {
       result: { correct: false, reason: "wrong" },
       correctAnswer: "2, 3",
       steps: first.steps,
+      acceptedForm: null,
       award: {
         parts: [
           { key: "answered", amount: 1 },
@@ -145,6 +147,7 @@ describe("PracticeRunner", () => {
       result: { correct: false, reason: "wrong" },
       correctAnswer: "3*sqrt(2)",
       steps: first.steps,
+      acceptedForm: null,
       award: {
         parts: [
           { key: "answered", amount: 1 },
@@ -182,6 +185,7 @@ describe("PracticeRunner", () => {
       },
       correctAnswer: "2*sqrt(2)",
       steps: first.steps,
+      acceptedForm: null,
       award: {
         parts: [
           { key: "answered", amount: 1 },
@@ -207,6 +211,7 @@ describe("PracticeRunner", () => {
       result: { correct: true },
       correctAnswer: "2, 3",
       steps: first.steps,
+      acceptedForm: null,
       award: {
         parts: [
           { key: "answered", amount: 1 },
@@ -230,6 +235,49 @@ describe("PracticeRunner", () => {
 
     await waitFor(() => expect(nextQuestionAction).toHaveBeenCalled());
     await waitFor(() => expect(answerBox().value).toBe(""));
+  });
+
+  /**
+   * Being shown one answer invites "would mine have counted?". The reply is not
+   * the same for every skill, and getting it wrong in the generous direction
+   * would cost marks: for a factorising skill the equivalent-but-expanded form
+   * is the question, not the answer.
+   */
+  describe("what else would have been accepted", () => {
+    async function answerWrongly(acceptedForm: string | null) {
+      submitAnswerAction.mockResolvedValue({
+        result: { correct: false, reason: "wrong" },
+        correctAnswer: "x*(4x - 9)",
+        steps: first.steps,
+        acceptedForm,
+        award: { parts: [{ key: "answered", amount: 1 }], total: 1 },
+      });
+      const user = userEvent.setup();
+      renderRunner();
+      await user.type(answerBox(), "2x(x+5){Enter}");
+      await waitFor(() =>
+        expect(screen.getByText(messages.practice.incorrect)).toBeInTheDocument(),
+      );
+    }
+
+    it("says any equivalent form counts when the skill allows it", async () => {
+      await answerWrongly(null);
+      expect(
+        screen.getByText(messages.practice.accepts.any),
+      ).toBeInTheDocument();
+    });
+
+    it("says the shape is the point when the skill insists on one", async () => {
+      await answerWrongly("factored");
+      expect(
+        screen.getByText(messages.practice.accepts.factored),
+      ).toBeInTheDocument();
+      // The generous line must not appear: it would be telling them the
+      // expanded form counts, on a question about factorising.
+      expect(
+        screen.queryByText(messages.practice.accepts.any),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it("gives one hint at a time, in order", async () => {

@@ -200,7 +200,15 @@
     "testFailed": "Not this time",
     "testScore": "{score} of {total} right · {needed} needed to pass",
     "testAgain": "Try again",
-    "backToLesson": "Back to the lesson"
+    "backToLesson": "Back to the lesson",
+    "accepts": {
+      "any": "Any form with the same value counts.",
+      "factored": "Must be factorised - the expanded form does not count.",
+      "simplified-radical": "The radical must be simplified; otherwise any form counts.",
+      "rationalized-denominator": "The denominator must be free of radicals; otherwise any form counts.",
+      "scientific-notation": "Must be in scientific notation.",
+      "positive-exponents": "No negative exponents; otherwise any form counts."
+    }
   },
   "learn": {
     "title": "Learn",

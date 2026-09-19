@@ -230,12 +230,21 @@ finding three layout bugs in one screenshot is worth the setup.
 
 ### Needs the owner, not the next session
 
-- **Nothing has been pushed.** The work is committed locally on its phase
-  branches; `github.com/teterw/derive` has not received any of it. Pushing is
-  the owner's call.
+- **`master` is 31 commits behind `phase-1`.** Everything since Phase 0 lives
+  on `phase-1`, which is pushed and current. The repository's default branch —
+  what `github.com/teterw/derive` shows a visitor, and what Vercel would build
+  by default — is still the skeleton. Merging is the owner's call; so is what
+  to do about the branch name, since Phases 2, 3, 4 and the daily all shipped
+  on a branch called `phase-1`.
+- **A known-password account is live in the database.** `demo` /
+  `derive-demo-2026`, and the password is in `scripts/seed-demo.ts` in a public
+  repository. Harmless on a laptop, not harmless the moment this database
+  serves anything on the internet. `pnpm accounts` lists what is there;
+  `pnpm db:seed:demo -- --clean` removes it.
 - **Not deployed.** Vercel needs `DATABASE_URL` and `AUTH_SECRET` set as
-  environment variables, and the Neon database is already migrated and seeded,
-  so a deploy should be uneventful — but it has not been attempted.
+  environment variables, and the Neon database is already migrated, so a deploy
+  should be uneventful — but it has not been attempted, and the demo account
+  above should go first.
 
 ### Smaller things noticed but not done
 

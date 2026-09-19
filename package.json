@@ -20,7 +20,8 @@
     "db:seed:admin": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed-admin.ts",
     "db:seed:demo": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed-demo.ts",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "vars": "tsx scripts/variable-survey.mjs"
+    "vars": "tsx scripts/variable-survey.mjs",
+    "accounts": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/accounts.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

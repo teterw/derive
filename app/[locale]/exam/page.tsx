@@ -48,7 +48,6 @@ export default async function ExamSetupPage({
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("setupTitle")}
         </h1>
-        <p className="text-sm text-muted">{t("setupSubtitle")}</p>
       </div>
 
       <form action={startExamFormAction} className="mt-6 space-y-6">

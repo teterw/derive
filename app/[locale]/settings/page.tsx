@@ -45,7 +45,6 @@ export default async function SettingsPage({
     >
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-muted">{t("subtitle")}</p>
       </div>
 
       <Card className="mt-6 max-w-xl">

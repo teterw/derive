@@ -112,10 +112,7 @@ export default async function AdminPage({
         afternoon of your own data.
       */}
       <Card className="mt-6 space-y-4 border-dashed">
-        <div className="space-y-1">
-          <CardTitle className="text-base">{t("devTools")}</CardTitle>
-          <CardDescription>{t("devToolsNote")}</CardDescription>
-        </div>
+        <CardTitle className="text-base">{t("devTools")}</CardTitle>
 
         <div className="flex flex-wrap gap-2">
           <form action={resetMyDailyAction}>

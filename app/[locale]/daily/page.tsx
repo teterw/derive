@@ -189,10 +189,12 @@ export default async function DailyPage({
     return (
       <AppShell locale={active} user={user}>
         {header}
-        <Card className="mb-6 space-y-1">
-          <CardTitle className="text-base">{t("doneTitle")}</CardTitle>
-          <CardDescription>{t("doneBody")}</CardDescription>
-        </Card>
+        {/*
+          The results carry their own heading, so the card that used to sit
+          above them was a second one saying the same thing. What is left is the
+          only part that was news: when the next set arrives.
+        */}
+        <p className="mb-6 text-sm text-muted">{t("doneBody")}</p>
         <ExamResults
           locale={active}
           run={{

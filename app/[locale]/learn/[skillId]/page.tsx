@@ -189,7 +189,6 @@ export default async function LessonPage({
                 </li>
               ))}
             </ol>
-            <p className="text-xs text-muted">{t("tryTheseNote")}</p>
           </Card>
           {/*
             Two doors, and they do different things.

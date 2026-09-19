@@ -34,7 +34,6 @@ export default async function PracticeSetupPage({
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("setupTitle")}
         </h1>
-        <p className="text-sm text-muted">{t("setupSubtitle")}</p>
       </div>
 
       <form

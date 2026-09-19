@@ -113,6 +113,9 @@ async function main() {
     `/th/rules/${allRules[0]!.id}`,
     // A rule that carries a Thai mnemonic, so `EXPECTED` below can check it.
     "/th/rules/quad.perfect-square-trinomial",
+    "/th/people",
+    "/th/settings",
+    `/th/u/${signedInAs.username}`,
   ];
 
   const results: Result[] = [];

@@ -34,7 +34,10 @@
     "formulas": "Formulas",
     "admin": "Admin",
     "logout": "Log out",
-    "daily": "Daily"
+    "daily": "Daily",
+    "people": "People",
+    "profile": "Profile",
+    "settings": "Settings"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -336,5 +339,44 @@
     "cardTitle": "Daily challenge",
     "cardBody": "Today's five questions, not done yet",
     "cardDone": "Done for today"
+  },
+  "profile": {
+    "joined": "Joined {date}",
+    "currentStreak": "Current streak {count} days",
+    "level": "Level {level}",
+    "totalXp": "Total XP",
+    "accuracy": "Accuracy",
+    "rank": "Rank",
+    "questionsAnswered": "Questions",
+    "activity": "Activity",
+    "daysPractised": "{count} days practised",
+    "editProfile": "Edit profile",
+    "seeEveryone": "See everyone"
+  },
+  "people": {
+    "title": "People",
+    "subtitle": "Everyone who was invited, ranked by XP earned.",
+    "empty": "Nobody here yet.",
+    "levelAndQuestions": "Level {level} · {count} questions",
+    "hiddenNote": "People who opted out of the board do not appear here."
+  },
+  "settings": {
+    "title": "Profile settings",
+    "subtitle": "Your picture, your name, and what other people see.",
+    "nextAvatar": "Next picture",
+    "avatarNote": "{count} to choose from, generated from your username.",
+    "displayName": "Display name",
+    "bio": "About you",
+    "bioPlaceholder": "e.g. Grade 9, preparing for entrance exams",
+    "hideMe": "Keep me off the leaderboard",
+    "hideMeNote": "Your profile stays visible to other invited people; you just are not ranked.",
+    "save": "Save",
+    "saved": "Saved",
+    "error": {
+      "notSignedIn": "Please sign in again.",
+      "bioTooLong": "That is too long.",
+      "displayNameRequired": "A display name is required.",
+      "displayNameTooLong": "That name is too long."
+    }
   }
 }

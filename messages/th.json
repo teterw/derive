@@ -34,7 +34,10 @@
     "formulas": "สูตร",
     "admin": "ผู้ดูแล",
     "logout": "ออกจากระบบ",
-    "daily": "โจทย์ประจำวัน"
+    "daily": "โจทย์ประจำวัน",
+    "people": "ผู้คน",
+    "profile": "โปรไฟล์",
+    "settings": "ตั้งค่า"
   },
   "auth": {
     "loginTitle": "เข้าสู่ระบบ",
@@ -336,5 +339,44 @@
     "cardTitle": "โจทย์ประจำวัน",
     "cardBody": "ห้าข้อของวันนี้ ยังไม่ได้ทำ",
     "cardDone": "วันนี้ทำครบแล้ว"
+  },
+  "profile": {
+    "joined": "เข้าร่วมเมื่อ {date}",
+    "currentStreak": "ต่อเนื่อง {count} วัน",
+    "level": "เลเวล {level}",
+    "totalXp": "XP รวม",
+    "accuracy": "ความแม่นยำ",
+    "rank": "อันดับ",
+    "questionsAnswered": "ข้อที่ทำแล้ว",
+    "activity": "การฝึกย้อนหลัง",
+    "daysPractised": "ฝึกมาแล้ว {count} วัน",
+    "editProfile": "แก้ไขโปรไฟล์",
+    "seeEveryone": "ดูผู้คนทั้งหมด"
+  },
+  "people": {
+    "title": "ผู้คน",
+    "subtitle": "ทุกคนที่ได้รับเชิญ เรียงตาม XP ที่สะสมได้",
+    "empty": "ยังไม่มีใครเลย",
+    "levelAndQuestions": "เลเวล {level} · {count} ข้อ",
+    "hiddenNote": "ผู้ที่เลือกไม่แสดงในกระดานจะไม่ปรากฏที่นี่"
+  },
+  "settings": {
+    "title": "ตั้งค่าโปรไฟล์",
+    "subtitle": "รูป ชื่อ และสิ่งที่คนอื่นเห็น",
+    "nextAvatar": "เปลี่ยนรูป",
+    "avatarNote": "มีให้เลือก {count} แบบ สร้างจากชื่อผู้ใช้ของคุณ",
+    "displayName": "ชื่อที่แสดง",
+    "bio": "แนะนำตัวสั้น ๆ",
+    "bioPlaceholder": "เช่น ม.3 กำลังเตรียมสอบเข้า",
+    "hideMe": "ไม่ต้องแสดงฉันในกระดานอันดับ",
+    "hideMeNote": "โปรไฟล์ของคุณยังเปิดให้คนที่ได้รับเชิญดูได้ แค่ไม่ถูกจัดอันดับ",
+    "save": "บันทึก",
+    "saved": "บันทึกแล้ว",
+    "error": {
+      "notSignedIn": "กรุณาเข้าสู่ระบบอีกครั้ง",
+      "bioTooLong": "ข้อความยาวเกินไป",
+      "displayNameRequired": "ต้องมีชื่อที่แสดง",
+      "displayNameTooLong": "ชื่อยาวเกินไป"
+    }
   }
 }

@@ -9,23 +9,37 @@ import {
   LogOut,
   RotateCw,
   Sigma,
+  Users,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import type { SessionUser } from "@/lib/auth/session";
 import { logoutAction } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Avatar, avatarSeed } from "@/components/profile/avatar";
 import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
+/**
+ * `onPhone` marks the five *modes* - the things you come here to do - which
+ * get a thumb-reachable slot in the bottom bar.
+ *
+ * It does not mean "only these exist on a phone". It used to: the strip that
+ * carried everything else was `hidden sm:flex`, so below 640px สอบ, เรียน and
+ * สูตร had no route to them at all. Three destinations, unreachable on the
+ * device most learners actually use. The strip below now carries whatever the
+ * bottom bar does not.
+ */
 const NAV = [
   { href: "/daily", key: "daily", icon: CalendarDays, onPhone: true },
   { href: "/learn", key: "learn", icon: BookOpen, onPhone: false },
   { href: "/practice", key: "practice", icon: Dumbbell, onPhone: true },
-  { href: "/exam", key: "exam", icon: FileText, onPhone: false },
+  { href: "/exam", key: "exam", icon: FileText, onPhone: true },
   { href: "/review", key: "review", icon: RotateCw, onPhone: true },
   { href: "/stats", key: "stats", icon: BarChart3, onPhone: true },
   { href: "/rules", key: "formulas", icon: Sigma, onPhone: false },
+  { href: "/people", key: "people", icon: Users, onPhone: false },
 ] as const;
 
 /**
@@ -63,10 +77,10 @@ export async function AppShell({
             <Image
               src="/brand/mark.png"
               alt=""
-              width={28}
-              height={28}
+              width={40}
+              height={40}
               priority
-              className="h-7 w-7 shrink-0"
+              className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
             />
             {/*
               The tagline tucks under the wordmark and aligns to its right
@@ -76,10 +90,14 @@ export async function AppShell({
               it did when it sat alongside.
             */}
             <span className="flex flex-col justify-center">
-              <span className="text-base font-semibold leading-tight tracking-tight">
+              {/*
+                `whitespace-nowrap`: at 390px, with the avatar now in the
+                header too, "Derive" was breaking across two lines mid-word.
+              */}
+              <span className="whitespace-nowrap text-base font-semibold leading-tight tracking-tight">
                 {tApp("name")}
               </span>
-              <span className="self-end text-[10px] leading-tight text-muted">
+              <span className="self-end whitespace-nowrap text-[10px] leading-tight text-muted">
                 {tApp("tagline")}
               </span>
             </span>
@@ -106,16 +124,25 @@ export async function AppShell({
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            {/*
+              Your own face is the way in to your profile - the convention
+              everywhere, and it saves a word of chrome in a header that is
+              already tight on a phone.
+            */}
+            <Link
+              href={`/u/${user.username}`}
+              title={t("profile")}
+              aria-label={t("profile")}
+              className="shrink-0 rounded-full ring-offset-2 ring-offset-bg hover:ring-2 hover:ring-accent"
+            >
+              <Avatar
+                seed={avatarSeed(user.username, user.avatarSlot)}
+                size={28}
+                className="h-7 w-7"
+              />
+            </Link>
             <LocaleSwitch />
             <ThemeToggle label={tCommon("theme")} />
-            {user.role === "admin" ? (
-              <Link
-                href="/admin"
-                className="rounded px-2 py-1 text-sm text-muted hover:text-fg lg:hidden"
-              >
-                {t("admin")}
-              </Link>
-            ) : null}
             <form action={logoutAction}>
               <input type="hidden" name="locale" value={locale} />
               <Button
@@ -131,17 +158,38 @@ export async function AppShell({
           </div>
         </div>
 
-        {/* Between phone and laptop, a scrolling strip beats a hidden menu. */}
-        <nav className="mx-auto hidden w-full max-w-5xl gap-1 overflow-x-auto px-4 pb-2 text-sm sm:flex lg:hidden">
+        {/*
+          A scrolling strip beats a hidden menu at any width below the laptop
+          layout. On a phone it carries only what the bottom bar does not, so
+          the two never repeat each other; from `sm` up, where there is no
+          bottom bar, it carries everything.
+        */}
+        <nav className="mx-auto flex w-full max-w-5xl gap-1 overflow-x-auto px-4 pb-2 text-sm lg:hidden">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="shrink-0 rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg"
+              className={cn(
+                "shrink-0 rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg",
+                item.onPhone && "hidden sm:block",
+              )}
             >
               {t(item.key)}
             </Link>
           ))}
+          {/*
+            Admin rides in the strip rather than the header below `lg`. In the
+            header it was the item that pushed a 390px phone over the edge, and
+            it is the least-used destination of the lot.
+          */}
+          {user.role === "admin" ? (
+            <Link
+              href="/admin"
+              className="shrink-0 rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg"
+            >
+              {t("admin")}
+            </Link>
+          ) : null}
         </nav>
       </header>
 

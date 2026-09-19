@@ -55,6 +55,25 @@ export const users = pgTable(
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+
+    /**
+     * Which generated avatar this learner picked. The picture is drawn from
+     * the seed, so there is no file to store, serve or moderate.
+     */
+    avatarSlot: integer("avatar_slot").notNull().default(0),
+    /** One line the learner writes about themselves. Optional, and often empty. */
+    bio: text("bio"),
+    /**
+     * Opt out of appearing on the leaderboard and the people list.
+     *
+     * Everyone here was invited by someone, so profiles are visible by
+     * default - but being ranked in public is a different thing from being
+     * visible, and a learner who is struggling should be able to keep
+     * practising without it being a scoreboard.
+     */
+    hideFromLeaderboard: boolean("hide_from_leaderboard")
+      .notNull()
+      .default(false),
   },
   (t) => [index("users_role_idx").on(t.role)],
 );

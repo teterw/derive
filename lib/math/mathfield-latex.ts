@@ -42,6 +42,28 @@
 const DIGIT = /[0-9]/;
 const LETTER = /[a-zA-Z]/;
 
+/**
+ * True when the maths field still has an empty box in it.
+ *
+ * MathLive draws `\placeholder{}` as a visible empty square - press the `x²`
+ * key without a base and the value is `\placeholder{}^2`, with a box where the
+ * base should be. Submitting that is never intentional, and it used to cost the
+ * learner the question: the placeholder is stripped before marking, `^2` is
+ * left, that does not parse, and an unparseable answer is a wrong answer. It is
+ * in the database, with the attempt it was marked against.
+ *
+ * So the runner treats it the way it treats an empty box, which is the honest
+ * reading: there is a blank in the answer, so the answer is not finished.
+ */
+export function hasEmptyBox(latex: string): boolean {
+  return latex.includes("\\placeholder");
+}
+
+/** True when there is nothing in the field worth marking. */
+export function isBlankAnswer(latex: string): boolean {
+  return latex.trim() === "" || hasEmptyBox(latex);
+}
+
 /** How far the unbraced argument starting at `from` runs. */
 function argumentEnd(latex: string, from: number): number {
   let i = from;

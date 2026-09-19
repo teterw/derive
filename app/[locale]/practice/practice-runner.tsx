@@ -24,6 +24,7 @@ import {
 } from "@/components/math/answer-input";
 import { AnswerText } from "@/components/math/answer-text";
 import { useXpReporter } from "@/components/profile/xp-context";
+import { isBlankAnswer } from "@/lib/math/mathfield-latex";
 import { MathText } from "@/components/math/math-text";
 import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
@@ -115,7 +116,8 @@ export function PracticeRunner({
 
   const submit = useCallback(() => {
     if (phase !== "answering" || pending) return;
-    if (answer.trim() === "") return;
+    // An unfilled box counts as an unfinished answer, not a wrong one.
+    if (isBlankAnswer(answer)) return;
     const elapsed = Date.now() - (startedAt.current || Date.now());
 
     startTransition(async () => {
@@ -414,8 +416,13 @@ export function PracticeRunner({
         )}
 
         <div className="flex flex-wrap items-center gap-2">
+          {/*
+            The submit button is disabled on the same condition `submit`
+            refuses on. They used to disagree: an answer with an empty box left
+            in it looked submittable, went through, and was marked wrong.
+          */}
           {phase === "answering" ? (
-            <Button onClick={submit} disabled={pending || answer.trim() === ""}>
+            <Button onClick={submit} disabled={pending || isBlankAnswer(answer)}>
               {t("submit")}
             </Button>
           ) : (

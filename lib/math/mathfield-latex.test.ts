@@ -1,5 +1,43 @@
 import { describe, expect, it } from "vitest";
-import { normalizeMathfieldLatex } from "./mathfield-latex";
+import {
+  hasEmptyBox,
+  isBlankAnswer,
+  normalizeMathfieldLatex,
+} from "./mathfield-latex";
+
+/**
+ * MathLive draws `\placeholder{}` as a visible empty square. Pressing the `x²`
+ * key without a base leaves `\placeholder{}^2` - a box where the base should
+ * be - and submitting that used to cost the learner the question: the
+ * placeholder is stripped before marking, `^2` is left, that does not parse,
+ * and an unparseable answer is a wrong answer. A real attempt in the database
+ * was marked that way.
+ */
+describe("isBlankAnswer", () => {
+  it("treats an empty field as blank", () => {
+    expect(isBlankAnswer("")).toBe(true);
+    expect(isBlankAnswer("   ")).toBe(true);
+  });
+
+  it("treats a field with an unfilled box as blank", () => {
+    expect(isBlankAnswer("\\placeholder{}")).toBe(true);
+    expect(isBlankAnswer("\\placeholder{}^2")).toBe(true);
+    expect(isBlankAnswer("\\sqrt{\\placeholder{}}")).toBe(true);
+    expect(isBlankAnswer("x+\\placeholder{}")).toBe(true);
+  });
+
+  it("does not treat a real answer as blank", () => {
+    for (const answer of ["5\\sqrt5", "x^{12}", "0", "-1", "\\frac12", "2, 3"]) {
+      expect(isBlankAnswer(answer), answer).toBe(false);
+    }
+  });
+
+  it("does not mistake a filled box for an empty one", () => {
+    // Once the base is typed the placeholder is gone; nothing else looks like it.
+    expect(hasEmptyBox("x^2")).toBe(false);
+    expect(hasEmptyBox("\\sqrt{5}")).toBe(false);
+  });
+});
 
 /**
  * The cases in the first block are transcripts: each `from` is what MathLive

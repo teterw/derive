@@ -28,11 +28,43 @@ const BINARY_REPLACEMENTS: [RegExp, string][] = [
 const STRIP = /\\(?:mathrm|text|operatorname)\{([^{}]*)\}/g;
 
 /**
- * Reads the balanced `{...}` group starting at `index` (which must be the `{`).
- * Returns the contents and the index just past the closing brace.
+ * Reads a command's argument starting at `index`: a balanced `{...}` group, or
+ * a single token where TeX allows one.
+ *
+ * `\sqrt5` is not a typo, it is TeX - a command takes the next single token
+ * when there are no braces, so `\sqrt5` is `\sqrt{5}` and `\frac12` is one
+ * half. This used to insist on the brace, and the cost was not theoretical:
+ * MathLive writes the unbraced form whenever the argument is one character, so
+ * every answer with a single-digit radical or fraction built in the maths field
+ * came back `unparseable` and was marked wrong. Answering 9√5 - 4√5 with 5√5 -
+ * correctly - was scored as a mistake.
+ *
+ * Reading it here rather than repairing MathLive's output is the right place
+ * for it: this is a LaTeX parser, `\sqrt5` is LaTeX, and a learner who types it
+ * by hand deserves the same answer as one who presses the key.
  */
-function readGroup(source: string, index: number): [string, number] {
+function readGroup(source: string, start: number): [string, number] {
+  // TeX skips whitespace between a command name and its argument, so `\sqrt x`
+  // and `\sqrt{x}` are the same thing and `\sqrt 5` is not an error.
+  let index = start;
+  while (index < source.length && /\s/.test(source[index]!)) index += 1;
+
   if (source[index] !== "{") {
+    // A command: `\sqrt\pi`, `\frac\alpha2`. The whole command is one token.
+    if (source[index] === "\\") {
+      let end = index + 1;
+      while (end < source.length && /[a-zA-Z]/.test(source[end]!)) end += 1;
+      // A single-character control symbol such as `\{` still consumes one.
+      if (end === index + 1) end += 1;
+      return [source.slice(index, end), end];
+    }
+
+    // Any other single character, which is what the digit cases hit.
+    const char = source[index];
+    if (char !== undefined && char !== "}" && !/\s/.test(char)) {
+      return [char, index + 1];
+    }
+
     throw new KatexConversionError(
       `expected a group at ${index} in ${JSON.stringify(source)}`,
     );

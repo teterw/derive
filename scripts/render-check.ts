@@ -7,7 +7,9 @@
  * KaTeX fragment that never made it into HTML, and a page that quietly
  * redirected to login.
  *
- * Needs a dev server (`pnpm dev`) and the demo account (`pnpm db:seed:demo`).
+ * Needs a server already listening on `RENDER_CHECK_BASE` (it does not start
+ * one) and at least one account in the database. It prefers `demo`, which has
+ * history to render, but any account will do.
  */
 
 import { eq } from "drizzle-orm";
@@ -51,14 +53,34 @@ const EXPECTED: { path: string; needle: string; what: string }[] = [
 ];
 
 async function main() {
-  const [user] = await db
-    .select({ id: users.id, displayName: users.displayName })
-    .from(users)
-    .where(eq(users.username, USERNAME))
-    .limit(1);
-  if (!user) {
+  /*
+   * Prefer the demo account, but do not require it.
+   *
+   * Removing the demo account is the right thing to do before this database
+   * serves anything public - and it used to break this script, so following
+   * the security advice cost you your ability to check the pages render. Any
+   * account will do: the check is that pages render for a signed-in user, not
+   * that they render for one particular user.
+   */
+  const [user] =
+    (await db
+      .select({ id: users.id, username: users.username })
+      .from(users)
+      .where(eq(users.username, USERNAME))
+      .limit(1)) ??
+    [];
+
+  const [fallback] = user
+    ? []
+    : await db
+        .select({ id: users.id, username: users.username })
+        .from(users)
+        .limit(1);
+
+  const signedInAs = user ?? fallback;
+  if (!signedInAs) {
     throw new Error(
-      `no "${USERNAME}" account - run pnpm db:seed:demo first`,
+      "no accounts at all - run pnpm db:seed:admin, or pnpm db:seed:demo",
     );
   }
 
@@ -68,7 +90,7 @@ async function main() {
     .insert(sessions)
     .values({
       tokenHash: hashSessionToken(token),
-      userId: user.id,
+      userId: signedInAs.id,
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       userAgent: "render-check",
     })
@@ -100,7 +122,9 @@ async function main() {
 
   await db.delete(sessions).where(eq(sessions.id, session!.id));
 
-  console.log(`\nrender check · ${BASE} · signed in as ${USERNAME}\n`);
+  console.log(
+    `\nrender check · ${BASE} · signed in as ${signedInAs.username}\n`,
+  );
   let failures = 0;
   for (const result of results) {
     if (!result.ok) failures++;

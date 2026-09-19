@@ -68,11 +68,18 @@ export async function AppShell({
               priority
               className="h-7 w-7 shrink-0"
             />
-            <span className="flex items-baseline gap-2">
-              <span className="text-base font-semibold tracking-tight">
+            {/*
+              The tagline tucks under the wordmark and aligns to its right
+              edge, so the two read as one lockup rather than as two separate
+              things sitting side by side. Stacked it also costs no horizontal
+              space, which is why it no longer has to hide on a phone the way
+              it did when it sat alongside.
+            */}
+            <span className="flex flex-col justify-center">
+              <span className="text-base font-semibold leading-tight tracking-tight">
                 {tApp("name")}
               </span>
-              <span className="hidden text-xs text-muted sm:inline">
+              <span className="self-end text-[10px] leading-tight text-muted">
                 {tApp("tagline")}
               </span>
             </span>

@@ -12,6 +12,7 @@ import {
   configFromSearchParams,
   nextQuestionRef,
   parseQuestionId,
+  planQuestions,
 } from "@/lib/practice/session";
 import { AppShell } from "@/components/layout/app-shell";
 import { ToolDock } from "@/components/tools/tool-dock";
@@ -42,12 +43,29 @@ export default async function PracticeRunPage({
   // `?q=` pins the question, so a language switch does not deal a new one.
   const pinned = typeof query.q === "string" ? parseQuestionId(query.q) : null;
 
+  const render = (ref: { generatorId: string; seed: number; difficulty: 1 | 2 | 3 | 4 }) =>
+    toPublicQuestion(generateQuestion(ref.generatorId, ref.seed, ref.difficulty));
+
   let first;
+  /*
+   * A run of a chosen length is dealt here, in full, rather than a question at
+   * a time. The plan covers every skill that was ticked before repeating any of
+   * them, which random draws do not, and it is fixed by the seed in the URL, so
+   * reloading or switching language continues the same run instead of dealing a
+   * new one. The runner already knows how to walk a queue - that is how review
+   * works - including where it ends.
+   *
+   * No answers go with it: `toPublicQuestion` strips them, and marking is still
+   * done by regenerating the question on the server.
+   */
+  let queue;
   try {
-    const ref = pinned ?? nextQuestionRef(config);
-    first = toPublicQuestion(
-      generateQuestion(ref.generatorId, ref.seed, ref.difficulty),
-    );
+    if (config.length !== null) {
+      queue = planQuestions(config, config.length).map(render);
+      first = queue[0]!;
+    } else {
+      first = render(pinned ?? nextQuestionRef(config));
+    }
   } catch {
     return (
       <AppShell locale={locale as Locale} user={user}>
@@ -67,6 +85,7 @@ export default async function PracticeRunPage({
       <PracticeRunner
         config={config}
         first={first}
+        queue={queue}
         ruleNames={ruleNames}
         skillNames={skillNames}
         difficultyLabels={DIFFICULTY_LABELS}

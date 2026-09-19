@@ -55,7 +55,14 @@ function renderRunner() {
   render(
     <NextIntlClientProvider locale="th" messages={messages}>
       <PracticeRunner
-        config={{ skillIds: [first.skillId], difficulties: [1] }}
+        config={{
+          skillIds: [first.skillId],
+          difficulties: [1],
+          // Endless: these tests are about the runner's own behaviour, and a
+          // queue would take the "ask the server for another" path away.
+          length: null,
+          seed: 1,
+        }}
         first={toPublicQuestion(first)}
         ruleNames={ruleNames}
         skillNames={skillNames}

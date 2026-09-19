@@ -174,7 +174,15 @@
     "selectAll": "All",
     "selectNone": "None",
     "hintWord": "Hint",
-    "shortcutsWord": "Keys"
+    "shortcutsWord": "Keys",
+    "runLength": "How long",
+    "runLengthNote": "Every lesson you picked is asked once before any of them comes round again.",
+    "lengthRound": "One of each",
+    "lengthCount": "{count} questions",
+    "lengthEndless": "No limit",
+    "runDoneBody": "That is the run. Everything you answered is already in your stats.",
+    "runAgain": "Practise again",
+    "changeSelection": "Change what you practise"
   },
   "learn": {
     "title": "Learn",

@@ -9,6 +9,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/field";
+import { ROUND, RUN_LENGTHS } from "@/lib/practice/session";
 import { Tex } from "@/components/math/katex";
 import { SkillGroupToggle } from "./skill-group-toggle";
 
@@ -122,6 +123,52 @@ export default async function PracticeSetupPage({
               </label>
             ))}
           </div>
+        </Card>
+
+        {/*
+          How long the run is. It used to be endless, which sounds generous and
+          is not: nothing ever concludes, so there is no score to have earned
+          and no reason to stop at any particular point rather than drifting
+          off. A run with an end has both.
+
+          "One of each" is the default because it is the length that matches
+          what was ticked above - every lesson asked once, nothing missed - and
+          it is the only option whose number depends on the selection, so the
+          server works it out rather than the form.
+        */}
+        <Card className="space-y-4">
+          <CardTitle>{t("runLength")}</CardTitle>
+          <div className="flex flex-wrap gap-2">
+            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10">
+              <input
+                type="radio"
+                name="len"
+                value={ROUND}
+                defaultChecked
+                className="accent-accent"
+              />
+              {t("lengthRound")}
+            </label>
+            {RUN_LENGTHS.map((length) => (
+              <label
+                key={length}
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10"
+              >
+                <input
+                  type="radio"
+                  name="len"
+                  value={length}
+                  className="accent-accent"
+                />
+                {t("lengthCount", { count: length })}
+              </label>
+            ))}
+            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10">
+              <input type="radio" name="len" value="" className="accent-accent" />
+              {t("lengthEndless")}
+            </label>
+          </div>
+          <CardDescription>{t("runLengthNote")}</CardDescription>
         </Card>
 
         {/*

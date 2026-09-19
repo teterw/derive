@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Check, Lightbulb, RotateCw, X } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
+import { Link } from "@/i18n/navigation";
 import type { L, PublicQuestion, Step } from "@/content/types";
 import {
   explainAction,
@@ -223,7 +224,41 @@ export function PracticeRunner({
           {t("queueDone")}
         </h2>
         <Scoreboard tally={tally} labels={t} />
-        <p className="text-sm text-muted">{t("queueDoneBody")}</p>
+        <p className="text-sm text-muted">
+          {mode === "review" ? t("queueDoneBody") : t("runDoneBody")}
+        </p>
+
+        {/*
+         * A finished run is the one moment a learner is certain to be at a
+         * loose end, and in practice mode they reach it every time rather than
+         * only after clearing a review queue. Both of the things they are
+         * likely to want next are here, so neither is a trip through the nav.
+         */}
+        {mode === "practice" ? (
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {/*
+             * Not a reload. The seed lives in the URL - that is what makes a
+             * run survive a refresh - so reloading would deal the identical
+             * questions back. Dropping it asks the server for a new plan.
+             */}
+            <Button
+              onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("run");
+                url.searchParams.delete("q");
+                window.location.href = url.toString();
+              }}
+            >
+              {t("runAgain")}
+            </Button>
+            <Link
+              href="/practice"
+              className="text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
+            >
+              {t("changeSelection")}
+            </Link>
+          </div>
+        ) : null}
       </div>
     );
   }

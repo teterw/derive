@@ -174,7 +174,15 @@
     "selectAll": "เลือกทั้งหมด",
     "selectNone": "ล้างทั้งหมด",
     "hintWord": "คำใบ้",
-    "shortcutsWord": "ปุ่มลัด"
+    "shortcutsWord": "ปุ่มลัด",
+    "runLength": "ความยาวของรอบ",
+    "runLengthNote": "แบบ “ครบทุกบท” จะสุ่มให้ครบทุกบทที่เลือกก่อน แล้วค่อยวนซ้ำ",
+    "lengthRound": "ครบทุกบท",
+    "lengthCount": "{count} ข้อ",
+    "lengthEndless": "ไม่จำกัด",
+    "runDoneBody": "จบรอบแล้ว ผลถูกบันทึกไว้ในสถิติของคุณเรียบร้อย",
+    "runAgain": "ฝึกอีกรอบ",
+    "changeSelection": "เปลี่ยนบทที่ฝึก"
   },
   "learn": {
     "title": "เรียน",

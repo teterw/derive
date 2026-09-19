@@ -124,8 +124,13 @@ export function AnswerInput({
   const preview = useMemo(() => answerToTex(value), [value]);
   const typing = value.trim() !== "";
 
+  /*
+   * `min-h`, not `h`. A fraction or a nested radical is taller than a line of
+   * text, and a fixed-height box crops it or crowds it against the top edge.
+   * The box grows with what is in it, which is what a maths field has to do.
+   */
   const frame = cn(
-    "flex h-14 w-full items-center rounded-lg border bg-surface px-4",
+    "flex min-h-14 w-full items-center rounded-lg border bg-surface px-4 py-2",
     state === "correct" && "border-correct",
     state === "wrong" && "border-wrong",
     state === "idle" && "border-border",
@@ -171,7 +176,7 @@ export function AnswerInput({
             placeholder={t("answerPlaceholder")}
             aria-label={t("yourAnswer")}
             className={cn(
-              "h-full w-full bg-transparent font-mono text-xl text-fg outline-none",
+              "min-h-10 w-full bg-transparent font-mono text-xl text-fg outline-none",
               "placeholder:font-sans placeholder:text-base placeholder:text-muted",
             )}
           />

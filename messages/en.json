@@ -169,7 +169,9 @@
     "readsAs": "Reads as",
     "cannotReadYet": "Not readable yet - check the brackets.",
     "selectAll": "All",
-    "selectNone": "None"
+    "selectNone": "None",
+    "hintWord": "Hint",
+    "shortcutsWord": "Keys"
   },
   "learn": {
     "title": "Learn",
@@ -320,7 +322,8 @@
       "calculator": "Open the calculator",
       "shortcuts": "Show these shortcuts",
       "close": "Close the panel"
-    }
+    },
+    "tools": "Tools"
   },
   "daily": {
     "title": "Daily challenge",

@@ -221,7 +221,7 @@ export function ExamRunner({
   const showConfirm = confirmingFinish && unanswered.length > 0;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
+    <div className="mx-auto w-full max-w-3xl space-y-6 pb-16 sm:pb-0">
       <header className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="font-mono text-sm tabular-nums text-muted">

@@ -75,11 +75,25 @@ export function Heatmap({
           </ol>
 
           <div>
-            <div className="flex gap-[3px] text-[10px] text-muted" aria-hidden>
+            {/*
+              Each slot is one column wide - 11px - but a Thai month is "ก.ค.",
+              which is three times that and was wrapping onto a second line,
+              pushing the grid down and looking like a rendering fault. Only
+              one column in four carries a label, so letting it run past its
+              own slot costs nothing and reads correctly. `h-4` keeps the row
+              a fixed height whether or not a label falls in view.
+            */}
+            <div
+              className="flex h-4 gap-[3px] text-[10px] leading-4 text-muted"
+              aria-hidden
+            >
               {columns.map((column, index) => {
                 const label = monthLabel(column, columns[index - 1], monthNames);
                 return (
-                  <span key={index} className="w-[11px] shrink-0">
+                  <span
+                    key={index}
+                    className="w-[11px] shrink-0 whitespace-nowrap"
+                  >
                     {label}
                   </span>
                 );

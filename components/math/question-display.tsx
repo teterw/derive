@@ -35,16 +35,27 @@ export function QuestionDisplay({
     );
   }
 
+  /*
+   * The question is the largest thing on the page, and the box around it is
+   * quiet. It was the other way round: a small formula floating in a tall
+   * bordered panel, so the panel read as the main object and the maths as an
+   * afterthought. The padding now scales with the viewport instead of being a
+   * fixed `py-8` that looked cavernous on a phone.
+   */
   return (
     <div className="space-y-3">
       <p className="text-center text-sm text-muted">
         <MathText text={prompt} />
       </p>
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface px-4 py-8">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface px-4 py-6 sm:py-8">
         <Tex
           tex={stem}
           display
-          className={size === "large" ? "text-2xl" : "text-xl"}
+          className={
+            size === "large"
+              ? "text-2xl sm:text-3xl md:text-4xl"
+              : "text-xl sm:text-2xl"
+          }
         />
       </div>
     </div>

@@ -103,9 +103,6 @@ export function MathField({
         field.mathVirtualKeyboardPolicy = "manual";
         // Typing `sqrt` or `/` builds the notation, rather than staying literal.
         field.smartMode = true;
-        // No right-click menu: it offers LaTeX/MathML export a learner does
-        // not need and can get stuck open behind the tool dock.
-        field.menuItems = [];
         field.setAttribute("aria-label", ariaLabel);
         field.className = className ?? "";
 
@@ -121,6 +118,25 @@ export function MathField({
         });
 
         hostRef.current.replaceChildren(field);
+
+        /*
+         * Anything that touches the mathfield's internals has to wait until it
+         * is in the document - MathLive throws "Mathfield not mounted" for a
+         * detached element. `menuItems` is one of those, and setting it before
+         * attaching took the whole field down the failure path: the field
+         * loaded fine and the app silently served the plain box instead.
+         *
+         * It is also not worth losing the field over, so it is tried
+         * separately from the mount itself.
+         */
+        try {
+          // No right-click menu: it offers LaTeX and MathML export a learner
+          // does not need, and it can sit open behind the tool dock.
+          field.menuItems = [];
+        } catch {
+          // A visible menu is a blemish, not a reason to have no input.
+        }
+
         fieldRef.current = field;
         callbacks.current.onReady(true);
       })

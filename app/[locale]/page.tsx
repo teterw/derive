@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BookOpen,
   CalendarDays,
+  Check,
   Dumbbell,
   Flame,
   RotateCw,
@@ -17,6 +18,7 @@ import { getReviewCount } from "@/lib/review/queue";
 import { getDailyStreak } from "@/lib/daily/challenge";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { Heatmap } from "@/components/stats/heatmap";
 import { MasteryBars } from "@/components/stats/mastery-bars";
 
@@ -70,55 +72,55 @@ export default async function DashboardPage({
         </p>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <Card className="flex items-center gap-4">
-          <Flame className="h-8 w-8 shrink-0 text-accent" />
-          <div>
-            <p className="text-3xl leading-none">{streak.current}</p>
-            <p className="text-xs text-muted">{t("dayStreak")}</p>
-          </div>
-        </Card>
-        <Card>
-          <p className="text-3xl leading-none">{today.attempts}</p>
-          <p className="text-xs text-muted">{t("questionsToday")}</p>
-        </Card>
-        <Card>
-          <p className="text-3xl leading-none">
-            {accuracy === null ? "—" : `${accuracy}%`}
-          </p>
-          <p className="text-xs text-muted">{t("accuracyToday")}</p>
-        </Card>
+      {/*
+        One card divided into three, not three cards.
+
+        Three separate bordered boxes for three related numbers was a lot of
+        chrome for very little information, and on a phone they stacked into
+        three full-width rows - most of a screen to say "0, 5, 60%". Reading
+        them side by side is the point: they are one status line.
+      */}
+      <div className="mt-6 grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-surface">
+        <Stat value={String(streak.current)} label={t("dayStreak")} icon={<Flame />} />
+        <Stat value={String(today.attempts)} label={t("questionsToday")} />
+        <Stat
+          value={accuracy === null ? "—" : `${accuracy}%`}
+          label={t("accuracyToday")}
+        />
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/*
+        Four ways in, each previously carrying a sentence explaining itself.
+        A learner opening the app already knows what "ฝึกโจทย์" means; the
+        sentence under it was read once and then became noise on every visit.
+
+        What is *not* noise is state: how many questions are waiting in the
+        review queue, whether today's daily is done. That varies, so that is
+        what each tile now carries - as a number or a tick, not a sentence.
+      */}
+      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <ActionCard
           href="/daily"
           icon={<CalendarDays className="h-5 w-5" />}
           title={tDaily("cardTitle")}
-          body={daily.doneToday ? tDaily("cardDone") : tDaily("cardBody")}
+          done={daily.doneToday}
           primary={!daily.doneToday}
         />
         <ActionCard
           href="/practice"
           icon={<Dumbbell className="h-5 w-5" />}
           title={t("practiceTitle")}
-          body={t("practiceBody")}
         />
         <ActionCard
           href="/review"
           icon={<RotateCw className="h-5 w-5" />}
           title={t("reviewTitle")}
-          body={
-            reviewCount > 0
-              ? t("reviewBody", { count: reviewCount })
-              : t("reviewEmpty")
-          }
+          count={reviewCount}
         />
         <ActionCard
           href="/learn"
           icon={<BookOpen className="h-5 w-5" />}
           title={t("learnTitle")}
-          body={t("learnBody")}
         />
       </div>
 
@@ -170,33 +172,68 @@ export default async function DashboardPage({
   );
 }
 
+/** One number and its name, inside the shared status card. */
+function Stat({
+  value,
+  label,
+  icon,
+}: {
+  value: string;
+  label: string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-0.5 px-2 py-4 text-center">
+      <span className="flex items-center gap-1.5">
+        {icon ? (
+          <span className="text-accent [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
+        ) : null}
+        <span className="text-2xl leading-none tabular-nums sm:text-3xl">
+          {value}
+        </span>
+      </span>
+      <span className="text-xs text-muted">{label}</span>
+    </div>
+  );
+}
+
 function ActionCard({
   href,
   icon,
   title,
-  body,
+  /** Shown as a badge when there is something waiting. */
+  count,
+  done = false,
   primary = false,
 }: {
   href: string;
   icon: React.ReactNode;
   title: string;
-  body: string;
+  count?: number;
+  done?: boolean;
   primary?: boolean;
 }) {
   return (
     <Link href={href} className="group">
       <Card
-        className={
+        className={cn(
+          "flex h-full items-center gap-3 py-4 transition-colors",
           primary
-            ? "h-full space-y-2 border-accent/40 transition-colors hover:border-accent"
-            : "h-full space-y-2 transition-colors hover:border-accent/50"
-        }
+            ? "border-accent/40 hover:border-accent"
+            : "hover:border-accent/50",
+        )}
       >
-        <span className="flex items-center gap-2 text-accent">{icon}</span>
-        <CardTitle className="text-base group-hover:text-accent">
+        <span className="shrink-0 text-accent">{icon}</span>
+        <CardTitle className="min-w-0 flex-1 text-sm leading-tight group-hover:text-accent sm:text-base">
           {title}
         </CardTitle>
-        <CardDescription>{body}</CardDescription>
+        {done ? (
+          <Check className="h-4 w-4 shrink-0 text-correct" />
+        ) : count && count > 0 ? (
+          <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-xs tabular-nums text-accent-fg">
+            {count}
+          </span>
+        ) : null}
       </Card>
     </Link>
   );

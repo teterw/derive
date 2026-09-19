@@ -229,7 +229,7 @@ export function PracticeRunner({
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-8">
+    <div className="mx-auto w-full max-w-2xl space-y-8 pb-16 sm:pb-0">
       <Scoreboard tally={tally} labels={t} />
 
       {queue ? (
@@ -308,8 +308,17 @@ export function PracticeRunner({
             {t("explain")}
           </Button>
 
-          <span className="ml-auto hidden text-xs text-muted sm:block">
-            {t("shortcutHint")}
+          {/*
+            Four shortcuts as a run-on sentence ("Enter ส่งคำตอบ · E อธิบาย · …")
+            was a line of prose nobody reads twice. As keycaps it is a picture
+            of the keyboard: the shape says "these are keys" before any of the
+            words are read, and the eye can find the one it wants.
+          */}
+          <span className="ml-auto hidden items-center gap-3 text-xs text-muted sm:flex">
+            <Shortcut keyLabel="Enter" action={t("submit")} />
+            <Shortcut keyLabel="E" action={t("explain")} />
+            <Shortcut keyLabel="H" action={t("hintWord")} />
+            <Shortcut keyLabel="?" action={t("shortcutsWord")} />
           </span>
         </div>
 
@@ -430,5 +439,17 @@ function Scoreboard({
         <dd className="font-mono text-2xl tabular-nums">{tally.streak}</dd>
       </div>
     </dl>
+  );
+}
+
+/** One keyboard shortcut, drawn as a keycap rather than written out. */
+function Shortcut({ keyLabel, action }: { keyLabel: string; action: string }) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <kbd className="rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] leading-none text-fg">
+        {keyLabel}
+      </kbd>
+      {action}
+    </span>
   );
 }

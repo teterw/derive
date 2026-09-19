@@ -20,13 +20,33 @@ import messages from "@/messages/th.json";
 const executeCommand = vi.fn(() => true);
 
 vi.mock("mathlive", () => {
+  /**
+   * The stub refuses anything the real element refuses.
+   *
+   * MathLive throws "Mathfield not mounted" for any property that reaches
+   * into its internals while the element is detached, and `menuItems` is one
+   * of them. The first version of this stub accepted the assignment happily,
+   * so the tests passed while the shipped app set `menuItems` before
+   * attaching, threw, and fell back to the plain box on every question. A
+   * stub that is more permissive than the real thing tests nothing.
+   */
   class StubMathField extends HTMLElement {
     value = "";
-    menuItems: unknown[] = [];
     mathVirtualKeyboardPolicy = "auto";
     smartMode = false;
     readonly = false;
     executeCommand = executeCommand;
+
+    #menuItems: unknown[] = [];
+
+    get menuItems() {
+      return this.#menuItems;
+    }
+
+    set menuItems(items: unknown[]) {
+      if (!this.isConnected) throw new Error("Mathfield not mounted");
+      this.#menuItems = items;
+    }
   }
   if (!customElements.get("math-field")) {
     customElements.define("math-field", StubMathField);
@@ -61,6 +81,20 @@ describe("AnswerInput with the maths field", () => {
   it("takes over once MathLive has loaded", async () => {
     await renderReady();
     expect(field()).toBeTruthy();
+  });
+
+  /**
+   * The field has to be in the document before it is configured. Getting this
+   * backwards does not look like a crash - it looks like the field never
+   * loading, because the failure lands in the same catch as a failed download.
+   */
+  it("attaches the field before configuring it", async () => {
+    await renderReady();
+    const mounted = field()!;
+    expect(mounted.isConnected).toBe(true);
+    expect((mounted as unknown as { menuItems: unknown[] }).menuItems).toEqual(
+      [],
+    );
   });
 
   it("removes the plain box, so there is only one place to type", async () => {

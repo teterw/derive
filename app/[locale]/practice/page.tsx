@@ -4,13 +4,11 @@ import { hasLocale } from "next-intl";
 import { routing, type Locale } from "@/i18n/routing";
 import { requireUser } from "@/lib/auth/current-user";
 import { skillsOfTopic, topics } from "@/content/topics";
-import { difficultiesForSkill } from "@/content/generators";
 import { DIFFICULTY_LABELS, DIFFICULTIES } from "@/content/types";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/field";
-import { MathText } from "@/components/math/math-text";
 import { Tex } from "@/components/math/katex";
 import { SkillGroupToggle } from "./skill-group-toggle";
 
@@ -39,7 +37,13 @@ export default async function PracticeSetupPage({
       <form action={`/${locale}/practice/run`} method="get" className="mt-6 space-y-6">
         {topics.map((topic) => (
           <Card key={topic.id} className="space-y-4">
-            <div className="flex items-start justify-between gap-3">
+            {/*
+              The toggles sit beside the heading on a wide screen and below it
+              on a phone. Side by side at 390px they squeezed the Thai topic
+              name into a two-line column barely wider than the words
+              themselves, which made the heading look broken.
+            */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-1">
                 <CardTitle>{topic.name[activeLocale]}</CardTitle>
                 <CardDescription>
@@ -52,43 +56,47 @@ export default async function PracticeSetupPage({
             </div>
 
             {/*
-              The formula is the headline and the name is the caption, not the
-              other way round. Choosing what to practise is a recognition task
-              - you are looking for the thing you got wrong yesterday - and a
-              formula is recognised far faster than a sentence of Thai skill
-              name plus a sentence of summary. The summary is still there for
-              anyone who does not recognise the formula, just demoted.
+              Formula first, name as the caption, nothing else.
 
-              `peer` + `peer-checked:` means the whole tile shows its state,
-              so a glance down the grid says what is selected without reading
-              the checkboxes.
+              Choosing what to drill is recognition, not reading - you are
+              looking for the thing you got wrong yesterday, and a formula is
+              recognised far faster than a Thai skill name. The tile used to
+              carry two more lines: a sentence of summary, and "มีระดับ 1, 2,
+              3, 4" which said the same thing on all fourteen tiles and so
+              said nothing at all. Fourteen four-line tiles made a page you
+              had to read, which defeats the formula being there.
+
+              The summary still exists, on the skill's lesson page, where
+              someone is actually reading.
+
+              `has-[:checked]:` puts the selected state on the whole tile, so
+              a glance down the grid says what is on without reading the
+              checkboxes.
             */}
             <div className="grid gap-2 sm:grid-cols-2">
               {skillsOfTopic(topic.id).map((skill) => (
                 <label
                   key={skill.id}
-                  className="group flex cursor-pointer items-start gap-3 rounded-lg border border-border px-3 py-3 transition-colors hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/5"
+                  className="group flex cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-3 transition-colors hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/5"
                 >
                   <Checkbox
                     name="skills"
                     value={skill.id}
                     defaultChecked
-                    className="mt-1 shrink-0"
+                    className="shrink-0"
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="block overflow-x-auto pb-1 text-lg leading-relaxed">
+                    {/*
+                      `overflow-x-auto` alone gave the taller formulas a
+                      *vertical* scrollbar too, which looked like a rendering
+                      fault. Pinning the y axis leaves only the sideways
+                      scroll a wide formula actually needs.
+                    */}
+                    <span className="block min-w-0 overflow-x-auto overflow-y-hidden text-base leading-snug sm:text-lg">
                       <Tex tex={skill.formula} />
                     </span>
-                    <span className="block text-sm font-medium">
-                      {skill.name[activeLocale]}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-muted">
-                      <MathText text={skill.summary[activeLocale]} />
-                    </span>
                     <span className="mt-1 block text-xs text-muted">
-                      {t("difficultiesAvailable", {
-                        list: difficultiesForSkill(skill.id).join(", "),
-                      })}
+                      {skill.name[activeLocale]}
                     </span>
                   </span>
                 </label>
@@ -116,9 +124,23 @@ export default async function PracticeSetupPage({
           </div>
         </Card>
 
-        <Button type="submit" size="lg">
-          {t("start")}
-        </Button>
+        {/*
+          The start button follows you down the page. Fourteen skills and four
+          difficulties is a lot to scroll past on a phone, and having to scroll
+          back to the bottom to begin is a tax on the commonest action there
+          is. `sticky bottom-0` inside the form keeps it reachable without
+          taking it out of the document flow, so it never covers the last card.
+        */}
+        {/*
+          `bottom-16` on a phone, not `bottom-0`: the shell puts a fixed tab
+          bar along the bottom edge below `sm`, and a bar stuck to 0 sits
+          underneath it - the start button was there, and invisible.
+        */}
+        <div className="sticky bottom-16 -mx-4 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:bottom-0 sm:mx-0 sm:rounded-lg sm:border">
+          <Button type="submit" size="lg" className="w-full sm:w-auto">
+            {t("start")}
+          </Button>
+        </div>
       </form>
     </AppShell>
   );

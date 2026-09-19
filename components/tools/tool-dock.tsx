@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Calculator as CalculatorIcon, Keyboard, LineChart, Sigma } from "lucide-react";
+import {
+  Calculator as CalculatorIcon,
+  Keyboard,
+  LineChart,
+  Sigma,
+  Wrench,
+  X,
+} from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import type { Rule } from "@/content/types";
 import { cn } from "@/lib/utils";
@@ -45,6 +52,8 @@ export function ToolDock({
   const locale = useLocale() as Locale;
   const t = useTranslations("tools");
   const [open, setOpen] = useState<Tool | null>(null);
+  /** Phone only: whether the four tool buttons are showing. */
+  const [expanded, setExpanded] = useState(false);
 
   const toggle = useCallback((tool: Tool) => {
     setOpen((current) => (current === tool ? null : tool));
@@ -104,17 +113,51 @@ export function ToolDock({
 
   return (
     <>
-      {/* Clear of the phone nav bar, which owns the bottom of the screen. */}
-      <div className="fixed bottom-20 right-4 z-30 flex flex-col gap-2 sm:bottom-4">
+      {/*
+        Four floating buttons is fine on a laptop, where they sit in the margin
+        beside the question. On a 390px phone there is no margin: whichever way
+        the dock is laid out, a column or a row, it lands on top of the answer
+        keypad or the submit row. Padding cannot fix that - the dock is fixed
+        to the viewport and the content happens to be there too.
+
+        So on a phone it is one button that opens the rest, which is both
+        honest about the space available and the pattern anyone who has used a
+        phone already knows. From `sm` up the whole set is always visible.
+      */}
+      <div className="fixed bottom-20 right-3 z-30 flex flex-row-reverse items-center gap-2 sm:bottom-4 sm:right-4 sm:flex-col">
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={expanded}
+          aria-label={t("tools")}
+          title={t("tools")}
+          className={cn(
+            "flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted shadow-lg",
+            "hover:text-fg sm:hidden",
+            expanded && "border-accent text-accent",
+          )}
+        >
+          {expanded ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Wrench className="h-5 w-5" />
+          )}
+        </button>
+
         {buttons.map((button) => (
           <button
             key={button.tool}
             type="button"
-            onClick={() => toggle(button.tool)}
+            onClick={() => {
+              toggle(button.tool);
+              setExpanded(false);
+            }}
             title={button.label}
             aria-label={button.label}
             className={cn(
-              "flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-sm",
+              "h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-sm",
+              // Hidden behind the wrench on a phone, always out on a laptop.
+              expanded ? "flex" : "hidden sm:flex",
               open === button.tool
                 ? "border-accent bg-accent text-accent-fg"
                 : "border-border bg-surface text-muted hover:text-fg",

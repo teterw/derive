@@ -160,6 +160,27 @@ math-field {
   background: transparent;
   color: var(--fg);
   width: 100%;
+  /*
+   * MathLive's own 2px radius showed as a small sharp corner sitting inside
+   * the wrapper's 8px one. The wrapper owns the shape of this control, so the
+   * field takes its radius from it rather than having one of its own.
+   */
+  border-radius: inherit;
+}
+
+/*
+ * No second focus ring.
+ *
+ * The global `:focus-visible` rule below draws an accent outline offset by
+ * 2px, which on the maths field landed *inside* the input box as a rounded
+ * rectangle with different corners from the box around it - two boxes where
+ * there should be one. Focus is shown on the wrapper instead, so the whole
+ * control lights up, exactly as it does for the plain text input.
+ */
+math-field:focus,
+math-field:focus-visible,
+math-field:focus-within {
+  outline: none;
 }
 
 math-field::part(virtual-keyboard-toggle),

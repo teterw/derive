@@ -131,6 +131,9 @@ export function AnswerInput({
    */
   const frame = cn(
     "flex min-h-14 w-full items-center rounded-lg border bg-surface px-4 py-2",
+    // The box is the focus indicator for whichever input is inside it, so the
+    // maths field and the plain box look and behave identically when active.
+    "focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30",
     state === "correct" && "border-correct",
     state === "wrong" && "border-wrong",
     state === "idle" && "border-border",

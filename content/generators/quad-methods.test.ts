@@ -5,23 +5,13 @@ import { deriveMath } from "../step";
 import { quadCompletingSquare } from "./quad-complete-square";
 import { quadDiscriminantCount } from "./quad-discriminant";
 import { quadFormulaCore } from "./quad-formula";
-import { verifyDeterminism, verifyGenerator, verifyVariety } from "./property";
 
-const generators = [quadCompletingSquare, quadFormulaCore, quadDiscriminantCount];
-
-describe.each(generators.map((g) => [g.id, g] as const))("%s", (_id, generator) => {
-  it("passes the §9 property gate", () => {
-    verifyGenerator(generator);
-  });
-
-  it("is reproducible from its seed", () => {
-    verifyDeterminism(generator);
-  });
-
-  it("does not keep asking the same question", () => {
-    verifyVariety(generator, 15);
-  });
-});
+/*
+ * The §9 gate, determinism and variety are no longer here. They are driven by
+ * the registry in `registry.test.ts`, so a generator cannot be registered
+ * without being checked by them. What stays in this file is the part that
+ * knows what *these particular* skills' answers should look like.
+ */
 
 describe.each([
   ["quad.completing-square", quadCompletingSquare],

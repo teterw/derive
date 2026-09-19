@@ -8,23 +8,10 @@ import {
   quadFactorCommon,
   quadFactorTrinomial,
 } from "./quad-factor";
-import { verifyDeterminism, verifyGenerator, verifyVariety } from "./property";
 
 const generators = [quadFactorCommon, quadFactorTrinomial, quadDiffSquares];
 
 describe.each(generators.map((g) => [g.id, g] as const))("%s", (_id, generator) => {
-  it("passes the §9 property gate", () => {
-    verifyGenerator(generator);
-  });
-
-  it("is reproducible from its seed", () => {
-    verifyDeterminism(generator);
-  });
-
-  it("does not keep asking the same question", () => {
-    verifyVariety(generator, 15);
-  });
-
   it("answers in factored form, and the factors multiply back to the stem", () => {
     for (const difficulty of generator.difficulties) {
       for (let seed = 1; seed <= 40; seed++) {

@@ -2,23 +2,10 @@ import { describe, expect, it } from "vitest";
 import { evaluate } from "mathjs";
 import { createRng } from "../rng";
 import { quadWordConsecutive, quadWordRectangle } from "./quad-word";
-import { verifyDeterminism, verifyGenerator, verifyVariety } from "./property";
 
 const generators = [quadWordRectangle, quadWordConsecutive];
 
 describe.each(generators.map((g) => [g.id, g] as const))("%s", (_id, generator) => {
-  it("passes the §9 property gate", () => {
-    verifyGenerator(generator);
-  });
-
-  it("is reproducible from its seed", () => {
-    verifyDeterminism(generator);
-  });
-
-  it("does not keep asking the same question", () => {
-    verifyVariety(generator, 15);
-  });
-
   it("is marked adapted and records where the shape came from", () => {
     expect(generator.provenance).toBe("adapted");
     expect(generator.sourceNote?.length ?? 0).toBeGreaterThan(20);

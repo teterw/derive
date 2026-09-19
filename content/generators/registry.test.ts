@@ -9,6 +9,11 @@ import {
   pickGenerator,
   toPublicQuestion,
 } from "./index";
+import {
+  verifyDeterminism,
+  verifyGenerator,
+  verifyVariety,
+} from "./property";
 
 describe("generator registry", () => {
   it("has no duplicate ids", () => {
@@ -106,4 +111,45 @@ describe("generator registry", () => {
     const second = generateQuestion("quad.formula-core", 999, 3);
     expect(second).toEqual(first);
   });
+});
+
+/**
+ * The §9 gate, driven by the registry itself.
+ *
+ * This used to live only in the per-topic test files, each iterating a
+ * hand-written list of imports. That meant the check `CLAUDE.md` calls "not
+ * optional" only ran on generators somebody had remembered to add to a list -
+ * and a generator registered but left off it would sail through every test in
+ * the suite with its derivations never verified once.
+ *
+ * A check that silently does not run looks exactly like a check that passes.
+ * This project has been caught by that shape twice already: a stylesheet that
+ * was never imported, and a maths field whose failure landed in the same catch
+ * as a successful fallback. Driving the gate from `generators` means adding a
+ * generator is enough to be checked by it, and forgetting is not possible.
+ *
+ * The per-topic files keep their own assertions - the ones that know what a
+ * particular skill's answers should look like. Those cannot be generic.
+ */
+describe("every registered generator", () => {
+  it.each(generators.map((generator) => [generator.id, generator] as const))(
+    "%s passes the §9 property gate",
+    (_id, generator) => {
+      verifyGenerator(generator);
+    },
+  );
+
+  it.each(generators.map((generator) => [generator.id, generator] as const))(
+    "%s is reproducible from its seed",
+    (_id, generator) => {
+      verifyDeterminism(generator);
+    },
+  );
+
+  it.each(generators.map((generator) => [generator.id, generator] as const))(
+    "%s does not keep asking the same question",
+    (_id, generator) => {
+      verifyVariety(generator, 15);
+    },
+  );
 });

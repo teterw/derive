@@ -151,7 +151,9 @@ The answer box shows, live, what your typing **means**:
 
 Being shown `3sqrt(2)` back tells you nothing you did not already know — you are left checking your own typing against a format you half-remember, when the thing you are actually unsure about is the maths. Every place an answer appears afterwards (feedback, exam results) renders it the same way.
 
-The preview must never lie about how the answer will be marked, so `lib/math/to-tex.ts` is tested by parsing a corpus with *both* it and mathjs and asserting they evaluate the same at sample points. It is allowed to understand less than mathjs; it is not allowed to understand anything differently. (It exists at all because mathjs is ~500KB, and a learner on a school connection should not download a computer algebra system to be told that `m^5` is m to the fifth.)
+The preview must never lie about how the answer will be marked, so `lib/math/to-tex.ts` is tested by parsing a corpus with *both* it and mathjs and asserting they evaluate the same at sample points. It is allowed to understand less than mathjs; it is not allowed to understand anything differently.
+
+It exists at all because mathjs is ~500KB and would be re-entered on every keystroke; a learner on a school connection should not download a computer algebra system to be told that `m^5` is m to the fifth. KaTeX itself was already a client dependency (the results screen is a client component that renders formulas), and sits in its own 76KB-gzipped chunk loaded only by the routes that answer questions.
 
 ### Choosing what to practise is recognition, not reading
 

@@ -28,6 +28,9 @@ import {
   masteryLevel,
   xpFor,
 } from "../lib/stats/constants";
+import { refuseInProduction } from "./guard-production";
+
+refuseInProduction("pnpm db:seed:demo");
 
 const USERNAME = "demo";
 const PASSWORD = process.env.DEMO_PASSWORD ?? "derive-demo-2026";

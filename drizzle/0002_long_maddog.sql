@@ -1,0 +1,2 @@
+ALTER TABLE "runs" ADD COLUMN "last_attempt_at" timestamp with time zone;--> statement-breakpoint
+CREATE INDEX "runs_user_mode_last_attempt_idx" ON "runs" USING btree ("user_id","mode","last_attempt_at");

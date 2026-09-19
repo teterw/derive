@@ -127,6 +127,15 @@ both of which have bitten:
   `components/math/math-text.test.ts` also looks for command names that have
   lost their backslash.
 
-## Commits
+## Commits and branches
 
-Conventional commits, one phase per branch (`phase-0`, `phase-1`, …).
+Conventional commits. `master` is the trunk and is what deploys; work happens
+on short-lived branches off it and merges back.
+
+It used to say "one phase per branch", which stopped being true around Phase 2
+— Phases 2, 3, 4, the daily challenge and the whole profile system all shipped
+on a branch called `phase-1`. A convention nobody follows is worse than none,
+because the next person believes it.
+
+`docs/NEXT.md` is the current plan. `PROGRESS.md` is the running log of what is
+built and what to pick up.

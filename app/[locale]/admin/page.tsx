@@ -71,23 +71,30 @@ export default async function AdminPage({
 
       {/*
         A development tool, kept visibly separate from the real admin controls
-        above and below it so nobody reaches for it by habit. It only ever
-        resets the signed-in admin's own daily.
+        so nobody reaches for it by habit - and not rendered at all in
+        production, where a card labelled "for development only" is a promise
+        the deployment is not keeping.
+
+        The action behind it stays authorised either way; hiding a button is
+        not a security control. It is admin-only and only ever touches the
+        caller's own run.
       */}
-      <Card className="mt-6 space-y-3 border-dashed">
-        <div className="space-y-1">
-          <CardTitle className="text-base">{t("devTools")}</CardTitle>
-          <CardDescription>{t("devToolsNote")}</CardDescription>
-        </div>
-        <form action={resetMyDailyAction}>
-          <input type="hidden" name="locale" value={locale} />
-          <Button type="submit" variant="outline" size="sm">
-            <RotateCcw className="h-4 w-4" />
-            {t("resetMyDaily")}
-          </Button>
-        </form>
-        <p className="text-xs text-muted">{t("resetMyDailyHelp")}</p>
-      </Card>
+      {process.env.NODE_ENV === "production" ? null : (
+        <Card className="mt-6 space-y-3 border-dashed">
+          <div className="space-y-1">
+            <CardTitle className="text-base">{t("devTools")}</CardTitle>
+            <CardDescription>{t("devToolsNote")}</CardDescription>
+          </div>
+          <form action={resetMyDailyAction}>
+            <input type="hidden" name="locale" value={locale} />
+            <Button type="submit" variant="outline" size="sm">
+              <RotateCcw className="h-4 w-4" />
+              {t("resetMyDaily")}
+            </Button>
+          </form>
+          <p className="text-xs text-muted">{t("resetMyDailyHelp")}</p>
+        </Card>
+      )}
 
       <Card className="mt-6 space-y-5">
         <CardTitle>{t("inviteCodes")}</CardTitle>

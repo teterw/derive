@@ -11,6 +11,7 @@ import type {
 import { checkAnswer, type CheckResult } from "@/lib/math/check";
 import { getSessionUser } from "@/lib/auth/session";
 import { recordAttempt } from "@/lib/stats/record";
+import { countPracticeCorrect, currentPracticeRunId } from "./run";
 import {
   nextQuestionRef,
   normalizeConfig,
@@ -74,9 +75,20 @@ export async function submitAnswerAction(input: {
   const skill = getSkill(question.skillId);
   const result = checkAnswer(question.answer, input.answer, skill.strictForm);
 
+  const mode = input.mode === "review" ? "review" : "practice";
+
+  /*
+   * Group the attempt into a session. Practice has no end event to hang this
+   * on, so sessions are bounded by a gap - see `lib/practice/run.ts`. This
+   * returns null rather than throwing if anything goes wrong: losing the
+   * grouping on one attempt is a small loss, losing the attempt is not.
+   */
+  const runId = await currentPracticeRunId(userId, mode);
+
   await recordAttempt({
     userId,
-    mode: input.mode === "review" ? "review" : "practice",
+    mode,
+    ...(runId ? { runId } : {}),
     question,
     userAnswer: input.answer,
     isCorrect: result.correct,
@@ -84,6 +96,8 @@ export async function submitAnswerAction(input: {
     hintsUsed: clampHints(input.hintsUsed, question.hints.length),
     stepsRevealed: Boolean(input.stepsRevealed),
   });
+
+  if (runId && result.correct) await countPracticeCorrect(runId);
 
   return {
     result,

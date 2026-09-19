@@ -13,6 +13,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "../lib/db";
 import {
   attempts,
+  authFailures,
   dailyStats,
   inviteCodes,
   inviteRedemptions,
@@ -48,7 +49,21 @@ import {
   getWeakestSkills,
 } from "../lib/stats/queries";
 import { getReviewCount, getReviewQueue } from "../lib/review/queue";
+import {
+  SESSION_GAP_MS,
+  currentPracticeRunId,
+} from "../lib/practice/run";
 import { bangkokDay } from "../lib/stats/day";
+import {
+  clearFailures,
+  isRateLimited,
+  purgeOldFailures,
+  recordFailure,
+} from "../lib/auth/rate-limit";
+import {
+  LOGIN_FAILURE_LIMIT,
+  RATE_LIMIT_WINDOW_MS,
+} from "../lib/auth/constants";
 
 const USERNAME = "smoke-test-user";
 /** How many questions the fake session answers. */
@@ -429,6 +444,118 @@ async function main() {
     "resetting twice is harmless",
     secondReset.removedRuns === 1 && secondReset.removedAttempts === 0,
   );
+
+  // --- practice sessions ---------------------------------------------------
+  /*
+   * Practice attempts group into sessions by a gap rather than by an end
+   * event, because there is no reliable end event - a learner closes the tab.
+   * The thing to verify is that consecutive attempts share a run and that a
+   * stale run is not adopted.
+   */
+  console.log("\npractice sessions");
+
+  const firstRun = await currentPracticeRunId(userId, "practice");
+  const sameRun = await currentPracticeRunId(userId, "practice");
+  fail("a practice attempt opens a run", firstRun !== null);
+  fail("and the next attempt joins it", firstRun === sameRun);
+
+  const [counted] = await db
+    .select({ total: runs.total })
+    .from(runs)
+    .where(eq(runs.id, firstRun!));
+  fail("the run counts its attempts", Number(counted?.total) === 2);
+
+  // Age the run past the gap; the next attempt must start a fresh session.
+  await db
+    .update(runs)
+    .set({ lastAttemptAt: new Date(Date.now() - SESSION_GAP_MS - 60_000) })
+    .where(eq(runs.id, firstRun!));
+
+  const afterGap = await currentPracticeRunId(userId, "practice");
+  fail("a gap starts a new session", afterGap !== firstRun && afterGap !== null);
+
+  // Review is its own mode and must not be swept into a practice session.
+  const reviewRun = await currentPracticeRunId(userId, "review");
+  fail("review does not join a practice run", reviewRun !== afterGap);
+
+  await db.delete(runs).where(
+    and(eq(runs.userId, userId), eq(runs.mode, "practice")),
+  );
+  await db.delete(runs).where(
+    and(eq(runs.userId, userId), eq(runs.mode, "review")),
+  );
+
+  // --- rate limiting -------------------------------------------------------
+  /*
+   * The limiter is what stands between a 12-character invite code and a
+   * brute-force, and it lives in the database rather than in memory because
+   * every serverless invocation is a fresh process. That means it cannot be
+   * unit tested - and until now it was not tested at all. A security control
+   * nobody exercises is one that stops working silently during a refactor.
+   */
+  console.log("\nrate limiting");
+
+  const userBucket = `login:user:${USERNAME}`;
+  const ipBucket = `login:ip:203.0.113.42`;
+  await clearFailures(userBucket);
+  await clearFailures(ipBucket);
+
+  for (let i = 0; i < LOGIN_FAILURE_LIMIT - 1; i++) {
+    await recordFailure(userBucket);
+  }
+  fail(
+    `${LOGIN_FAILURE_LIMIT - 1} failures is still allowed through`,
+    !(await isRateLimited([userBucket], LOGIN_FAILURE_LIMIT)),
+  );
+
+  await recordFailure(userBucket);
+  fail(
+    `the ${LOGIN_FAILURE_LIMIT}th trips the limiter`,
+    await isRateLimited([userBucket], LOGIN_FAILURE_LIMIT),
+  );
+
+  fail(
+    "and a different bucket is unaffected",
+    !(await isRateLimited([ipBucket], LOGIN_FAILURE_LIMIT)),
+  );
+
+  fail(
+    "any one bucket over the limit is enough",
+    await isRateLimited([ipBucket, userBucket], LOGIN_FAILURE_LIMIT),
+  );
+
+  await clearFailures(userBucket);
+  fail(
+    "a successful login clears the bucket",
+    !(await isRateLimited([userBucket], LOGIN_FAILURE_LIMIT)),
+  );
+
+  /*
+   * The window is the half that cannot be checked by counting: failures older
+   * than it must stop counting, or a learner who mistyped a password a
+   * fortnight ago stays locked out forever.
+   */
+  const stale = new Date(Date.now() - RATE_LIMIT_WINDOW_MS - 60_000);
+  await db.insert(authFailures).values(
+    Array.from({ length: LOGIN_FAILURE_LIMIT + 2 }, () => ({
+      key: userBucket,
+      createdAt: stale,
+    })),
+  );
+  fail(
+    "failures older than the window no longer count",
+    !(await isRateLimited([userBucket], LOGIN_FAILURE_LIMIT)),
+  );
+
+  await purgeOldFailures();
+  const [leftover] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(authFailures)
+    .where(eq(authFailures.key, userBucket));
+  fail("and purging removes them", Number(leftover?.n) === 0);
+
+  await clearFailures(userBucket);
+  await clearFailures(ipBucket);
 
   // --- clean up -----------------------------------------------------------
   await db.delete(users).where(eq(users.id, userId));

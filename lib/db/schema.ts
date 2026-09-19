@@ -155,8 +155,26 @@ export const runs = pgTable(
     total: integer("total").notNull().default(0),
     correct: integer("correct").notNull().default(0),
     durationMs: integer("duration_ms"),
+    /**
+     * When this run last saw an attempt.
+     *
+     * Exams and dailies end by being finished. Practice never does - a learner
+     * closes the tab or wanders off, and there is nowhere honest to put an
+     * "end session" call. So a practice session is bounded by a *gap*: this
+     * column is what the next attempt compares against to decide whether it
+     * continues the session or starts one. See `lib/practice/run.ts`.
+     */
+    lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }),
   },
-  (t) => [index("runs_user_started_idx").on(t.userId, t.startedAt)],
+  (t) => [
+    index("runs_user_started_idx").on(t.userId, t.startedAt),
+    // The lookup on every practice attempt: this user's most recent live run.
+    index("runs_user_mode_last_attempt_idx").on(
+      t.userId,
+      t.mode,
+      t.lastAttemptAt,
+    ),
+  ],
 );
 
 export const attempts = pgTable(

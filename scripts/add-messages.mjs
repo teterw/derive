@@ -5,18 +5,18 @@
  *   node scripts/add-messages.mjs batch.json
  *
  * Pass the path. Do not pipe the file in from PowerShell - `Get-Content x |
- * node this` re-encodes UTF-8 on the way through and Thai arrives as
- * `à¸¥à¸²à¸`. That happened, and it was invisible: the JSON still parsed,
- * every test passed, and three keys shipped as gibberish. Worse, this script
- * used to strip the BOM PowerShell adds, which removed the only symptom that
- * would have stopped it at the door.
+ * node this` re-encodes UTF-8 on the way through, and Thai arrives as a run of
+ * accented Latin letters. That happened, and it was invisible: the JSON still
+ * parsed, every test passed, and three keys shipped as gibberish. Worse, this
+ * script used to strip the BOM PowerShell adds, which removed the only symptom
+ * that would have stopped it at the door.
  *
  * Reading the path here means the bytes are never handed to a shell. Stdin
  * still works for Bash redirection, and either way the input is checked before
  * anything is written.
  *
- * `i18n/messages.test.ts` is what enforces this afterwards - the two files
- * agreeing, and neither of them being mojibake.
+ * `scripts/encoding.test.ts` is what catches this afterwards, across every text
+ * file in the repo; `i18n/messages.test.ts` covers the two locales agreeing.
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -24,8 +24,24 @@ import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+/*
+ * Built from code points, and this file is kept ASCII. Writing the characters
+ * out means the file contains an example of what it rejects - and a `\u`
+ * escape is not reliably still an escape once some of the editing tools here
+ * have written it to disk.
+ */
+const BOM = String.fromCharCode(0xfeff);
+const LEADS = new Set([0x00c2, 0x00c3, 0x00e0, 0x00e1, 0x00e2, 0x00e3]);
+
 /** A UTF-8 lead byte followed by a continuation byte, both read as Latin-1. */
-const MOJIBAKE = /[ÂÃàáâã][\u0080-¿]/;
+function isMojibake(text) {
+  for (let i = 0; i < text.length - 1; i += 1) {
+    if (!LEADS.has(text.charCodeAt(i))) continue;
+    const next = text.charCodeAt(i + 1);
+    if (next >= 0x0080 && next <= 0x00bf) return true;
+  }
+  return false;
+}
 
 function fail(message) {
   console.error(`add-messages: ${message}`);
@@ -50,17 +66,21 @@ async function readInput() {
 const raw = await readInput();
 
 /*
- * Before parsing, not after. A re-encoded file is still valid JSON, so
+ * Before parsing, not after. Re-encoded text is still valid JSON, so
  * JSON.parse is no defence at all - by the time the object exists the damage
  * looks exactly like content someone meant to write.
  */
-if (raw.startsWith("﻿")) {
-  fail("input begins with a BOM, which means it came through a shell that\n" +
-    "  re-encodes. Pass the path instead of piping the file.");
+if (raw.startsWith(BOM)) {
+  fail(
+    "input begins with a byte-order mark, which means it came through a shell\n" +
+      "  that re-encodes. Pass the path instead of piping the file.",
+  );
 }
-if (MOJIBAKE.test(raw)) {
-  fail("input is mojibake - UTF-8 read as Latin-1. Pass the path instead of\n" +
-    "  piping the file, and check the source file is still intact.");
+if (isMojibake(raw)) {
+  fail(
+    "input is mojibake - UTF-8 read as Latin-1. Pass the path instead of\n" +
+      "  piping the file, and check the source file is still intact.",
+  );
 }
 
 let input;

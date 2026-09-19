@@ -116,15 +116,25 @@ pnpm resolves from PowerShell, not Git Bash.
 ## Writing files that aren't ASCII
 
 **Never pipe a file into a program through PowerShell.** `Get-Content x.json |
-node script.mjs` re-encodes on the way through: Thai arrives as
-`à¸¥à¸²à¸`, the JSON still parses, every test passes, and the damage is
+node script.mjs` re-encodes on the way through: Thai arrives as a run of
+accented Latin letters (each Thai character's three UTF-8 bytes read as three
+Latin-1 ones), the JSON still parses, every test passes, and the damage is
 visible only to someone reading the screen. Three keys reached `messages/`
 that way. Redirect from Bash (`node script.mjs < x.json`) or have the script
-read the path itself.
+read the path itself — `scripts/add-messages.mjs` now takes a path and refuses
+input carrying a BOM or the mojibake signature.
 
-`i18n/messages.test.ts` now checks the bytes of both message files, along with
-the key parity this file has asked for since the second locale existed and
-nothing enforced.
+**A `\uXXXX` escape is not reliably still an escape when it lands on disk.**
+Some of the editing tools here rewrite it as the literal character, which is
+how an invisible BOM ended up mid-line in the first draft of
+`scripts/encoding.test.ts`. Anywhere the exact bytes matter, build the
+character from its code point in code (`String.fromCharCode`) and keep the
+source ASCII.
+
+`scripts/encoding.test.ts` checks every text file in the repo — not just
+`messages/`, because Thai is in every lesson and question stem in `content/`
+and corrupts identically there. `i18n/messages.test.ts` covers the key parity
+this file has asked for since the second locale existed and nothing enforced.
 
 ## Writing files with backslashes in them
 

@@ -24,12 +24,18 @@ Beyond the phase plan: the **daily challenge** from
 `docs/CONTENT-PIPELINE.md` §6 is built.
 
 Green as of this commit: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(332 tests in 29 files), `pnpm build`, `pnpm smoke` (41 checks against the real
-database), `pnpm render-check` (15 pages, signed in), `pnpm check:contrast`,
-`pnpm vars`.
+(372 tests in 33 files), `pnpm build`, `pnpm smoke` (61 checks against the real
+database), `pnpm render-check` (18 pages, signed in), `pnpm profile-check`,
+`pnpm check:contrast`, `pnpm vars`, `pnpm perf`.
 
-**Next session: Phase 5, the weekly content session** (`docs/CONTENT-PIPELINE.md`
-§5). Phases 0-4 are all built. Start with `pnpm content:coverage`.
+**Phase 6 is under way**; the plan is `docs/NEXT.md`. P0 is done bar the two
+items that need the owner — `AUTH_SECRET` in the host, and a home for the
+backups. P1 spaced repetition is built. Next is the divergence diff, then the
+weekly content session (`docs/CONTENT-PIPELINE.md` §5).
+
+**Deploying: put the app in the same region as the database.** `pnpm perf`
+measures every page; what is left after the round-trip work is latency from
+wherever the app runs to `ap-southeast-1`, and no code change touches it.
 
 `pnpm render-check` needs a server already listening on port 3000 — it does not
 start one. Without it every page "fails" with `fetch failed`, which looks far
@@ -179,6 +185,29 @@ the code. Each is worth recording because each was invisible to the tests.
    that survive rather than clearing it - the learner may also have practised
    this morning, and that is not the daily's to delete. Nine smoke checks.
 
+## Phase 6 so far
+
+Working from `docs/NEXT.md`. Done: the demo seed now refuses to run against a
+database that does not look like development (its password is in this repo);
+the `/admin` development card is hidden in production; rate limiting turned out
+to already exist and cover all three cases, and now has tests; practice
+attempts group into sessions by a 25-minute gap, which was the un-backfillable
+one; profiles, XP, levels and a leaderboard; the nav shows which page you are
+on; and spaced repetition.
+
+Two findings worth carrying forward:
+
+- **The property gate was not covering everything.** Each test file iterated a
+  hand-written list of imports, so a generator registered but left off a list
+  would ship with its derivations never verified, and every other test would
+  still pass. It is driven by the registry now. Proven rather than assumed: a
+  deliberately broken generator was registered without touching any test file
+  and the suite failed.
+- **Pages were slow in proportion to sequential round trips**, nothing else.
+  The profile page resolved the same username three times. `pnpm perf` measures
+  it; it also now reports bytes actually sent rather than bytes after
+  decompression, which had been overstating the transfer six-fold.
+
 ## Round four — the first browser pass
 
 The first session where the app was actually opened and looked at, rather than
@@ -221,10 +250,20 @@ finding three layout bugs in one screenshot is worth the setup.
    `pnpm content:coverage`, pick the highest-value unbuilt shapes from
    `content/shapes/*.md`, and add two to four generators. That is the job from
    here on, and the app is useful while it happens.
-3. Open questions from `PROMPT.md` §12, now worth answering:
-   - spaced repetition for review — the queue is currently "most recent attempt
-     was wrong", which is a leech queue, not SM-2
-   - whether profiles are visible to other invited users
+3. ~~Open questions from `PROMPT.md` §12~~ — **all three settled and built.**
+   - **Spaced repetition**: built, scheduled per *skill* rather than per
+     question, because these questions are generated and re-showing an
+     identical one teaches recall of that answer rather than the method.
+     Ladder 1/3/7/16/35/90; right climbs one rung, wrong drops two; four lapses
+     makes a leech. The old wrong-answer queue still runs alongside it and the
+     dashboard count is the sum — retiring the old one is a small follow-up
+     once you have lived with both.
+   - **Profiles are visible to everyone with an account**, statistics included.
+     Everyone here was invited by someone.
+   - **XP is weighted by difficulty, levels are a pure function of it**, and
+     there is a global board ranked by XP — not accuracy, which would reward
+     answering three easy questions and stopping. Anyone can opt out and keep a
+     visible profile.
    - the XP formula: `xpFor()` already writes a number to `daily_stats` that
      nothing displays, so it is still free to change
 

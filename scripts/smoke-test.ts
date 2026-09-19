@@ -18,6 +18,7 @@ import {
   inviteCodes,
   inviteRedemptions,
   runs,
+  skillReviews,
   users,
 } from "../lib/db/schema";
 import { hashPassword } from "../lib/auth/password";
@@ -49,6 +50,8 @@ import {
   getWeakestSkills,
 } from "../lib/stats/queries";
 import { getReviewCount, getReviewQueue } from "../lib/review/queue";
+import { backfillSchedules, getDueCount, recordReview } from "../lib/review/due";
+import { LADDER, MAX_DUE_PER_DAY } from "../lib/review/schedule";
 import {
   SESSION_GAP_MS,
   currentPracticeRunId,
@@ -445,6 +448,98 @@ async function main() {
     secondReset.removedRuns === 1 && secondReset.removedAttempts === 0,
   );
 
+  // --- spaced repetition ---------------------------------------------------
+  /*
+   * The ladder arithmetic is unit tested. What is not, and cannot be, is the
+   * upsert, the Asia/Bangkok day arithmetic on a `date` column, and the
+   * backfill reading rows that another part of the app wrote.
+   */
+  console.log("\nspaced repetition");
+
+  const reviewSkill = "quad.formula";
+  const reviewDay = bangkokDay();
+
+  await db.delete(skillReviews).where(eq(skillReviews.userId, userId));
+
+  await recordReview(userId, reviewSkill, true, reviewDay);
+  const [firstReview] = await db
+    .select()
+    .from(skillReviews)
+    .where(
+      and(
+        eq(skillReviews.userId, userId),
+        eq(skillReviews.skillId, reviewSkill),
+      ),
+    );
+  fail("a review schedules the skill", Boolean(firstReview));
+  fail(
+    "one rung up from the bottom",
+    firstReview?.intervalDays === LADDER[1],
+    `${firstReview?.intervalDays} days`,
+  );
+  fail(
+    "and books the day that many days out",
+    firstReview?.dueOn === addDaysForCheck(reviewDay, LADDER[1]!),
+    `${firstReview?.dueOn}`,
+  );
+
+  fail("nothing is due yet", (await getDueCount(userId, reviewDay)) === 0);
+  fail(
+    "and it is due on the day it says",
+    (await getDueCount(userId, firstReview!.dueOn)) === 1,
+  );
+
+  // A second review upserts rather than inserting a duplicate.
+  await recordReview(userId, reviewSkill, true, reviewDay);
+  const rows = await db
+    .select()
+    .from(skillReviews)
+    .where(eq(skillReviews.userId, userId));
+  fail("reviewing again updates rather than duplicates", rows.length === 1);
+  fail("and climbs another rung", rows[0]?.intervalDays === LADDER[2]);
+
+  await recordReview(userId, reviewSkill, false, reviewDay);
+  const [lapsed] = await db
+    .select()
+    .from(skillReviews)
+    .where(eq(skillReviews.userId, userId));
+  fail("a wrong answer drops two rungs", lapsed?.intervalDays === LADDER[0]);
+  fail("and counts a lapse", lapsed?.lapses === 1);
+
+  // The backfill seeds from mastery this run already built.
+  await db.delete(skillReviews).where(eq(skillReviews.userId, userId));
+  const backfill = await backfillSchedules(userId, reviewDay);
+  fail(
+    "the backfill seeds from existing mastery",
+    backfill.created > 0,
+    `${backfill.created} skill(s)`,
+  );
+
+  const seeded = await db
+    .select()
+    .from(skillReviews)
+    .where(eq(skillReviews.userId, userId));
+  fail(
+    "every seeded row is due in the future, not today",
+    seeded.every((row) => row.dueOn > reviewDay),
+  );
+  fail(
+    "and no more than the daily ceiling share any one day",
+    Math.max(
+      ...Object.values(
+        seeded.reduce<Record<string, number>>((counts, row) => {
+          counts[row.dueOn] = (counts[row.dueOn] ?? 0) + 1;
+          return counts;
+        }, {}),
+      ),
+    ) <= MAX_DUE_PER_DAY,
+  );
+
+  const secondBackfill = await backfillSchedules(userId, reviewDay);
+  fail("running it twice creates nothing new", secondBackfill.created === 0);
+
+  await db.delete(skillReviews).where(eq(skillReviews.userId, userId));
+
   // --- practice sessions ---------------------------------------------------
   /*
    * Practice attempts group into sessions by a gap rather than by an end
@@ -591,6 +686,13 @@ function canonicalAnswer(answer: {
     default:
       return String(answer.correct);
   }
+}
+
+/** The same day arithmetic the scheduler uses, to check it independently. */
+function addDaysForCheck(from: string, days: number): string {
+  const date = new Date(`${from}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 main().catch((error) => {

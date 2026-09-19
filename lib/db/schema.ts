@@ -228,6 +228,42 @@ export const dailyStats = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.day] })],
 );
 
+/**
+ * When each skill next needs reviewing.
+ *
+ * Keyed on the skill, not on `(generatorId, seed, difficulty)`. The questions
+ * here are generated, so re-showing an identical one teaches recall of that
+ * answer rather than of the method - a due skill serves a freshly generated
+ * question instead. See `lib/review/schedule.ts`.
+ */
+export const skillReviews = pgTable(
+  "skill_reviews",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    skillId: text("skill_id").notNull(),
+    /** Which rung of the ladder; the next due date is this many days on. */
+    intervalDays: integer("interval_days").notNull().default(1),
+    /** Asia/Bangkok calendar day, like every other day in this app. */
+    dueOn: date("due_on").notNull(),
+    consecutiveCorrect: integer("consecutive_correct").notNull().default(0),
+    /** Never decays: a skill forgotten four times is one the learner lacks. */
+    lapses: integer("lapses").notNull().default(0),
+    lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
+    /**
+     * Unused by the current ladder. It is here so a smarter scheduler - SM-2,
+     * FSRS - can replace the ladder without a migration.
+     */
+    ease: real("ease"),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.skillId] }),
+    // The query on every dashboard load: what is due for me today.
+    index("skill_reviews_user_due_idx").on(t.userId, t.dueOn),
+  ],
+);
+
 export const skillMastery = pgTable(
   "skill_mastery",
   {

@@ -12,6 +12,7 @@ import { checkAnswer, type CheckResult } from "@/lib/math/check";
 import { getSessionUser } from "@/lib/auth/session";
 import { recordAttempt } from "@/lib/stats/record";
 import { countPracticeCorrect, currentPracticeRunId } from "./run";
+import { recordReview } from "@/lib/review/due";
 import {
   nextQuestionRef,
   normalizeConfig,
@@ -98,6 +99,14 @@ export async function submitAnswerAction(input: {
   });
 
   if (runId && result.correct) await countPracticeCorrect(runId);
+
+  /*
+   * Every answered question is a review of its skill, whether it arrived
+   * through the due queue or through ordinary practice. Scheduling only what
+   * the queue served would keep asking for skills the learner had just drilled
+   * by choice, which is the fastest way to make the count feel wrong.
+   */
+  await recordReview(userId, question.skillId, result.correct);
 
   return {
     result,

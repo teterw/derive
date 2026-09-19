@@ -15,6 +15,7 @@ import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
 import { getHeatmap, getStreak, getToday, getWeakestSkills } from "@/lib/stats/queries";
 import { getReviewCount } from "@/lib/review/queue";
+import { getDueCount } from "@/lib/review/due";
 import { getDailyStreak } from "@/lib/daily/challenge";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -40,13 +41,14 @@ export default async function DashboardPage({
   const tDaily = await getTranslations("daily");
   const active = locale as Locale;
 
-  const [streak, today, heatmap, weakest, reviewCount, daily] =
+  const [streak, today, heatmap, weakest, reviewCount, dueCount, daily] =
     await Promise.all([
       getStreak(user.id),
       getToday(user.id),
       getHeatmap(user.id, 133),
       getWeakestSkills(user.id, 3),
       getReviewCount(user.id),
+      getDueCount(user.id),
       getDailyStreak(user.id),
     ]);
 
@@ -115,7 +117,7 @@ export default async function DashboardPage({
           href="/review"
           icon={<RotateCw className="h-5 w-5" />}
           title={t("reviewTitle")}
-          count={reviewCount}
+          count={dueCount + reviewCount}
         />
         <ActionCard
           href="/learn"

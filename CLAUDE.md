@@ -113,6 +113,19 @@ pnpm resolves from PowerShell, not Git Bash.
   add a chart, run the data-viz validator against both surfaces rather than
   picking colours by eye.
 
+## Writing files that aren't ASCII
+
+**Never pipe a file into a program through PowerShell.** `Get-Content x.json |
+node script.mjs` re-encodes on the way through: Thai arrives as
+`à¸¥à¸²à¸`, the JSON still parses, every test passes, and the damage is
+visible only to someone reading the screen. Three keys reached `messages/`
+that way. Redirect from Bash (`node script.mjs < x.json`) or have the script
+read the path itself.
+
+`i18n/messages.test.ts` now checks the bytes of both message files, along with
+the key parity this file has asked for since the second locale existed and
+nothing enforced.
+
 ## Writing files with backslashes in them
 
 Most content here is KaTeX, which is backslashes all the way down. Two traps,

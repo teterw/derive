@@ -48,24 +48,35 @@ export default async function DailyPage({
   const active = locale as Locale;
 
   const day = bangkokDay();
-  const { id: runId } = await findOrCreateDailyRun(user.id, day);
-  const streak = await getDailyStreak(user.id);
 
-  const [run] = await db
-    .select()
-    .from(runs)
-    .where(and(eq(runs.id, runId), eq(runs.userId, user.id)))
-    .limit(1);
+  /*
+   * Four round trips, run one after another, only two of which depended on
+   * anything before them. The streak does not need the run, and once the run
+   * id is known its row and its attempts can be fetched together - so this is
+   * two waves rather than four queues, against a database in another country.
+   */
+  const [{ id: runId }, streak] = await Promise.all([
+    findOrCreateDailyRun(user.id, day),
+    getDailyStreak(user.id),
+  ]);
+
+  const [[run], rows] = await Promise.all([
+    db
+      .select()
+      .from(runs)
+      .where(and(eq(runs.id, runId), eq(runs.userId, user.id)))
+      .limit(1),
+    db
+      .select()
+      .from(attempts)
+      .where(and(eq(attempts.runId, runId), eq(attempts.userId, user.id)))
+      .orderBy(asc(attempts.createdAt)),
+  ]);
+
   if (!run) notFound();
 
   const config = asExamRunConfig(run.config);
   if (!config) notFound();
-
-  const rows = await db
-    .select()
-    .from(attempts)
-    .where(and(eq(attempts.runId, runId), eq(attempts.userId, user.id)))
-    .orderBy(asc(attempts.createdAt));
 
   const questions = config.refs.map((ref) =>
     generateQuestion(ref.generatorId, ref.seed, ref.difficulty),

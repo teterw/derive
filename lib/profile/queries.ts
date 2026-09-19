@@ -38,7 +38,30 @@ export type Profile = {
 /** Lifetime XP, summed from the day rollups. */
 const xpSum = sql<number>`coalesce(sum(${dailyStats.xp}), 0)::int`;
 
-export async function getProfile(username: string): Promise<Profile | null> {
+/**
+ * The user row every profile query starts from.
+ *
+ * Exported so a page can resolve the username **once** and hand the id to
+ * everything else. The profile page used to call three functions that each
+ * looked the same person up again, and against a database in another country a
+ * redundant round trip is not free - it was most of why that page took 390ms.
+ */
+export type ProfileUser = {
+  id: string;
+  username: string;
+  displayName: string;
+  bio: string | null;
+  avatarSlot: number;
+  role: "user" | "admin";
+  joinedAt: Date;
+  currentStreak: number;
+  longestStreak: number;
+  hideFromLeaderboard: boolean;
+};
+
+export async function findProfileUser(
+  username: string,
+): Promise<ProfileUser | null> {
   const [user] = await db
     .select({
       id: users.id,
@@ -56,7 +79,24 @@ export async function getProfile(username: string): Promise<Profile | null> {
     .where(eq(users.username, username.toLowerCase()))
     .limit(1);
 
+  return user ?? null;
+}
+
+export async function getProfile(username: string): Promise<Profile | null> {
+  const user = await findProfileUser(username);
   if (!user) return null;
+  return buildProfile(user);
+}
+
+/**
+ * The figures for a user already in hand.
+ *
+ * Lifetime totals and "did they practise today" come from one scan of the same
+ * rows - `filter (where day = ...)` rather than a second query for a single
+ * row, which is a whole round trip to learn one boolean.
+ */
+export async function buildProfile(user: ProfileUser): Promise<Profile> {
+  const today = bangkokDay();
 
   const [totals] = await db
     .select({
@@ -64,17 +104,10 @@ export async function getProfile(username: string): Promise<Profile | null> {
       attempts: sql<number>`coalesce(sum(${dailyStats.attempts}), 0)::int`,
       correct: sql<number>`coalesce(sum(${dailyStats.correct}), 0)::int`,
       days: sql<number>`count(*) filter (where ${dailyStats.attempts} > 0)::int`,
+      todayAttempts: sql<number>`coalesce(sum(${dailyStats.attempts}) filter (where ${dailyStats.day} = ${today}), 0)::int`,
     })
     .from(dailyStats)
     .where(eq(dailyStats.userId, user.id));
-
-  const [today] = await db
-    .select({ attempts: dailyStats.attempts })
-    .from(dailyStats)
-    .where(
-      and(eq(dailyStats.userId, user.id), eq(dailyStats.day, bangkokDay())),
-    )
-    .limit(1);
 
   const totalAttempts = Number(totals?.attempts ?? 0);
   const totalCorrect = Number(totals?.correct ?? 0);
@@ -96,7 +129,7 @@ export async function getProfile(username: string): Promise<Profile | null> {
         ? null
         : Math.round((totalCorrect / totalAttempts) * 100),
     daysPractised: Number(totals?.days ?? 0),
-    practisedToday: Number(today?.attempts ?? 0) > 0,
+    practisedToday: Number(totals?.todayAttempts ?? 0) > 0,
     hideFromLeaderboard: user.hideFromLeaderboard,
   };
 }
@@ -165,43 +198,45 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardRow[]> {
   });
 }
 
-/** Where one learner sits, even when they are past the end of the board. */
+/**
+ * Where one learner sits, even when they are past the end of the board.
+ *
+ * One round trip. This used to be three - look up the user, sum their XP, then
+ * count the people above them - and two of those were answerable inside the
+ * third. The people strictly above are counted rather than an index read off
+ * the board, so the rank is right whether or not the learner appears in the
+ * page of rows the board happens to be showing.
+ */
+export async function getRankById(userId: string): Promise<number | null> {
+  const rows = await db.execute<{ ahead: number; ranked: boolean }>(sql`
+    with totals as (
+      select
+        u.id,
+        u.hide_from_leaderboard as hidden,
+        coalesce(sum(ds.xp), 0)::int as xp
+      from users u
+      left join daily_stats ds on ds.user_id = u.id
+      group by u.id, u.hide_from_leaderboard
+    ),
+    me as (select xp, hidden from totals where id = ${userId})
+    select
+      (
+        select count(*)::int from totals
+        where hidden = false and xp > (select xp from me)
+      ) as ahead,
+      (select hidden = false from me) as ranked
+  `);
+
+  const row = rows.rows?.[0] ?? (rows as unknown as { ahead: number; ranked: boolean }[])[0];
+  if (!row || row.ranked !== true) return null;
+  return Number(row.ahead) + 1;
+}
+
+/** By username, for callers that do not already hold the user. */
 export async function getRank(username: string): Promise<number | null> {
-  const [me] = await db
-    .select({ id: users.id, hidden: users.hideFromLeaderboard })
-    .from(users)
-    .where(eq(users.username, username.toLowerCase()))
-    .limit(1);
-  if (!me || me.hidden) return null;
-
-  const [mine] = await db
-    .select({ xp: xpSum })
-    .from(dailyStats)
-    .where(eq(dailyStats.userId, me.id));
-  const myXp = Number(mine?.xp ?? 0);
-
-  /*
-   * Counting the people strictly above rather than reading an index: the rank
-   * must be right whether or not this learner is inside the page of rows the
-   * board happens to be showing.
-   */
-  const [ahead] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(
-      db
-        .select({
-          userId: users.id,
-          xp: xpSum.as("xp"),
-        })
-        .from(users)
-        .leftJoin(dailyStats, eq(dailyStats.userId, users.id))
-        .where(eq(users.hideFromLeaderboard, false))
-        .groupBy(users.id)
-        .as("totals"),
-    )
-    .where(sql`"totals"."xp" > ${myXp}`);
-
-  return Number(ahead?.count ?? 0) + 1;
+  const user = await findProfileUser(username);
+  if (!user || user.hideFromLeaderboard) return null;
+  return getRankById(user.id);
 }
 
 /** Everyone, for the people page. Newest first among the never-practised. */
@@ -211,13 +246,13 @@ export async function getPeople(): Promise<LeaderboardRow[]> {
 
 /** Recent activity for one learner, for the profile page's heatmap. */
 export async function getProfileHeatmap(username: string, days: number) {
-  const [user] = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.username, username.toLowerCase()))
-    .limit(1);
+  const user = await findProfileUser(username);
   if (!user) return [];
+  return getProfileHeatmapById(user.id, days);
+}
 
+export async function getProfileHeatmapById(userId: string, days: number) {
+  const user = { id: userId };
   const rows = await db
     .select({
       day: sql<string>`to_char(d.day, 'YYYY-MM-DD')`,

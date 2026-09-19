@@ -22,7 +22,8 @@
     "check:contrast": "node scripts/check-contrast.mjs",
     "vars": "tsx scripts/variable-survey.mjs",
     "accounts": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/accounts.ts",
-    "profile-check": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/profile-check.ts"
+    "profile-check": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/profile-check.ts",
+    "perf": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/perf-check.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

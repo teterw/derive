@@ -27,9 +27,23 @@ function create(): Db {
   }
   neonConfig.webSocketConstructor = globalThis.WebSocket;
 
-  // Reused across hot reloads in dev so we do not leak a pool per edit.
+  /*
+   * `max` is the widest fan-out any one page does, not a guess.
+   *
+   * The statistics page asks for ten aggregates in a `Promise.all`. With a
+   * ceiling of five, half of them queued behind the other half - the page did
+   * two round trips' worth of waiting while appearing to do one. Ten lets that
+   * page resolve in a single wave.
+   *
+   * It is deliberately not higher. Every connection is a real Postgres backend
+   * on Neon, and a serverless deployment multiplies this number by the count of
+   * warm instances, so an over-generous ceiling exhausts the database rather
+   * than speeding anything up.
+   *
+   * Reused across hot reloads in dev so we do not leak a pool per edit.
+   */
   const pool =
-    globalThis.__derivePool ?? new Pool({ connectionString: url, max: 5 });
+    globalThis.__derivePool ?? new Pool({ connectionString: url, max: 10 });
   if (process.env.NODE_ENV !== "production") globalThis.__derivePool = pool;
 
   return drizzle(pool, { schema });

@@ -6,9 +6,10 @@ import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
 import {
-  getProfile,
-  getProfileHeatmap,
-  getRank,
+  buildProfile,
+  findProfileUser,
+  getProfileHeatmapById,
+  getRankById,
 } from "@/lib/profile/queries";
 import { compactXp } from "@/lib/stats/level";
 import { AppShell } from "@/components/layout/app-shell";
@@ -34,12 +35,19 @@ export default async function ProfilePage({
   const format = await getFormatter();
   const active = locale as Locale;
 
-  const profile = await getProfile(username);
-  if (!profile) notFound();
+  /*
+   * The username is resolved once and the id handed to everything else.
+   * Each of these three used to look the same person up again, and against a
+   * database in another country that is three extra round trips for nothing -
+   * most of why this page measured 390ms.
+   */
+  const user = await findProfileUser(username);
+  if (!user) notFound();
 
-  const [rank, heatmap] = await Promise.all([
-    getRank(profile.username),
-    getProfileHeatmap(profile.username, 133),
+  const [profile, rank, heatmap] = await Promise.all([
+    buildProfile(user),
+    user.hideFromLeaderboard ? Promise.resolve(null) : getRankById(user.id),
+    getProfileHeatmapById(user.id, 133),
   ]);
 
   const isMe = viewer.username === profile.username;

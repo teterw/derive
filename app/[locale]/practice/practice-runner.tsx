@@ -16,8 +16,12 @@ import { submitAnswerAction } from "@/lib/practice/actions";
 import type { PracticeConfig } from "@/lib/practice/session";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
-import { AnswerInput, type AnswerInputHandle } from "@/components/math/answer-input";
+import {
+  AnswerInput,
+  type AnswerInputHandle,
+} from "@/components/math/answer-input";
 import { AnswerText } from "@/components/math/answer-text";
+import { XpMeter } from "@/components/profile/xp-meter";
 import { MathText } from "@/components/math/math-text";
 import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
@@ -39,12 +43,15 @@ export function PracticeRunner({
   first,
   queue,
   mode = "practice",
+  startingXp = 0,
   ruleNames,
   skillNames,
   difficultyLabels,
 }: {
   config: PracticeConfig;
   first: PublicQuestion;
+  /** Lifetime XP as the server knew it when the page was rendered. */
+  startingXp?: number;
   /**
    * Review mode walks a fixed list of missed questions instead of drawing a
    * fresh one each time, so the learner meets the identical question again.
@@ -74,6 +81,15 @@ export function PracticeRunner({
   const [pending, startTransition] = useTransition();
   const [queueIndex, setQueueIndex] = useState(0);
   const [finished, setFinished] = useState(false);
+
+  /*
+   * Lifetime XP, starting from what the server knew when the page loaded and
+   * moving as questions are answered. Kept here rather than refetched: the
+   * server has already told us exactly what each attempt was worth, and asking
+   * it again after every answer would be a round trip to learn a number we
+   * were handed.
+   */
+  const [totalXp, setTotalXp] = useState(startingXp);
 
   // Set in an effect, not during render: reading the clock while rendering is
   // impure and React may render more than once.
@@ -108,6 +124,15 @@ export function PracticeRunner({
       setOutcome(result);
       setSteps(result.steps);
       setPhase("answered");
+      /*
+       * A wrong answer still earns something, so this is not inside the branch.
+       * The guard is for a response that arrives without the field: adding
+       * `undefined` makes the total NaN, `levelFromXp` clamps NaN to zero, and
+       * the bar silently drops to level 1 rather than failing.
+       */
+      setTotalXp((current) =>
+        Number.isFinite(result.xp) ? current + result.xp : current,
+      );
       setTally((current) => {
         const streak = result.result.correct ? current.streak + 1 : 0;
         return {
@@ -211,7 +236,9 @@ export function PracticeRunner({
       ? t(`formError.${outcome.result.requirement}`)
       : null;
   const unparseable =
-    outcome && !outcome.result.correct && outcome.result.reason === "unparseable";
+    outcome &&
+    !outcome.result.correct &&
+    outcome.result.reason === "unparseable";
   const incomplete =
     outcome && !outcome.result.correct && outcome.result.reason === "incomplete"
       ? outcome.result
@@ -267,6 +294,8 @@ export function PracticeRunner({
     <div className="mx-auto w-full max-w-2xl space-y-8 pb-16 sm:pb-0">
       <Scoreboard tally={tally} labels={t} />
 
+      <XpMeter totalXp={totalXp} />
+
       {queue ? (
         <p className="text-center font-mono text-xs tabular-nums text-muted">
           {t("queueProgress", {
@@ -279,7 +308,9 @@ export function PracticeRunner({
       <div className="space-y-6">
         <div className="space-y-2 text-center">
           <div className="flex items-center justify-center gap-2">
-            <Badge>{skillNames[question.skillId]?.[locale] ?? question.skillId}</Badge>
+            <Badge>
+              {skillNames[question.skillId]?.[locale] ?? question.skillId}
+            </Badge>
             <Badge tone="accent">
               {difficultyLabels[question.difficulty]?.[locale]}
             </Badge>
@@ -313,7 +344,9 @@ export function PracticeRunner({
             onChange={setAnswer}
             onSubmit={submit}
             disabled={phase === "answered" || pending}
-            state={phase === "answered" ? (correct ? "correct" : "wrong") : "idle"}
+            state={
+              phase === "answered" ? (correct ? "correct" : "wrong") : "idle"
+            }
           />
         )}
 
@@ -400,7 +433,9 @@ export function PracticeRunner({
                     <MathText text={outcome.misconception[locale]} />
                   </p>
                 ) : null}
-                {formFeedback ? <p className="text-muted">{formFeedback}</p> : null}
+                {formFeedback ? (
+                  <p className="text-muted">{formFeedback}</p>
+                ) : null}
                 {incomplete ? (
                   <p className="text-muted">
                     {t("incompleteSet", {
@@ -430,7 +465,9 @@ export function PracticeRunner({
 
         {steps ? (
           <div className="space-y-3">
-            <h2 className="text-sm font-medium text-muted">{t("workingOut")}</h2>
+            <h2 className="text-sm font-medium text-muted">
+              {t("workingOut")}
+            </h2>
             <StepViewer
               steps={steps}
               ruleNames={ruleNames}

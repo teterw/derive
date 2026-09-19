@@ -20,7 +20,10 @@ export default async function RegisterPage({
 
   return (
     <AuthLayout title={t("registerTitle")} subtitle={t("registerSubtitle")}>
-      <RegisterForm locale={locale} code={typeof code === "string" ? code : ""} />
+      <RegisterForm
+        locale={locale}
+        code={typeof code === "string" ? code : ""}
+      />
       <p className="text-center text-sm text-muted">
         {t("haveAccount")}{" "}
         <Link href="/login" className="text-accent hover:underline">

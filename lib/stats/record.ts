@@ -37,7 +37,9 @@ export type AttemptRecord = {
  * `daily_stats` and `skill_mastery` are rolled forward in the same call so the
  * statistics pages are pure reads (PROMPT.md §8).
  */
-export async function recordAttempt(record: AttemptRecord): Promise<void> {
+export async function recordAttempt(
+  record: AttemptRecord,
+): Promise<{ xp: number }> {
   const day = bangkokDay();
   const timeMs = clampTime(record.timeMs);
   const difficulty = record.question.difficulty;
@@ -88,6 +90,13 @@ export async function recordAttempt(record: AttemptRecord): Promise<void> {
     // The day has just crossed the threshold, so the streak moves exactly once.
     await extendStreak(record.userId, day);
   }
+
+  /*
+   * Handed back rather than recomputed by the caller. The number the learner is
+   * shown has to be the number that was written, and two calls to `xpFor` is
+   * the sort of thing that agrees until someone changes the curve.
+   */
+  return { xp };
 }
 
 function clampTime(value: number): number {
@@ -177,7 +186,8 @@ async function extendStreak(userId: string, day: string): Promise<void> {
   if (!user) return;
 
   const gap = user.lastActiveDay ? daysBetween(user.lastActiveDay, day) : null;
-  const current = gap === 1 ? user.currentStreak + 1 : gap === 0 ? user.currentStreak : 1;
+  const current =
+    gap === 1 ? user.currentStreak + 1 : gap === 0 ? user.currentStreak : 1;
 
   await db
     .update(users)

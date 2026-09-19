@@ -19,7 +19,6 @@ vi.mock("mathlive", () => {
   throw new Error("mathlive is unavailable in this environment");
 });
 
-
 const submitAnswerAction = vi.fn();
 const nextQuestionAction = vi.fn();
 const hintAction = vi.fn();
@@ -51,7 +50,7 @@ const skillNames = Object.fromEntries(
 const first = generateQuestion("quad.solve-factor-simple", 7, 1);
 const second = generateQuestion("quad.solve-factor-simple", 8, 1);
 
-function renderRunner() {
+function renderRunner(startingXp = 0) {
   render(
     <NextIntlClientProvider locale="th" messages={messages}>
       <PracticeRunner
@@ -64,6 +63,7 @@ function renderRunner() {
           seed: 1,
         }}
         first={toPublicQuestion(first)}
+        startingXp={startingXp}
         ruleNames={ruleNames}
         skillNames={skillNames}
         difficultyLabels={DIFFICULTY_LABELS}
@@ -82,9 +82,7 @@ describe("PracticeRunner", () => {
 
   it("shows the question, its skill and its difficulty", () => {
     renderRunner();
-    expect(
-      screen.getByText(skillNames[first.skillId]!.th),
-    ).toBeInTheDocument();
+    expect(screen.getByText(skillNames[first.skillId]!.th)).toBeInTheDocument();
     expect(screen.getByText(DIFFICULTY_LABELS[1].th)).toBeInTheDocument();
     expect(document.querySelector(".katex")).not.toBeNull();
   });
@@ -94,6 +92,7 @@ describe("PracticeRunner", () => {
       result: { correct: true },
       correctAnswer: "2, 3",
       steps: first.steps,
+      xp: 6,
     });
     const user = userEvent.setup();
     renderRunner();
@@ -106,9 +105,7 @@ describe("PracticeRunner", () => {
     expect(submitAnswerAction).toHaveBeenCalledWith(
       expect.objectContaining({ questionId: first.id, answer: "2, 3" }),
     );
-    expect(
-      screen.getByText(messages.practice.workingOut),
-    ).toBeInTheDocument();
+    expect(screen.getByText(messages.practice.workingOut)).toBeInTheDocument();
   });
 
   it("shows the right answer beside yours when you are wrong", async () => {
@@ -116,6 +113,7 @@ describe("PracticeRunner", () => {
       result: { correct: false, reason: "wrong" },
       correctAnswer: "2, 3",
       steps: first.steps,
+      xp: 6,
     });
     const user = userEvent.setup();
     renderRunner();
@@ -136,6 +134,7 @@ describe("PracticeRunner", () => {
       result: { correct: false, reason: "wrong" },
       correctAnswer: "3*sqrt(2)",
       steps: first.steps,
+      xp: 6,
     });
     const user = userEvent.setup();
     renderRunner();
@@ -166,6 +165,7 @@ describe("PracticeRunner", () => {
       },
       correctAnswer: "2*sqrt(2)",
       steps: first.steps,
+      xp: 6,
     });
     const user = userEvent.setup();
     renderRunner();
@@ -184,6 +184,7 @@ describe("PracticeRunner", () => {
       result: { correct: true },
       correctAnswer: "2, 3",
       steps: first.steps,
+      xp: 6,
     });
     nextQuestionAction.mockResolvedValue(toPublicQuestion(second));
     const user = userEvent.setup();
@@ -202,9 +203,82 @@ describe("PracticeRunner", () => {
     await waitFor(() => expect(answerBox().value).toBe(""));
   });
 
+  /**
+   * The bar is the one thing on this screen that reports something the server
+   * decided, so it has to move by the amount the server actually wrote. It
+   * reads the XP off the response rather than recomputing it, and a response
+   * that arrives without the field must not take it to NaN - which is silent,
+   * because `levelFromXp` clamps NaN to zero and the bar just shows level 1.
+   */
+  describe("the level bar", () => {
+    const meter = () => screen.getByRole("progressbar");
+
+    it("starts where the server says the learner is", () => {
+      // 150 XP is level 2, 50 of the way into a 150 span.
+      renderRunner(150);
+      expect(meter()).toHaveAttribute("aria-valuenow", "50");
+      expect(meter()).toHaveAttribute("aria-valuemax", "150");
+      expect(
+        screen.getByText(messages.profile.level.replace("{level}", "2")),
+      ).toBeInTheDocument();
+    });
+
+    it("moves by what the answer earned", async () => {
+      submitAnswerAction.mockResolvedValue({
+        result: { correct: true },
+        correctAnswer: "2, 3",
+        steps: first.steps,
+        xp: 9,
+      });
+      const user = userEvent.setup();
+      renderRunner(150);
+
+      await user.type(answerBox(), "2, 3{Enter}");
+
+      await waitFor(() =>
+        expect(meter()).toHaveAttribute("aria-valuenow", "59"),
+      );
+      expect(screen.getByText("+9")).toBeInTheDocument();
+    });
+
+    it("earns something for a wrong answer too", async () => {
+      submitAnswerAction.mockResolvedValue({
+        result: { correct: false, reason: "wrong" },
+        correctAnswer: "2, 3",
+        steps: first.steps,
+        xp: 2,
+      });
+      const user = userEvent.setup();
+      renderRunner(150);
+
+      await user.type(answerBox(), "5{Enter}");
+
+      await waitFor(() =>
+        expect(meter()).toHaveAttribute("aria-valuenow", "52"),
+      );
+    });
+
+    it("holds still rather than going to NaN if the field is missing", async () => {
+      submitAnswerAction.mockResolvedValue({
+        result: { correct: true },
+        correctAnswer: "2, 3",
+        steps: first.steps,
+      });
+      const user = userEvent.setup();
+      renderRunner(150);
+
+      await user.type(answerBox(), "2, 3{Enter}");
+
+      await waitFor(() =>
+        expect(screen.getByText(messages.practice.correct)).toBeInTheDocument(),
+      );
+      expect(meter()).toHaveAttribute("aria-valuenow", "50");
+    });
+  });
+
   it("gives one hint at a time, in order", async () => {
-    hintAction.mockImplementation(async (_id: string, index: number) =>
-      first.hints[index] ?? null,
+    hintAction.mockImplementation(
+      async (_id: string, index: number) => first.hints[index] ?? null,
     );
     const user = userEvent.setup();
     renderRunner();
@@ -237,7 +311,9 @@ describe("PracticeRunner", () => {
   it("keeps the current question in the URL", async () => {
     renderRunner();
     await waitFor(() =>
-      expect(new URL(window.location.href).searchParams.get("q")).toBe(first.id),
+      expect(new URL(window.location.href).searchParams.get("q")).toBe(
+        first.id,
+      ),
     );
   });
 });

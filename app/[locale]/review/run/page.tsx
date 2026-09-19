@@ -10,6 +10,7 @@ import { skills } from "@/content/topics";
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
 import { normalizeConfig } from "@/lib/practice/session";
+import { getTotalXp } from "@/lib/profile/queries";
 import { AppShell } from "@/components/layout/app-shell";
 import { ToolDock } from "@/components/tools/tool-dock";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,10 @@ export default async function ReviewRunPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("review");
+
+  const tNav = await getTranslations("nav");
+
+  const startingXp = await getTotalXp(user.id);
   const active = locale as Locale;
 
   const { skills: skillsParam } = await searchParams;
@@ -50,7 +55,11 @@ export default async function ReviewRunPage({
 
   if (queue.length === 0) {
     return (
-      <AppShell locale={active} user={user}>
+      <AppShell
+        locale={active}
+        user={user}
+        back={{ href: "/review", label: tNav("backToReview") }}
+      >
         <Card className="space-y-2">
           <CardTitle>{t("emptyTitle")}</CardTitle>
           <CardDescription>{t("emptyBody")}</CardDescription>
@@ -69,8 +78,13 @@ export default async function ReviewRunPage({
   );
 
   return (
-    <AppShell locale={active} user={user}>
+    <AppShell
+      locale={active}
+      user={user}
+      back={{ href: "/review", label: tNav("backToReview") }}
+    >
       <PracticeRunner
+        startingXp={startingXp}
         mode="review"
         config={normalizeConfig({
           skillIds: [...new Set(queue.map((item) => item.skillId))],

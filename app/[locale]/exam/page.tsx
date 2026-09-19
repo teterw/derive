@@ -45,7 +45,9 @@ export default async function ExamSetupPage({
   return (
     <AppShell locale={active} user={user}>
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("setupTitle")}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("setupTitle")}
+        </h1>
         <p className="text-sm text-muted">{t("setupSubtitle")}</p>
       </div>
 
@@ -111,7 +113,9 @@ export default async function ExamSetupPage({
             </label>
 
             <label className="space-y-1.5">
-              <span className="block text-sm font-medium">{t("timeLimit")}</span>
+              <span className="block text-sm font-medium">
+                {t("timeLimit")}
+              </span>
               <select
                 name="minutes"
                 defaultValue={20}

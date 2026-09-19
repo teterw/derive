@@ -2,12 +2,7 @@
 
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { getSkill } from "@/content/topics";
-import type {
-  L,
-  Misconception,
-  PublicQuestion,
-  Step,
-} from "@/content/types";
+import type { L, Misconception, PublicQuestion, Step } from "@/content/types";
 import { checkAnswer, type CheckResult } from "@/lib/math/check";
 import { getSessionUser } from "@/lib/auth/session";
 import { recordAttempt } from "@/lib/stats/record";
@@ -57,6 +52,8 @@ export type SubmitResult = {
    * "wrong" and a lesson.
    */
   misconception?: L;
+  /** What this attempt earned, so the meter can show it moving. */
+  xp: number;
 };
 
 export async function submitAnswerAction(input: {
@@ -86,7 +83,7 @@ export async function submitAnswerAction(input: {
    */
   const runId = await currentPracticeRunId(userId, mode);
 
-  await recordAttempt({
+  const { xp } = await recordAttempt({
     userId,
     mode,
     ...(runId ? { runId } : {}),
@@ -110,6 +107,7 @@ export async function submitAnswerAction(input: {
 
   return {
     result,
+    xp,
     correctAnswer: displayAnswer(question),
     steps: question.steps,
     ...(result.correct

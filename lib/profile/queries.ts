@@ -40,6 +40,22 @@ export type Profile = {
 const xpSum = sql<number>`coalesce(sum(${dailyStats.xp}), 0)::int`;
 
 /**
+ * Just the number, for the level bar in a practice run.
+ *
+ * One indexed sum over that learner's own day rows, and nothing else the full
+ * profile query fetches - the runner wants a starting point for a bar, not a
+ * profile. It is read once when the page renders; the bar moves from there on
+ * what each answer reports, rather than asking again per question.
+ */
+export async function getTotalXp(userId: string): Promise<number> {
+  const [row] = await db
+    .select({ xp: xpSum })
+    .from(dailyStats)
+    .where(eq(dailyStats.userId, userId));
+  return Number(row?.xp ?? 0);
+}
+
+/**
  * The user row every profile query starts from.
  *
  * Exported so a page can resolve the username **once** and hand the id to
@@ -235,7 +251,9 @@ export async function getRankById(userId: string): Promise<number | null> {
       (select hidden = false from me) as ranked
   `);
 
-  const row = rows.rows?.[0] ?? (rows as unknown as { ahead: number; ranked: boolean }[])[0];
+  const row =
+    rows.rows?.[0] ??
+    (rows as unknown as { ahead: number; ranked: boolean }[])[0];
   if (!row || row.ranked !== true) return null;
   return Number(row.ahead) + 1;
 }

@@ -11,10 +11,7 @@ import { allRules } from "@/content/rules";
 import { skills } from "@/content/topics";
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
-import {
-  findOrCreateDailyRun,
-  getDailyStreak,
-} from "@/lib/daily/challenge";
+import { findOrCreateDailyRun, getDailyStreak } from "@/lib/daily/challenge";
 import { asExamRunConfig } from "@/lib/exam/session";
 import { bangkokDay, bangkokStamp } from "@/lib/stats/day";
 import { AppShell } from "@/components/layout/app-shell";
@@ -87,7 +84,9 @@ export default async function DailyPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-accent" />
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("title")}
+          </h1>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Flame className="h-4 w-4 text-accent" />

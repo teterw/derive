@@ -17,7 +17,10 @@ import { useTranslations } from "next-intl";
 export function SkillGroupToggle({ skillIds }: { skillIds: string[] }) {
   const t = useTranslations("practice");
 
-  function setAll(checked: boolean, event: React.MouseEvent<HTMLButtonElement>) {
+  function setAll(
+    checked: boolean,
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) {
     const form = event.currentTarget.form;
     if (!form) return;
     const boxes = form.querySelectorAll<HTMLInputElement>(

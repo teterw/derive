@@ -31,11 +31,17 @@ export default async function PracticeSetupPage({
   return (
     <AppShell locale={activeLocale} user={user}>
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("setupTitle")}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("setupTitle")}
+        </h1>
         <p className="text-sm text-muted">{t("setupSubtitle")}</p>
       </div>
 
-      <form action={`/${locale}/practice/run`} method="get" className="mt-6 space-y-6">
+      <form
+        action={`/${locale}/practice/run`}
+        method="get"
+        className="mt-6 space-y-6"
+      >
         {topics.map((topic) => (
           <Card key={topic.id} className="space-y-4">
             {/*
@@ -164,7 +170,12 @@ export default async function PracticeSetupPage({
               </label>
             ))}
             <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10">
-              <input type="radio" name="len" value="" className="accent-accent" />
+              <input
+                type="radio"
+                name="len"
+                value=""
+                className="accent-accent"
+              />
               {t("lengthEndless")}
             </label>
           </div>

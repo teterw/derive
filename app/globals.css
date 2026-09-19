@@ -224,6 +224,32 @@ body {
 }
 
 /*
+ * The XP a question just earned, rising out of the level bar.
+ *
+ * It fades before it has finished travelling, so it never reaches the question
+ * above it, and it is `pointer-events: none` at the element so it cannot take a
+ * click from the answer box while it is in the air.
+ */
+@keyframes xp-award {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-22px) scale(1);
+  }
+}
+
+.xp-award {
+  animation: xp-award 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
  * Someone who has asked their system for less motion has asked for this too.
  * The content still appears - only the movement goes - because removing the
  * animation entirely would put the hard cut back.

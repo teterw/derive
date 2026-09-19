@@ -13,7 +13,12 @@ import {
 import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
-import { getHeatmap, getStreak, getToday, getWeakestSkills } from "@/lib/stats/queries";
+import {
+  getHeatmap,
+  getStreak,
+  getToday,
+  getWeakestSkills,
+} from "@/lib/stats/queries";
 import { getReviewCount } from "@/lib/review/queue";
 import { getDueCount } from "@/lib/review/due";
 import { getDailyStreak } from "@/lib/daily/challenge";
@@ -83,7 +88,11 @@ export default async function DashboardPage({
         them side by side is the point: they are one status line.
       */}
       <div className="mt-6 grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-surface">
-        <Stat value={String(streak.current)} label={t("dayStreak")} icon={<Flame />} />
+        <Stat
+          value={String(streak.current)}
+          label={t("dayStreak")}
+          icon={<Flame />}
+        />
         <Stat value={String(today.attempts)} label={t("questionsToday")} />
         <Stat
           value={accuracy === null ? "—" : `${accuracy}%`}

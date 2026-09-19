@@ -14,6 +14,7 @@ import {
   parseQuestionId,
   planQuestions,
 } from "@/lib/practice/session";
+import { getTotalXp } from "@/lib/profile/queries";
 import { AppShell } from "@/components/layout/app-shell";
 import { ToolDock } from "@/components/tools/tool-dock";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -37,14 +38,24 @@ export default async function PracticeRunPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("practice");
+
+  const tNav = await getTranslations("nav");
+
+  const startingXp = await getTotalXp(user.id);
   const query = await searchParams;
   const config = configFromSearchParams(query);
 
   // `?q=` pins the question, so a language switch does not deal a new one.
   const pinned = typeof query.q === "string" ? parseQuestionId(query.q) : null;
 
-  const render = (ref: { generatorId: string; seed: number; difficulty: 1 | 2 | 3 | 4 }) =>
-    toPublicQuestion(generateQuestion(ref.generatorId, ref.seed, ref.difficulty));
+  const render = (ref: {
+    generatorId: string;
+    seed: number;
+    difficulty: 1 | 2 | 3 | 4;
+  }) =>
+    toPublicQuestion(
+      generateQuestion(ref.generatorId, ref.seed, ref.difficulty),
+    );
 
   let first;
   /*
@@ -68,11 +79,18 @@ export default async function PracticeRunPage({
     }
   } catch {
     return (
-      <AppShell locale={locale as Locale} user={user}>
+      <AppShell
+        locale={locale as Locale}
+        user={user}
+        back={{ href: "/practice", label: tNav("backToPractice") }}
+      >
         <Card className="space-y-2">
           <CardTitle>{t("noContentTitle")}</CardTitle>
           <CardDescription>{t("noContentBody")}</CardDescription>
-          <Link href="/practice" className="text-sm text-accent hover:underline">
+          <Link
+            href="/practice"
+            className="text-sm text-accent hover:underline"
+          >
             {t("backToSetup")}
           </Link>
         </Card>
@@ -81,7 +99,11 @@ export default async function PracticeRunPage({
   }
 
   return (
-    <AppShell locale={locale as Locale} user={user}>
+    <AppShell
+      locale={locale as Locale}
+      user={user}
+      back={{ href: "/practice", label: tNav("backToPractice") }}
+    >
       <PracticeRunner
         config={config}
         first={first}
@@ -89,6 +111,7 @@ export default async function PracticeRunPage({
         ruleNames={ruleNames}
         skillNames={skillNames}
         difficultyLabels={DIFFICULTY_LABELS}
+        startingXp={startingXp}
       />
       <ToolDock
         rules={allRules}

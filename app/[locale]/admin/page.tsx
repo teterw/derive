@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
-import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  getFormatter,
+  getTranslations,
+  setRequestLocale,
+} from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { desc, eq } from "drizzle-orm";
 import { routing } from "@/i18n/routing";
@@ -7,7 +11,10 @@ import { db } from "@/lib/db";
 import { inviteCodes, users } from "@/lib/db/schema";
 import { requireAdmin } from "@/lib/auth/current-user";
 import { RotateCcw } from "lucide-react";
-import { disableInviteCodeAction, resetMyDailyAction } from "@/lib/admin/actions";
+import {
+  disableInviteCodeAction,
+  resetMyDailyAction,
+} from "@/lib/admin/actions";
 import { formatInviteCode } from "@/lib/auth/invite";
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge, Card, CardDescription, CardTitle } from "@/components/ui/card";

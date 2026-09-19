@@ -18,6 +18,7 @@ import { logoutAction } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, avatarSeed } from "@/components/profile/avatar";
+import { NavLink } from "./nav-link";
 import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -105,21 +106,14 @@ export async function AppShell({
 
           <nav className="hidden items-center gap-1 text-sm lg:flex">
             {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg"
-              >
+              <NavLink key={item.href} href={item.href} variant="header">
                 {t(item.key)}
-              </Link>
+              </NavLink>
             ))}
             {user.role === "admin" ? (
-              <Link
-                href="/admin"
-                className="rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg"
-              >
+              <NavLink href="/admin" variant="header">
                 {t("admin")}
-              </Link>
+              </NavLink>
             ) : null}
           </nav>
 
@@ -129,18 +123,22 @@ export async function AppShell({
               everywhere, and it saves a word of chrome in a header that is
               already tight on a phone.
             */}
-            <Link
+            {/*
+              A ring rather than a bar: the avatar is round and an underline
+              beneath a circle reads as a mistake. Same accent, same meaning.
+            */}
+            <NavLink
               href={`/u/${user.username}`}
+              variant="avatar"
               title={t("profile")}
               aria-label={t("profile")}
-              className="shrink-0 rounded-full ring-offset-2 ring-offset-bg hover:ring-2 hover:ring-accent"
             >
               <Avatar
                 seed={avatarSeed(user.username, user.avatarSlot)}
                 size={28}
                 className="h-7 w-7"
               />
-            </Link>
+            </NavLink>
             <LocaleSwitch />
             <ThemeToggle label={tCommon("theme")} />
             <form action={logoutAction}>
@@ -166,16 +164,14 @@ export async function AppShell({
         */}
         <nav className="mx-auto flex w-full max-w-5xl gap-1 overflow-x-auto px-4 pb-2 text-sm lg:hidden">
           {NAV.map((item) => (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
-              className={cn(
-                "shrink-0 rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg",
-                item.onPhone && "hidden sm:block",
-              )}
+              variant="strip"
+              className={cn(item.onPhone && "hidden sm:block")}
             >
               {t(item.key)}
-            </Link>
+            </NavLink>
           ))}
           {/*
             Admin rides in the strip rather than the header below `lg`. In the
@@ -183,12 +179,9 @@ export async function AppShell({
             it is the least-used destination of the lot.
           */}
           {user.role === "admin" ? (
-            <Link
-              href="/admin"
-              className="shrink-0 rounded px-2 py-1 text-muted hover:bg-surface-2 hover:text-fg"
-            >
+            <NavLink href="/admin" variant="strip">
               {t("admin")}
-            </Link>
+            </NavLink>
           ) : null}
         </nav>
       </header>
@@ -203,13 +196,10 @@ export async function AppShell({
             const Icon = item.icon;
             return (
               <li key={item.href} className="flex-1">
-                <Link
-                  href={item.href}
-                  className="flex flex-col items-center gap-0.5 py-2 text-[10px] text-muted active:text-accent"
-                >
+                <NavLink href={item.href} variant="tab">
                   <Icon className="h-5 w-5" />
                   {t(item.key)}
-                </Link>
+                </NavLink>
               </li>
             );
           })}

@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { inviteCodes } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { generateInviteCode } from "@/lib/auth/invite";
+import { resetDailyRun } from "@/lib/daily/challenge";
 
 export type AdminState = { error?: string; createdCode?: string } | null;
 
@@ -78,6 +79,31 @@ export async function disableInviteCodeAction(
     .where(eq(inviteCodes.id, id));
 
   revalidatePath(`/${locale}/admin`);
+}
+
+/**
+ * Throws away the caller's own daily run for today so it can be taken again.
+ *
+ * A development affordance, and deliberately a narrow one. The daily is meant
+ * to be once a day - that is the whole point of it - but while the daily is
+ * being *built* you need to walk through it more than once an evening, and the
+ * alternative is editing rows in Neon by hand.
+ *
+ * Three limits keep it from becoming a way to farm the statistics:
+ *   - admin only, re-read from the session rather than trusted from the form;
+ *   - it resets the caller's own run, never another account's;
+ *   - it deletes the attempts as well, so the streak and the daily stats are
+ *     rolled back with it rather than counting the day twice.
+ */
+export async function resetMyDailyAction(formData: FormData): Promise<void> {
+  const admin = await requireAdminUser();
+  const locale = readLocale(formData);
+
+  await resetDailyRun(admin.id);
+
+  revalidatePath(`/${locale}/admin`);
+  revalidatePath(`/${locale}/daily`);
+  revalidatePath(`/${locale}/stats`);
 }
 
 function clampInt(

@@ -1,27 +1,44 @@
 "use client";
 
-import { useEffect, useImperativeHandle, useMemo, useRef, type Ref } from "react";
+import {
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type Ref,
+} from "react";
 import { useTranslations } from "next-intl";
 import { answerToTex } from "@/lib/math/to-tex";
 import { Tex } from "@/components/math/katex";
+import { MathField, type MathFieldHandle } from "@/components/math/math-field";
 import { cn } from "@/lib/utils";
 
 /**
- * Typing maths on a phone is the difference between practising and not, so the
- * keypad inserts exactly the text the answer checker accepts - `sqrt(`, `^`,
- * `/` - rather than a private format that needs translating later.
+ * The keypad.
+ *
+ * `insert` is plain text for the fallback box - exactly what the answer
+ * checker accepts, never a private format needing translation later. `latex`
+ * is what the same key does in the maths field, where `#0` is where the caret
+ * lands and `#?` is an empty box to fill in. Pressing `÷` in the field gives
+ * you `□/□` with the caret in the numerator, the way a calculator does.
  */
-const KEYS: { label: string; insert: string; caretBack?: number; wide?: boolean }[] = [
-  { label: "√", insert: "sqrt()", caretBack: 1 },
-  { label: "x²", insert: "^2" },
-  { label: "xⁿ", insert: "^" },
-  { label: "( )", insert: "()", caretBack: 1 },
-  { label: "÷", insert: "/" },
-  { label: "×", insert: "*" },
-  { label: "−", insert: "-" },
-  { label: "+", insert: "+" },
-  { label: "π", insert: "pi" },
-  { label: ",", insert: ", " },
+const KEYS: {
+  label: string;
+  insert: string;
+  caretBack?: number;
+  latex?: string;
+}[] = [
+  { label: "√", insert: "sqrt()", caretBack: 1, latex: "\\sqrt{#0}" },
+  { label: "x²", insert: "^2", latex: "#@^{2}" },
+  { label: "xⁿ", insert: "^", latex: "#@^{#?}" },
+  { label: "( )", insert: "()", caretBack: 1, latex: "\\left(#0\\right)" },
+  { label: "÷", insert: "/", latex: "\\frac{#@}{#?}" },
+  { label: "×", insert: "*", latex: "\\times" },
+  { label: "−", insert: "-", latex: "-" },
+  { label: "+", insert: "+", latex: "+" },
+  { label: "π", insert: "pi", latex: "\\pi" },
+  { label: ",", insert: ", ", latex: "," },
 ];
 
 export type AnswerInputHandle = {
@@ -54,6 +71,18 @@ export function AnswerInput({
    */
   const pendingCaret = useRef<number | null>(null);
 
+  const fieldRef = useRef<MathFieldHandle>(null);
+  /**
+   * `null` while MathLive is still loading, `true` once the maths field is
+   * live, `false` if it could not be loaded at all.
+   *
+   * The plain box renders in every state except `true`, so there is never a
+   * moment with no way to type - including on a connection where the field
+   * simply never arrives.
+   */
+  const [fieldReady, setFieldReady] = useState<boolean | null>(null);
+  const usingField = fieldReady === true;
+
   useEffect(() => {
     const caret = pendingCaret.current;
     if (caret === null) return;
@@ -65,17 +94,22 @@ export function AnswerInput({
   }, [value]);
 
   useImperativeHandle(handleRef, () => ({
-    focus: () => inputRef.current?.focus(),
+    focus: () =>
+      usingField ? fieldRef.current?.focus() : inputRef.current?.focus(),
     clear: () => onChange(""),
   }));
 
-  function insert(text: string, caretBack = 0) {
+  function press(key: (typeof KEYS)[number]) {
+    if (usingField) {
+      fieldRef.current?.execute(["insert", key.latex ?? key.insert]);
+      return;
+    }
     const input = inputRef.current;
     if (!input) return;
     const start = input.selectionStart ?? value.length;
     const end = input.selectionEnd ?? value.length;
-    onChange(value.slice(0, start) + text + value.slice(end));
-    pendingCaret.current = start + text.length - caretBack;
+    onChange(value.slice(0, start) + key.insert + value.slice(end));
+    pendingCaret.current = start + key.insert.length - (key.caretBack ?? 0);
   }
 
   /**
@@ -90,64 +124,87 @@ export function AnswerInput({
   const preview = useMemo(() => answerToTex(value), [value]);
   const typing = value.trim() !== "";
 
+  const frame = cn(
+    "flex h-14 w-full items-center rounded-lg border bg-surface px-4",
+    state === "correct" && "border-correct",
+    state === "wrong" && "border-wrong",
+    state === "idle" && "border-border",
+  );
+
   return (
     <div className="space-y-3">
-      <div className="flex gap-2">
-        <input
-          ref={inputRef}
+      {/*
+        Both inputs are mounted while MathLive loads: the plain box is what you
+        type into meanwhile, and it is the only one if the field never arrives.
+        Once the field is live the plain box comes out of the tree entirely,
+        rather than being hidden, so there is only ever one focusable input.
+      */}
+      <div className={frame} data-mathfield={usingField ? "on" : "off"}>
+        <MathField
           value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              onSubmit();
-            }
-          }}
+          onChange={onChange}
+          onSubmit={onSubmit}
+          onReady={setFieldReady}
           disabled={disabled}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="none"
-          spellCheck={false}
-          inputMode="text"
-          placeholder={t("answerPlaceholder")}
-          aria-label={t("yourAnswer")}
-          className={cn(
-            "h-14 w-full rounded-lg border bg-surface px-4 font-mono text-xl text-fg",
-            "placeholder:font-sans placeholder:text-base placeholder:text-muted",
-            state === "correct" && "border-correct",
-            state === "wrong" && "border-wrong",
-            state === "idle" && "border-border",
-          )}
+          ariaLabel={t("yourAnswer")}
+          handleRef={fieldRef}
+          className="w-full text-xl"
         />
+
+        {usingField ? null : (
+          <input
+            ref={inputRef}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                onSubmit();
+              }
+            }}
+            disabled={disabled}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            inputMode="text"
+            placeholder={t("answerPlaceholder")}
+            aria-label={t("yourAnswer")}
+            className={cn(
+              "h-full w-full bg-transparent font-mono text-xl text-fg outline-none",
+              "placeholder:font-sans placeholder:text-base placeholder:text-muted",
+            )}
+          />
+        )}
       </div>
 
       {/*
-        Reserved height, so the keypad does not jump down the page the moment
-        the first character is typed.
+        The preview answers "how will my typing be read", which the maths field
+        answers by construction - it *is* the rendered form. So it only appears
+        behind the plain box. Reserved height either way, so the keypad does
+        not jump down the page on the first keystroke.
       */}
       <div
         className="flex min-h-9 items-center gap-2 px-1"
         aria-live="polite"
         data-testid="answer-preview"
       >
-        {typing ? (
-          preview ? (
-            <>
-              <span className="shrink-0 text-xs text-muted">{t("readsAs")}</span>
-              <span
-                className={cn(
-                  "min-w-0 overflow-x-auto text-lg",
-                  state === "correct" && "text-correct",
-                  state === "wrong" && "text-wrong",
-                )}
-              >
-                <Tex tex={preview} />
-              </span>
-            </>
-          ) : (
-            <span className="text-xs text-muted">{t("cannotReadYet")}</span>
-          )
-        ) : null}
+        {usingField || !typing ? null : preview ? (
+          <>
+            <span className="shrink-0 text-xs text-muted">{t("readsAs")}</span>
+            <span
+              className={cn(
+                "min-w-0 overflow-x-auto text-lg",
+                state === "correct" && "text-correct",
+                state === "wrong" && "text-wrong",
+              )}
+            >
+              <Tex tex={preview} />
+            </span>
+          </>
+        ) : (
+          <span className="text-xs text-muted">{t("cannotReadYet")}</span>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-1.5">
@@ -156,7 +213,7 @@ export function AnswerInput({
             key={key.label}
             type="button"
             disabled={disabled}
-            onClick={() => insert(key.insert, key.caretBack)}
+            onClick={() => press(key)}
             className={cn(
               "h-10 min-w-10 cursor-pointer rounded-md border border-border bg-surface px-3",
               "font-mono text-sm text-fg hover:bg-surface-2 disabled:opacity-40",

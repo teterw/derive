@@ -268,6 +268,17 @@ class Parser {
 }
 
 /**
+ * True when the text is already LaTeX rather than typed plain text.
+ *
+ * A backslash is the tell: the plain-text answer format has no use for one,
+ * and every LaTeX command starts with it. Answers built in the maths field
+ * arrive this way and should be rendered as they are.
+ */
+export function looksLikeLatex(source: string): boolean {
+  return /\\[a-zA-Z]/.test(source);
+}
+
+/**
  * One expression to TeX, or `null` when it cannot be read.
  *
  * `null` is a normal outcome, not a failure: a half-typed `2x +` is

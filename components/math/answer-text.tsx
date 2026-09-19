@@ -1,4 +1,4 @@
-import { answerToTex } from "@/lib/math/to-tex";
+import { answerToTex, looksLikeLatex } from "@/lib/math/to-tex";
 import { Tex } from "./katex";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,13 @@ export function AnswerText({
   value: string;
   className?: string;
 }) {
-  const tex = answerToTex(value);
+  /*
+   * An answer built in the maths field is already LaTeX, and it is the exact
+   * shape the learner assembled - so it is shown back unchanged rather than
+   * round-tripped through the plain-text parser, which would only be able to
+   * lose information.
+   */
+  const tex = looksLikeLatex(value) ? value : answerToTex(value);
 
   /*
    * `data-answer` carries the answer as it was typed. Once it is rendered,

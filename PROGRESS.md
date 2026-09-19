@@ -24,7 +24,7 @@ Beyond the phase plan: the **daily challenge** from
 `docs/CONTENT-PIPELINE.md` §6 is built.
 
 Green as of this commit: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(318 tests in 27 files), `pnpm build`, `pnpm smoke` (32 checks against the real
+(331 tests in 29 files), `pnpm build`, `pnpm smoke` (41 checks against the real
 database), `pnpm render-check` (15 pages, signed in), `pnpm check:contrast`,
 `pnpm vars`.
 
@@ -145,6 +145,32 @@ the code. Each is worth recording because each was invisible to the tests.
    button sat permanently beside the navigation, and the daily has no second
    attempt that day. Finishing is now guarded by a panel naming what is
    outstanding, with the question numbers as buttons.
+
+## Round three
+
+1. **The answer box is a real maths field.** MathLive, so pressing `÷` gives
+   `□/□` with the caret in the numerator and the arrow keys walking between
+   boxes - the scientific-calculator model, which is what was asked for. It is
+   lazy (218KB gzipped, own chunk) and *optional*: until it loads, and forever
+   if it never does, the plain text box with its rendered preview is what you
+   get. `onReady(false)` is a normal outcome.
+   - Answers now arrive as LaTeX. `normalizeInput` strips `\placeholder{}`
+     first, because a half-built fraction has to read as *incomplete* rather
+     than as a parse error.
+   - **A real bug fell out of this:** `normalizeInput` decided "is this LaTeX?"
+     by looking for a backslash, and the field writes a simple power as
+     `x^{2}` - braces, no command. That went to mathjs raw, which cannot read
+     `{2}`, so a correct answer was marked wrong. Now a braced exponent counts
+     as LaTeX too.
+   - **And a second:** the field is created asynchronously, so a question
+     answered while MathLive was still downloading produced an editable field,
+     because the `disabled` effect had already run. Creation now reads the
+     current props from a ref rather than the render that started the load.
+2. **An admin can reset their own daily.** `/admin` has a dashed "development
+   tools" card with one button. It is admin-only, only ever touches the
+   caller's own run, and rebuilds `daily_stats` for the day from the attempts
+   that survive rather than clearing it - the learner may also have practised
+   this morning, and that is not the daily's to delete. Nine smoke checks.
 
 ## Where to pick up
 

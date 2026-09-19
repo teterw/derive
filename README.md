@@ -138,9 +138,21 @@ Indigo replaced it for a reason that outlives taste: **the accent sits directly 
 
 Colours are not eyeballed. `pnpm check:contrast` parses the tokens out of `app/globals.css` and checks every pairing the interface actually puts together, in both modes, and the chart ramp is validated separately for monotone lightness and for adjacent steps clearing the colourblind **and** normal-vision separation floors. Dark mode is its own re-stepped ramp measured against the dark surface, not an automatic flip.
 
-### You should be able to read your own answer
+### You type maths, not a command line
 
-The answer box shows, live, what your typing **means**:
+The answer box is a real maths field, the way a scientific calculator is: press `÷` and you get a fraction with two empty boxes and the caret in the first, arrow keys walk between them, `√` draws a radical with a slot underneath it.
+
+```
+┌──────────────────────┐        ┌──────────────────────┐
+│  1 + √5              │        │      1 + □           │
+│  ───────             │  ←     │      ─────           │   press ÷, then √
+│     2                │        │        □             │
+└──────────────────────┘        └──────────────────────┘
+```
+
+It is [MathLive](https://cortexjs.io/mathlive/), which also accepts typing: `/` starts a fraction, `sqrt` becomes a radical, `^` a superscript. So it is not slower than a text box for someone who types fluently — it just stops showing them `3sqrt(2)` when they meant `3√2`.
+
+**It is optional, on purpose.** MathLive is ~218KB gzipped, in its own chunk, imported on mount. Until it arrives — or if it never does — the box is an ordinary text input with a rendered preview underneath:
 
 ```
 ┌────────────────────────┐
@@ -149,11 +161,13 @@ The answer box shows, live, what your typing **means**:
   อ่านว่า   3√2
 ```
 
-Being shown `3sqrt(2)` back tells you nothing you did not already know — you are left checking your own typing against a format you half-remember, when the thing you are actually unsure about is the maths. Every place an answer appears afterwards (feedback, exam results) renders it the same way.
+An app where you cannot type an answer because a 218KB download stalled would be worse than one with a plainer input, so `onReady(false)` is a normal outcome rather than an error path, and the fallback is covered by its own tests rather than being assumed to work.
 
-The preview must never lie about how the answer will be marked, so `lib/math/to-tex.ts` is tested by parsing a corpus with *both* it and mathjs and asserting they evaluate the same at sample points. It is allowed to understand less than mathjs; it is not allowed to understand anything differently.
+That preview must never lie about how the answer will be marked, so `lib/math/to-tex.ts` is tested by parsing a corpus with *both* it and mathjs and asserting they evaluate the same at sample points. It is allowed to understand less than mathjs; it is not allowed to understand anything differently. (It is a second parser at all because mathjs is ~500KB and would be re-entered on every keystroke.)
 
-It exists at all because mathjs is ~500KB and would be re-entered on every keystroke; a learner on a school connection should not download a computer algebra system to be told that `m^5` is m to the fifth. KaTeX itself was already a client dependency (the results screen is a client component that renders formulas), and sits in its own 76KB-gzipped chunk loaded only by the routes that answer questions.
+Answers from the field arrive as LaTeX, which the checker already speaks — `normalizeInput` strips the field's `\placeholder{}` (an empty box must read as *incomplete*, not as a syntax error) and hands the rest to the existing KaTeX→mathjs converter. Every place an answer appears afterwards renders it the same way it was built.
+
+KaTeX itself was already a client dependency and sits in its own 76KB-gzipped chunk.
 
 ### Choosing what to practise is recognition, not reading
 
@@ -226,6 +240,8 @@ Nothing here is checked by looking at it and deciding it seems fine:
 |---|---|
 | Derivations are correct | the §9 property gate — 100 seeds × 4 difficulties × every generator, asserting adjacent steps are equivalent, every rule id exists, the answer satisfies the stem, and each named misconception really is wrong |
 | The answer preview matches the marker | a corpus parsed by both `to-tex` and mathjs, evaluated at sample points |
+| An answer built in the maths field marks the same as one typed | `lib/math/mathfield-input.test.ts` — the same answers in LaTeX and in plain text, asserted to agree |
+| The app still works without MathLive | the component tests run the fallback path deliberately, by mocking the import to fail |
 | Prose and maths are separated correctly | the segmenter run over the *whole* content corpus: no character lost, every fragment renders, no raw command left in prose, no command that lost its backslash |
 | Colours are legible in both modes | `pnpm check:contrast` |
 | Unknowns are `x` and `y` | `pnpm vars` |

@@ -13,6 +13,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "../lib/db";
 import {
   attempts,
+  dailyStats,
   inviteCodes,
   inviteRedemptions,
   runs,
@@ -29,6 +30,7 @@ import {
   dailyRefs,
   findOrCreateDailyRun,
   getDailyStreak,
+  resetDailyRun,
 } from "../lib/daily/challenge";
 import { checkAnswer } from "../lib/math/check";
 import { recordAttempt } from "../lib/stats/record";
@@ -374,6 +376,59 @@ async function main() {
   const dailyStreak = await getDailyStreak(userId);
   fail("finishing it starts a daily streak", dailyStreak.current === 1);
   fail("and it is marked done for today", dailyStreak.doneToday);
+
+  // --- the admin daily reset ----------------------------------------------
+  console.log("\ndaily reset");
+
+  const resetDay = bangkokDay();
+  const [beforeReset] = await db
+    .select({
+      attempts: dailyStats.attempts,
+      correct: dailyStats.correct,
+    })
+    .from(dailyStats)
+    .where(and(eq(dailyStats.userId, userId), eq(dailyStats.day, resetDay)));
+
+  /*
+   * The practice attempts recorded earlier in this run are on the same day.
+   * They are what proves the reset rebuilds the day's rollup rather than
+   * simply wiping it.
+   */
+  const practiceToday = Number(beforeReset?.attempts ?? 0) - DAILY_QUESTIONS;
+  fail(
+    "the day's rollup counted both the practice and the daily",
+    practiceToday > 0,
+  );
+
+  const reset = await resetDailyRun(userId, resetDay);
+  fail("resetting removes the run", reset.removedRuns === 1);
+  fail(
+    "and every attempt that belonged to it",
+    reset.removedAttempts === DAILY_QUESTIONS,
+  );
+
+  const afterStreak = await getDailyStreak(userId);
+  fail("the daily streak is rolled back with it", afterStreak.current === 0);
+  fail("and today is open again", !afterStreak.doneToday);
+
+  const [afterReset] = await db
+    .select({ attempts: dailyStats.attempts })
+    .from(dailyStats)
+    .where(and(eq(dailyStats.userId, userId), eq(dailyStats.day, resetDay)));
+  fail(
+    "today's practice survived the reset",
+    Number(afterReset?.attempts ?? 0) === practiceToday,
+  );
+
+  const reopened = await findOrCreateDailyRun(userId, resetDay);
+  fail("and the daily can be taken again", reopened.id !== first.id);
+  fail("as a fresh, unfinished run", !reopened.finished);
+
+  const secondReset = await resetDailyRun(userId, resetDay);
+  fail(
+    "resetting twice is harmless",
+    secondReset.removedRuns === 1 && secondReset.removedAttempts === 0,
+  );
 
   // --- clean up -----------------------------------------------------------
   await db.delete(users).where(eq(users.id, userId));

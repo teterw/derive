@@ -6,7 +6,8 @@ import { routing } from "@/i18n/routing";
 import { db } from "@/lib/db";
 import { inviteCodes, users } from "@/lib/db/schema";
 import { requireAdmin } from "@/lib/auth/current-user";
-import { disableInviteCodeAction } from "@/lib/admin/actions";
+import { RotateCcw } from "lucide-react";
+import { disableInviteCodeAction, resetMyDailyAction } from "@/lib/admin/actions";
 import { formatInviteCode } from "@/lib/auth/invite";
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge, Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -67,6 +68,26 @@ export default async function AdminPage({
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="text-sm text-muted">{t("subtitle")}</p>
       </div>
+
+      {/*
+        A development tool, kept visibly separate from the real admin controls
+        above and below it so nobody reaches for it by habit. It only ever
+        resets the signed-in admin's own daily.
+      */}
+      <Card className="mt-6 space-y-3 border-dashed">
+        <div className="space-y-1">
+          <CardTitle className="text-base">{t("devTools")}</CardTitle>
+          <CardDescription>{t("devToolsNote")}</CardDescription>
+        </div>
+        <form action={resetMyDailyAction}>
+          <input type="hidden" name="locale" value={locale} />
+          <Button type="submit" variant="outline" size="sm">
+            <RotateCcw className="h-4 w-4" />
+            {t("resetMyDaily")}
+          </Button>
+        </form>
+        <p className="text-xs text-muted">{t("resetMyDailyHelp")}</p>
+      </Card>
 
       <Card className="mt-6 space-y-5">
         <CardTitle>{t("inviteCodes")}</CardTitle>

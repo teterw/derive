@@ -121,7 +121,11 @@
     "lastSeen": "Last seen",
     "roleAdmin": "Admin",
     "roleUser": "User",
-    "forbidden": "This page is for admins only."
+    "forbidden": "This page is for admins only.",
+    "devTools": "Development tools",
+    "devToolsNote": "For development only. These affect your own account and nobody else's.",
+    "resetMyDaily": "Reset my daily",
+    "resetMyDailyHelp": "Deletes your own run for today so you can take it again. Today's attempts, streak and statistics are rolled back with it."
   },
   "practice": {
     "setupTitle": "Set up a practice run",

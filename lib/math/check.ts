@@ -30,17 +30,51 @@ const SYMBOL_REPLACEMENTS: [RegExp, string][] = [
 ];
 
 /**
+ * LaTeX that the maths field emits but that carries no mathematical content.
+ *
+ * `\placeholder{}` is the empty box in `□/□` - a half-built expression, which
+ * must read as empty rather than as a syntax error, or the answer box would
+ * report "unreadable" the instant a fraction key is pressed. The spacing
+ * macros are the field's own typesetting and mean nothing to the checker.
+ */
+const MATHFIELD_NOISE: [RegExp, string][] = [
+  [/\\placeholder(?:\[[^\]]*\])?\{([^{}]*)\}/g, "$1"],
+  [/\\placeholder(?:\[[^\]]*\])?/g, ""],
+  [/\\differentialD/g, "d"],
+  [/\\exponentialE/g, "e"],
+  [/\\imaginaryI/g, "i"],
+  [/\\pi\b/g, "pi"],
+  [/\\infty/g, "Infinity"],
+  [/\\%/g, "%"],
+  [/\\bigl|\\bigr|\\Bigl|\\Bigr/g, ""],
+  [/\\mathinner|\\mathord/g, ""],
+];
+
+/**
  * Turns what a person typed into mathjs source.
  *
- * Accepts both plain text (`sqrt(2)`, `x^2`, `1/2`) and the LaTeX the on-screen
- * keypad produces (`\sqrt{2}`, `\frac{1}{2}`).
+ * Accepts plain text (`sqrt(2)`, `x^2`, `1/2`), the LaTeX the on-screen keypad
+ * produces (`\sqrt{2}`, `\frac{1}{2}`), and the LaTeX the maths field emits,
+ * which is the same thing plus the placeholders and spacing macros stripped
+ * above.
  */
 export function normalizeInput(raw: string): string {
   let text = raw.trim();
   for (const [pattern, replacement] of SYMBOL_REPLACEMENTS) {
     text = text.replace(pattern, replacement);
   }
-  if (text.includes("\\")) text = katexToMath(text);
+  /*
+   * A backslash is not enough to recognise LaTeX. The maths field writes a
+   * simple power as `x^{2}` - braces, no command - and that went straight to
+   * mathjs, which cannot read `{2}`, so a correct answer was marked wrong.
+   * A braced exponent or subscript is the other tell.
+   */
+  if (text.includes("\\") || /[\^_]\s*\{/.test(text)) {
+    for (const [pattern, replacement] of MATHFIELD_NOISE) {
+      text = text.replace(pattern, replacement);
+    }
+    text = katexToMath(text);
+  }
   // "sqrt2" and "sqrt 2" both mean sqrt(2).
   text = text.replace(/sqrt\s*(-?\d+(?:\.\d+)?)/g, "sqrt($1)");
   return insertImplicitMultiplication(text).trim();

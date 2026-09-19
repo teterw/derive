@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { createRng, seedFromString } from "@/content/rng";
 import {
   difficultiesForSkill,
@@ -7,7 +7,7 @@ import {
 import { skills } from "@/content/topics";
 import type { Difficulty } from "@/content/types";
 import { db } from "@/lib/db";
-import { runs } from "@/lib/db/schema";
+import { attempts, dailyStats, runs } from "@/lib/db/schema";
 import type { QuestionRef } from "@/lib/practice/session";
 import { bangkokDay, previousDay } from "@/lib/stats/day";
 
@@ -114,6 +114,72 @@ export async function findOrCreateDailyRun(
     .returning({ id: runs.id });
 
   return { id: created!.id, finished: false };
+}
+
+/**
+ * Throws away one learner's daily run for a day so it can be taken again.
+ *
+ * The authorisation lives in the caller (`resetMyDailyAction`, admin only);
+ * this is only the work, so that the smoke test can exercise the part that
+ * can actually go wrong.
+ *
+ * Deleting the run is the easy half. The hard half is that `daily_stats` for
+ * the day is a rollup of *all* of that day's attempts, daily and practice
+ * alike - so it is recomputed from what survives rather than cleared, or a
+ * learner who practised this morning would lose that too.
+ */
+export async function resetDailyRun(
+  userId: string,
+  day: string = bangkokDay(),
+): Promise<{ removedRuns: number; removedAttempts: number }> {
+  const dailyRuns = await db
+    .select({ id: runs.id })
+    .from(runs)
+    .where(
+      and(
+        eq(runs.userId, userId),
+        eq(runs.mode, "daily"),
+        sql`${runs.config} ->> 'day' = ${day}`,
+      ),
+    );
+
+  if (dailyRuns.length === 0) return { removedRuns: 0, removedAttempts: 0 };
+  const ids = dailyRuns.map((run) => run.id);
+
+  return db.transaction(async (tx) => {
+    const removed = await tx
+      .delete(attempts)
+      .where(and(eq(attempts.userId, userId), inArray(attempts.runId, ids)))
+      .returning({ id: attempts.id });
+
+    await tx.delete(runs).where(inArray(runs.id, ids));
+
+    const [remaining] = await tx
+      .select({
+        attempts: sql<number>`count(*)::int`,
+        correct: sql<number>`coalesce(sum(case when ${attempts.isCorrect} then 1 else 0 end), 0)::int`,
+        timeMs: sql<number>`coalesce(sum(${attempts.timeMs}), 0)::int`,
+      })
+      .from(attempts)
+      .where(and(eq(attempts.userId, userId), eq(attempts.day, day)));
+
+    if (!remaining || remaining.attempts === 0) {
+      await tx
+        .delete(dailyStats)
+        .where(and(eq(dailyStats.userId, userId), eq(dailyStats.day, day)));
+    } else {
+      await tx
+        .update(dailyStats)
+        .set({
+          attempts: remaining.attempts,
+          correct: remaining.correct,
+          timeMs: remaining.timeMs,
+        })
+        .where(and(eq(dailyStats.userId, userId), eq(dailyStats.day, day)));
+    }
+
+    return { removedRuns: ids.length, removedAttempts: removed.length };
+  });
 }
 
 export type DailyStreak = {

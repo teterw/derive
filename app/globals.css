@@ -138,6 +138,35 @@ html {
   color-scheme: light dark;
 }
 
+/*
+ * The maths input field.
+ *
+ * MathLive typesets with the KaTeX font families, which `katex.min.css` has
+ * already declared for the whole document - so this tells it not to inject a
+ * second copy of the same 300KB. If the field ever renders with the wrong
+ * glyphs, that is the first thing to check: the fix is to import
+ * `mathlive/mathlive-fonts.css` and delete this line, not to ship both.
+ */
+:root {
+  --ML__static-fonts: true;
+}
+
+math-field {
+  --caret: var(--accent);
+  --selection-background-color: color-mix(in oklab, var(--accent) 22%, transparent);
+  --contains-highlight-background-color: transparent;
+  /* The field draws its own frame by default; ours is on the wrapper. */
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  width: 100%;
+}
+
+math-field::part(virtual-keyboard-toggle),
+math-field::part(menu-toggle) {
+  display: none;
+}
+
 body {
   background-color: var(--bg);
   color: var(--fg);

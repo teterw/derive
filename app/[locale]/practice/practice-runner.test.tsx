@@ -9,6 +9,17 @@ import { skills } from "@/content/topics";
 import { DIFFICULTY_LABELS } from "@/content/types";
 import messages from "@/messages/th.json";
 
+/**
+ * MathLive is not loadable under jsdom - the web component mounts but cannot
+ * be typed into - so these tests pin the *fallback* path, which is a real
+ * shipped code path: any learner whose browser fails to fetch the 220KB
+ * field gets exactly this plain box. The maths-field path has its own file.
+ */
+vi.mock("mathlive", () => {
+  throw new Error("mathlive is unavailable in this environment");
+});
+
+
 const submitAnswerAction = vi.fn();
 const nextQuestionAction = vi.fn();
 const hintAction = vi.fn();

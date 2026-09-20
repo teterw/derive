@@ -112,29 +112,6 @@ export function normalizeConfig(raw: {
   };
 }
 
-/**
- * Which tiles a setup page starts with ticked - practice and exam both.
- *
- * Everything used to be, which was a fair default while the app was fourteen
- * chapters of ม.1-ม.4 algebra. At seventy-eight skills it is not: it hands a
- * ม.3 learner a run that mixes factorising with the mean value theorem, and
- * makes the first job on the page unticking sixty-four boxes.
- *
- * The rule is the daily challenge's - "a daily challenge that asks about
- * lessons you have not been taught is not a challenge, it is a wall"
- * (`lib/daily/challenge.ts`) - and the fallback is `normalizeConfig`'s: an
- * empty selection means everything, because a run of nothing is never what
- * anyone meant. Day one therefore looks exactly as it always did.
- *
- * It lives here, and not in the two pages, because a default duplicated in
- * two places is a default that drifts in one of them.
- */
-export function preselectedSkills(passed: readonly string[]): Set<SkillId> {
-  const known = new Set<string>(skills.map((skill) => skill.id));
-  const kept = passed.filter((id): id is SkillId => known.has(id));
-  return new Set(kept.length > 0 ? kept : skills.map((skill) => skill.id));
-}
-
 export function configFromSearchParams(
   params: Record<string, string | string[] | undefined>,
 ): PracticeConfig {

@@ -155,7 +155,7 @@
   },
   "practice": {
     "setupTitle": "Set up a practice run",
-    "setupPreselected": "The {count} skills you have passed are ticked. Add any others you want.",
+    "setupHint": "Pick the chapters you want. Choose none and questions come from all of them.",
     "difficulty": "Difficulty",
     "start": "Start practising",
     "submit": "Submit",
@@ -255,7 +255,7 @@
   },
   "exam": {
     "setupTitle": "Set up an exam",
-    "setupPreselected": "The {count} skills you have passed are ticked. Add any others you want.",
+    "setupHint": "Pick the chapters you want. Choose none and the paper is drawn from all of them.",
     "difficultyMix": "Difficulty mix",
     "questionCount": "Questions",
     "timeLimit": "Time limit",

@@ -15,6 +15,14 @@ import { cn } from "@/lib/utils";
  * open on arrival is the work in progress - see each page for its own rule -
  * because the commonest reason to be here is to carry on.
  *
+ * ## The bar
+ *
+ * A shut chapter has to be worth reading shut, or it is just a door. `12/20`
+ * is a fact you have to do arithmetic on; the bar under it is the same fact at
+ * a glance, and twenty of them down the page is a shape - where you are, what
+ * you have finished, what you have not started. The number stays for anyone
+ * who wants the exact figure.
+ *
  * ## Why `<details>` and not state
  *
  * It is native, so it needs no JavaScript, keeps working on the setup pages
@@ -30,14 +38,15 @@ import { cn } from "@/lib/utils";
  * a real box). Nothing here makes the page cheaper to build. What it changes
  * is how much of it you have to walk past, and that was the complaint.
  *
- * The summary carries a count as well as a name, because a heading you have to
- * open to learn anything from is a heading that has to be opened twenty times.
+ * The opening and shutting is animated in `globals.css`, next to the rest of
+ * the motion, because it is done with `::details-content` rather than here.
  */
 export function Chapter({
   id,
   title,
   meta,
-  count,
+  done,
+  total,
   open = false,
   children,
 }: {
@@ -45,33 +54,41 @@ export function Chapter({
   id?: string;
   title: string;
   meta: string;
-  /** The right-hand figure - lessons passed, skills ticked, whatever the page is about. */
-  count?: React.ReactNode;
+  /** How many of the chapter's skills count as done, for the bar and the figure. */
+  done?: number;
+  total?: number;
   open?: boolean;
   children: React.ReactNode;
 }) {
+  const hasCount = done !== undefined && total !== undefined && total > 0;
+  const fraction = hasCount ? done / total : 0;
+
   /*
-   * A *named* group below. The rows inside these panels carry their own
-   * `group` for their hover state, and an unnamed group here would be an
-   * ancestor of every one of them - so hovering the chapter anywhere would
-   * light up all twenty lesson rows at once.
+   * A *named* group. The rows inside these panels carry their own `group` for
+   * their hover state, and an unnamed group here would be an ancestor of every
+   * one of them - so hovering the chapter anywhere would light up all twenty
+   * lesson rows at once.
    */
   return (
     <details
       id={id}
       open={open}
-      className="group/chapter scroll-mt-6 rounded-xl border border-border bg-surface shadow-sm"
+      className={cn(
+        "group/chapter scroll-mt-6 overflow-hidden rounded-xl border border-border bg-surface shadow-sm",
+        "transition-[border-color,box-shadow] duration-200",
+        "hover:border-accent/40 hover:shadow-md",
+      )}
     >
       <summary
         className={cn(
-          "flex cursor-pointer list-none items-center gap-3 rounded-xl px-6 py-4",
-          "hover:bg-surface-2 group-open/chapter:rounded-b-none",
+          "flex cursor-pointer list-none items-center gap-3 px-6 py-4",
+          "transition-colors duration-200 hover:bg-surface-2",
           // Safari draws its own triangle without this.
           "[&::-webkit-details-marker]:hidden",
         )}
       >
         <ChevronRight
-          className="size-4 shrink-0 text-muted transition-transform group-open/chapter:rotate-90"
+          className="size-4 shrink-0 text-muted transition-transform duration-200 group-open/chapter:rotate-90"
           aria-hidden
         />
         <span className="min-w-0 flex-1">
@@ -80,11 +97,26 @@ export function Chapter({
           </span>
           <span className="block truncate text-sm text-muted">{meta}</span>
         </span>
-        {count === undefined ? null : (
-          <span className="shrink-0 font-mono text-xs tabular-nums text-muted">
-            {count}
+
+        {hasCount ? (
+          <span className="flex shrink-0 items-center gap-2.5">
+            <span
+              className="h-1.5 w-16 overflow-hidden rounded-full bg-surface-2"
+              aria-hidden
+            >
+              <span
+                className={cn(
+                  "block h-full rounded-full transition-[width] duration-300",
+                  fraction === 1 ? "bg-correct" : "bg-accent",
+                )}
+                style={{ width: `${Math.round(fraction * 100)}%` }}
+              />
+            </span>
+            <span className="w-10 text-right font-mono text-xs tabular-nums text-muted">
+              {done}/{total}
+            </span>
           </span>
-        )}
+        ) : null}
       </summary>
 
       <div className="border-t border-border px-6 pb-6 pt-4">{children}</div>

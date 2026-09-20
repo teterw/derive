@@ -295,6 +295,53 @@ body {
 }
 
 /*
+ * Jumping to a chapter.
+ *
+ * The stage links are in-page anchors, and an anchor that teleports gives you
+ * no idea whether you went up or down - which matters on a page of twenty
+ * chapters that all look alike. Sliding there costs 300ms and answers it.
+ * The reduced-motion block below puts the teleport back for anyone who asked.
+ */
+html {
+  scroll-behavior: smooth;
+}
+
+/*
+ * Chapters opening and shutting.
+ *
+ * `<details>` has only ever been able to cut: shut to open in one frame, with
+ * everything below it jumping down the page. `::details-content` plus
+ * `interpolate-size: allow-keywords` lets the panel's height animate between
+ * 0 and `auto` in CSS alone - no measuring in JavaScript, no wrapper element,
+ * and it still works with JavaScript switched off.
+ *
+ * `content-visibility` has to travel with it and is a discrete property, so it
+ * needs `allow-discrete` or the contents vanish on the first frame of the
+ * close and the height animates against nothing.
+ *
+ * Guarded, because this is new. A browser without it gets exactly the cut it
+ * had before, which is the behaviour this is an improvement on rather than a
+ * replacement for.
+ */
+@supports (interpolate-size: allow-keywords) and (selector(::details-content)) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  details::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 240ms ease,
+      content-visibility 240ms allow-discrete;
+  }
+
+  details[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/*
  * Someone who has asked their system for less motion has asked for this too.
  * The content still appears - only the movement goes - because removing the
  * animation entirely would put the hard cut back.

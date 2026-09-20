@@ -12,11 +12,7 @@ import { Chapter } from "@/components/ui/chapter";
 import { StageJump } from "@/components/ui/stage-jump";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/field";
-import {
-  ROUND,
-  RUN_LENGTHS,
-  preselectedSkills,
-} from "@/lib/practice/session";
+import { ROUND, RUN_LENGTHS } from "@/lib/practice/session";
 import { Tex } from "@/components/math/katex";
 import { SkillGroupToggle } from "./skill-group-toggle";
 
@@ -37,14 +33,21 @@ export default async function PracticeSetupPage({
   const activeLocale = locale as Locale;
 
   /*
-   * Ticked to start with: the lessons passed, or everything for an account
-   * that has passed none. `preselectedSkills` explains why. Nothing is
-   * hidden - every skill is still on the page, one click away, and the
-   * per-chapter toggles are still there.
+   * Nothing starts ticked.
+   *
+   * This page briefly pre-ticked the lessons you had passed, on the daily
+   * challenge's reasoning. Ticking anything at all turned out to be the wrong
+   * call: it looks like the app has decided for you, and what it decides is
+   * always the chapters you have already finished - exactly the ones you least
+   * need to drill. Choosing is the whole job of this page, so it is left to
+   * you, and `normalizeConfig` still reads an empty selection as "all of it",
+   * which the line under the heading says out loud.
+   *
+   * The passed count stays, as the figure beside each chapter. It is the same
+   * thing `/learn` shows, and it is useful while choosing - it just no longer
+   * chooses.
    */
-  const passed = await getPassedSkillIds(user.id);
-  const preselected = preselectedSkills(passed);
-  const nothingPassed = passed.length === 0;
+  const passed = new Set(await getPassedSkillIds(user.id));
 
   return (
     <AppShell locale={activeLocale} user={user}>
@@ -53,14 +56,10 @@ export default async function PracticeSetupPage({
           {t("setupTitle")}
         </h1>
         {/*
-          Said out loud, because a page that arrives with most of its boxes
-          unticked and no explanation reads as a page that failed to load.
+          Said out loud, because a page of empty boxes with a start button is
+          otherwise a page that looks like it will refuse.
         */}
-        {nothingPassed ? null : (
-          <p className="text-sm text-muted">
-            {t("setupPreselected", { count: passed.length })}
-          </p>
-        )}
+        <p className="text-sm text-muted">{t("setupHint")}</p>
         <div className="flex flex-wrap items-center gap-2 pt-2">
           <span className="text-xs text-muted">{tCommon("jumpTo")}</span>
           <StageJump
@@ -80,8 +79,8 @@ export default async function PracticeSetupPage({
       >
         {topics.map((topic) => {
           const topicSkills = skillsOfTopic(topic.id);
-          const ticked = topicSkills.filter((skill) =>
-            preselected.has(skill.id),
+          const done = topicSkills.filter((skill) =>
+            passed.has(skill.id),
           ).length;
 
           return (
@@ -90,14 +89,8 @@ export default async function PracticeSetupPage({
             id={topic.id}
             title={topic.name[activeLocale]}
             meta={topic.grade[activeLocale]}
-            count={`${ticked}/${topicSkills.length}`}
-            /*
-             * Open where there is something ticked, which after the change to
-             * the default means the chapters being worked on. A chapter with
-             * nothing ticked is one to go looking for, and looking for it is
-             * now a click rather than a scroll past it.
-             */
-            open={ticked > 0}
+            done={done}
+            total={topicSkills.length}
           >
             {/*
               The toggles moved inside the panel. In the summary they were a
@@ -141,7 +134,6 @@ export default async function PracticeSetupPage({
                   <Checkbox
                     name="skills"
                     value={skill.id}
-                    defaultChecked={preselected.has(skill.id)}
                     className="shrink-0"
                   />
                   <span className="min-w-0 flex-1">

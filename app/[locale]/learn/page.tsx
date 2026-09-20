@@ -94,7 +94,8 @@ export default async function LearnIndexPage({
             id={topic.id}
             title={topic.name[active]}
             meta={topic.grade[active]}
-            count={`${passed}/${skills.length}`}
+            done={passed}
+            total={skills.length}
             open={openIds.has(topic.id)}
           >
             <CardDescription className="mb-2">

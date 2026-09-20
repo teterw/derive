@@ -5,8 +5,8 @@ should pick up. Update it at the end of every working session.
 
 Phases are defined in `PROMPT.md` §2.
 
-Last updated: 2026-09-20 (Calculus I finished, a sweep over the app, then a
-pass on navigating twenty chapters; see Rounds eleven to fourteen).
+Last updated: 2026-09-20 (Calculus I finished, a sweep over the app, then two
+passes on navigating twenty chapters; see Rounds eleven to fifteen).
 
 ---
 
@@ -25,7 +25,7 @@ Beyond the phase plan: the **daily challenge** from
 `docs/CONTENT-PIPELINE.md` §6 is built.
 
 Green as of this commit: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(1387 tests in 64 files), `pnpm build`, `pnpm smoke` (against the real
+(1384 tests in 64 files), `pnpm build`, `pnpm smoke` (against the real
 database), `pnpm render-check` (38 pages, signed in), `pnpm content:coverage`,
 `pnpm check:contrast`, `pnpm vars`.
 
@@ -939,6 +939,60 @@ the complaint. What changed is how far you walk past what you did not come for.
 `/stats` is the one page still long at 6.9 screens, because ten of this
 account's twenty chapters have attempts in them and all ten open. That is a
 dashboard behaving like one, and left alone.
+
+## Round fifteen - nothing ticked, and some motion
+
+### The default selection is gone
+
+Round thirteen gave the setup pages a default of "the lessons you have passed",
+on the daily challenge's reasoning. Wrong call, and the owner said so on
+sight - it arrived looking like the app had decided for you, and what it
+decided was always the chapters you had *already finished*, which are exactly
+the ones least worth drilling.
+
+Nothing starts ticked on `/practice` or `/exam` now. `normalizeConfig` still
+reads an empty selection as "all of it" - that predates all of this and is
+right - so the line under the heading says so out loud rather than leaving a
+page of empty boxes above a start button looking like it will refuse.
+`preselectedSkills` and its tests are deleted; a rule nobody wants is worse
+than no rule.
+
+The passed count stays, as the figure beside each chapter. It is the same
+thing `/learn` shows and it is useful while choosing. It just no longer
+chooses.
+
+### A bar, and two animations
+
+Each chapter now carries a progress bar beside its count. `12/20` is a fact
+you have to do arithmetic on; the bar is the same fact at a glance, and twenty
+of them down the page is a shape - where you are, what is finished, what is
+untouched. Green when a chapter is complete, accent while it is in progress.
+
+Two pieces of motion, both CSS only:
+
+- **Chapters slide open.** `<details>` has only ever been able to cut, with
+  everything below it jumping down the page. `::details-content` plus
+  `interpolate-size: allow-keywords` animates the panel's height between 0 and
+  `auto` with no measuring in JavaScript and no wrapper element. Measured
+  rather than assumed: the panel goes 82px → 309px → 334px over its 240ms.
+  `content-visibility` has to travel with it under `allow-discrete`, or the
+  contents vanish on the first frame and the height animates against nothing.
+- **Jumps slide.** An anchor that teleports gives no clue whether you went up
+  or down, which matters on a page of twenty chapters that all look alike.
+
+Both are behind guards: the animation is in an `@supports` block, so a browser
+without `interpolate-size` keeps the cut it always had, and the existing
+`prefers-reduced-motion` rule already flattens both without further work.
+Worth checking after any change to `globals.css` that these survive Lightning
+CSS - `interpolate-size` is new enough to be a plausible casualty, and it
+reads back as `allow-keywords` on the built page today.
+
+The stage jump also went onto `/stats`, which is the longest page left.
+
+### Where the numbers landed
+
+`/practice` is 2,781 pixels with nothing ticked and every chapter shut, against
+7,221 before any of this. `/learn` is 2,417 against 9,036.
 
 ## Where to pick up
 

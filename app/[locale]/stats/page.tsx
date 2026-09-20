@@ -22,6 +22,7 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Chapter } from "@/components/ui/chapter";
+import { StageJump } from "@/components/ui/stage-jump";
 import { Heatmap } from "@/components/stats/heatmap";
 import { DifficultyRings } from "@/components/stats/difficulty-rings";
 import { MasteryBars } from "@/components/stats/mastery-bars";
@@ -36,6 +37,7 @@ export default async function StatsPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("stats");
+  const tCommon = await getTranslations("common");
   const active = locale as Locale;
 
   const [
@@ -244,7 +246,16 @@ export default async function StatsPage({
           there is nothing yet.
         */}
         <div className="space-y-3">
-          <CardTitle className="text-base">{t("perSkill")}</CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-base">{t("perSkill")}</CardTitle>
+            <StageJump
+              labels={{
+                lower: tCommon("stage.lower"),
+                upper: tCommon("stage.upper"),
+                university: tCommon("stage.university"),
+              }}
+            />
+          </div>
           {topics.map((topic) => {
             const rows = progress.filter((row) => row.topicId === topic.id);
             if (rows.length === 0) return null;
@@ -256,7 +267,8 @@ export default async function StatsPage({
                 id={topic.id}
                 title={topic.name[active]}
                 meta={topic.grade[active]}
-                count={`${started}/${rows.length}`}
+                done={started}
+                total={rows.length}
                 /*
                  * Open where there is something to read. A chapter you have
                  * not touched has twenty identical dashes in it, and twenty of

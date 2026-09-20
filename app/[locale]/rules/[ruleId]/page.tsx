@@ -6,6 +6,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
 import { allRules, getRule, hasRule } from "@/content/rules";
+import { familyOf } from "@/content/rules/families";
 import { getTopic, skills } from "@/content/topics";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,25 @@ export default async function RulePage({
   const active = locale as Locale;
   const rule = getRule(ruleId);
 
+  /*
+   * Back to the list with this rule's group open and the card itself in view,
+   * rather than to the top of a page where everything is shut again.
+   *
+   * The family comes off the id, so nothing has to be carried here from the
+   * list - which is the reason to do it this way rather than passing the
+   * origin along in a query parameter that then has to be kept honest.
+   *
+   * Browser back is handled separately and better, in `rule-groups.tsx`: it
+   * restores every open group and the exact scroll offset. This is the header
+   * link, which is a forward navigation and has only the rule id to go on.
+   */
+  const family = familyOf(rule.id);
+  const backToList = [
+    "/rules",
+    family ? `?open=${family}` : "",
+    `#rule-${rule.id}`,
+  ].join("");
+
   // Which skills lean on this rule - the way back into practising it.
   const relatedSkills = skills.filter((skill) =>
     skill.ruleIds.includes(rule.id),
@@ -40,11 +60,11 @@ export default async function RulePage({
     <AppShell
       locale={active}
       user={user}
-      back={{ href: "/rules", label: tNav("backToRules") }}
+      back={{ href: backToList, label: tNav("backToRules") }}
     >
       <article className="mx-auto w-full max-w-2xl space-y-8">
         <header className="space-y-3">
-          <Link href="/rules" className="text-xs text-muted hover:text-fg">
+          <Link href={backToList} className="text-xs text-muted hover:text-fg">
             {t("title")}
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">

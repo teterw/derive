@@ -1179,6 +1179,51 @@ for a bug that was not there, on top of the screenshot compositing artifact in
 round eighteen. Same lesson, twice: check the tab is actually painting before
 believing what it shows.
 
+## Round nineteen - the formula sheet remembers where you were
+
+The `/rules` grouping was carried into the panel that opens with `F` during
+practice and an exam, which is where 117 rules in one column hurt most: it is
+a narrow rail beside a question you are half-way through answering. Fifteen
+headings now, shut, and a search opens whatever it matched.
+
+Then the thing that had been annoying about the list itself: open a group,
+scroll to a rule, read it, press back, and you were at the top of a page with
+everything shut again. Both halves are one cause - the open group lived only in
+the DOM, so coming back rendered the collapsed page, and nothing can restore a
+scroll position into a page a fifth of the height it was.
+
+### Two Next 16 facts, both found the hard way
+
+Worth writing down, because both cost a build-and-check cycle and neither is
+guessable:
+
+- **A bare `history.replaceState` does not tell the App Router.** Its entry
+  keeps `renderedSearch: ""`, so pressing back restores the payload cached for
+  the paramless URL. Putting `?open=exp` in the address bar is not the same as
+  the router knowing about it. Going through `router.replace` would fix that at
+  the cost of a server round trip per disclosure triangle, which is absurd.
+- **On a forward client navigation React renders before the URL updates.** So
+  the obvious repair - read `location.search` instead of the prop - fails in
+  the other direction: following the back link from a rule to `/rules?open=exp`
+  rendered while `location.search` was still the rule page's empty one.
+
+Neither source is right on its own. What is right is the **history entry**: a
+key of one's own survives the round trip beside Next's `__NA` and its router
+tree (checked), and an entry is per-visit, which gives the behaviour its edges
+for free. Back returns to the entry carrying the offset and the open set, so it
+restores. Arriving from the nav bar makes a new entry with neither, so it does
+not, and a first visit gets the shut page it should.
+
+Next's own scroll handling lands *after* the commit and overwrites a restore -
+820 became 70, the top of the page content. The fix is a `useLayoutEffect` pass
+plus one `requestAnimationFrame` pass: the first keeps it from being visible,
+the second has the last word. The same mechanism does the `#rule-…` anchor from
+a rule page's back link, which the browser was losing the same argument over.
+
+Verified by walking it: browser back restores y=1000 with the group open; the
+header back link lands on the exact card; a fresh `/rules` is shut and at the
+top; search still opens only what it matched.
+
 ## Where to pick up
 
 1. **Use it.** Register a real account (`/admin` issues codes), drill twenty

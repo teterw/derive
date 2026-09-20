@@ -2,18 +2,19 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing, type Locale } from "@/i18n/routing";
-import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
-import { allRules, rulesForTopic, searchRules } from "@/content/rules";
+import {
+  allRules,
+  rulesForTopic,
+  searchRules,
+  toPublicRule,
+} from "@/content/rules";
 import { groupByFamily } from "@/content/rules/families";
 import { topics } from "@/content/topics";
 import { AppShell } from "@/components/layout/app-shell";
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { Chapter } from "@/components/ui/chapter";
 import { Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
-import { Tex } from "@/components/math/katex";
-import { MathText } from "@/components/math/math-text";
+import { RuleGroups } from "./rule-groups";
 
 /**
  * The formula sheet, generated from the same rule registry the step engine
@@ -32,9 +33,18 @@ export default async function RulesPage({
   const t = await getTranslations("rules");
   const active = locale as Locale;
 
-  const { q, topic } = await searchParams;
+  const { q, topic, open } = await searchParams;
   const query = typeof q === "string" ? q : "";
   const topicId = typeof topic === "string" ? topic : "";
+
+  /*
+   * Which groups were open when you left. Written by the client as you open
+   * them, so that pressing back from a rule renders the page at the height it
+   * had - which is what lets the browser put the scroll back where it was.
+   * See `rule-groups.tsx` for why it is the URL and not component state.
+   */
+  const openFamilies =
+    typeof open === "string" ? open.split(",").filter(Boolean) : [];
 
   /**
    * Grouped by what a rule *does*, not by which chapter uses it.
@@ -51,11 +61,20 @@ export default async function RulesPage({
     ? new Set(rulesForTopic(topicId).map((rule) => rule.id))
     : null;
 
+  /*
+   * `toPublicRule` before it crosses to the client. The list is a client
+   * component now - it has to be, to write the open group into the URL - and a
+   * bare `Rule` carries `misapplications`, the wrong answers the distractor
+   * picker draws from. Those have no business in the page source of the
+   * formula sheet.
+   */
   const shown = groupByFamily(
-    allRules.filter(
-      (rule) =>
-        matching.has(rule.id) && (inTopic === null || inTopic.has(rule.id)),
-    ),
+    allRules
+      .filter(
+        (rule) =>
+          matching.has(rule.id) && (inTopic === null || inTopic.has(rule.id)),
+      )
+      .map(toPublicRule),
   );
 
   /*
@@ -111,44 +130,12 @@ export default async function RulesPage({
         <p className="mt-8 text-sm text-muted">{t("noResults")}</p>
       ) : null}
 
-      <div className="mt-6 space-y-3">
-        {shown.map(({ family, rules }) => (
-          <Chapter
-            key={family.prefix}
-            title={family.name[active]}
-            meta={family.blurb[active]}
-            /* A count, not a progress bar: a formula sheet has nothing to be
-               part-way through. */
-            trailing={
-              <span className="shrink-0 font-mono text-xs tabular-nums text-muted">
-                {rules.length}
-              </span>
-            }
-            open={searching}
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              {rules.map((rule) => (
-                <Link key={rule.id} href={`/rules/${rule.id}`}>
-                  <Card className="h-full space-y-2 transition-colors hover:border-accent/50">
-                    <CardTitle className="text-base">
-                      {rule.name[active]}
-                    </CardTitle>
-                    <Tex tex={rule.statement} display className="py-1" />
-                    {rule.mnemonic ? (
-                      <p className="border-l-2 border-accent pl-2 text-sm">
-                        <MathText text={rule.mnemonic[active]} />
-                      </p>
-                    ) : null}
-                    <CardDescription>
-                      <MathText text={rule.plain[active]} />
-                    </CardDescription>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </Chapter>
-        ))}
-      </div>
+      <RuleGroups
+        groups={shown}
+        locale={active}
+        initialOpen={openFamilies}
+        allOpen={searching}
+      />
     </AppShell>
   );
 }

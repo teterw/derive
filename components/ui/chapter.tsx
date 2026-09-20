@@ -50,12 +50,18 @@ export function Chapter({
   trailing,
   dense = false,
   open = false,
+  onToggle,
   children,
 }: {
   /** The anchor `StageJump` points at. */
   id?: string;
   title: string;
-  meta: string;
+  /**
+   * A subtitle. Optional: in a narrow column - the formula sheet beside a
+   * question - there is no width for one, and a truncated half-sentence is
+   * worse than none.
+   */
+  meta?: string;
   /** How many of the chapter's skills count as done, for the bar and the figure. */
   done?: number;
   total?: number;
@@ -67,6 +73,13 @@ export function Chapter({
    */
   dense?: boolean;
   open?: boolean;
+  /**
+   * Fires when the learner opens or shuts it. Only pages that need to remember
+   * the state pass this - see `/rules`, which keeps it in the URL so that
+   * coming back from a rule lands where you left. Everything else leaves
+   * `<details>` uncontrolled, which is the whole point of using it.
+   */
+  onToggle?: (open: boolean) => void;
   children: React.ReactNode;
 }) {
   const hasCount =
@@ -86,6 +99,11 @@ export function Chapter({
     <details
       id={id}
       open={open}
+      onToggle={
+        onToggle
+          ? (event) => onToggle(event.currentTarget.open)
+          : undefined
+      }
       className={cn(
         "group/chapter scroll-mt-6 overflow-hidden rounded-xl border border-border bg-surface shadow-sm",
         "transition-[border-color,box-shadow] duration-200",
@@ -114,14 +132,16 @@ export function Chapter({
           >
             {title}
           </span>
-          <span
-            className={cn(
-              "block truncate text-muted",
-              dense ? "text-xs" : "text-sm",
-            )}
-          >
-            {meta}
-          </span>
+          {meta ? (
+            <span
+              className={cn(
+                "block truncate text-muted",
+                dense ? "text-xs" : "text-sm",
+              )}
+            >
+              {meta}
+            </span>
+          ) : null}
         </span>
 
         {trailing}

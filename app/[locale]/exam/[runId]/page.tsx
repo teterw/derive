@@ -6,7 +6,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { requireUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { attempts, runs } from "@/lib/db/schema";
-import { allRules } from "@/content/rules";
+import { allRules, publicRules } from "@/content/rules";
 import { skills } from "@/content/topics";
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
@@ -134,7 +134,7 @@ export default async function ExamRunPage({
       />
       {/* A graph during a closed-book exam would be a different exam. */}
       <ToolDock
-        rules={allRules}
+        rules={publicRules}
         desmosApiKey={process.env.NEXT_PUBLIC_DESMOS_API_KEY ?? ""}
         allowGraph={config.explainMode !== "off"}
       />

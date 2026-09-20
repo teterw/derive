@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Locale } from "@/i18n/routing";
-import type { Rule } from "@/content/types";
+import type { PublicRule } from "@/content/rules";
 import { Tex } from "@/components/math/katex";
 import { MathText } from "@/components/math/math-text";
 import { Input } from "@/components/ui/field";
@@ -18,10 +18,17 @@ export function FormulaSheet({
   rules,
   locale,
   labels,
+  /**
+   * A slide-over is modal, so taking the caret when it opens is right. The
+   * docked rail is not - the question beside it is still being answered, and
+   * grabbing focus would throw away whatever was half-typed in the answer box.
+   */
+  focusOnMount = true,
 }: {
-  rules: Rule[];
+  rules: PublicRule[];
   locale: Locale;
   labels: { search: string; noResults: string; count: string };
+  focusOnMount?: boolean;
 }) {
   const [query, setQuery] = useState("");
 
@@ -52,7 +59,7 @@ export function FormulaSheet({
         onKeyDown={(event) => event.stopPropagation()}
         placeholder={labels.search}
         aria-label={labels.search}
-        autoFocus
+        autoFocus={focusOnMount}
       />
 
       {matching.length === 0 ? (

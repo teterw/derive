@@ -13,7 +13,44 @@ import { Tex } from "./katex";
 
 const THAI = /[฀-๿]/;
 const BARE_OPERATOR = /^[-+*/=<>]$/;
+const SENTENCE_PUNCTUATION = ".,:;!?)";
+/** For deciding what a single token *is*, any trailing punctuation is noise. */
 const TRAILING_PUNCTUATION = /[.,:;!?)]+$/;
+
+/**
+ * Splits sentence punctuation off the end of a maths run.
+ *
+ * `)` is the awkward one. It ends plenty of sentences - "(see §7)" - and it
+ * also ends plenty of formulas, and a rule that treats it as punctuation
+ * either way eats the closing bracket of every `\left(...\right)` written
+ * inside a sentence. That is not a rendering blemish: KaTeX throws on the
+ * unbalanced fragment, so an explanation with a bracket in the middle of it
+ * came out as an error box.
+ *
+ * So a `)` is punctuation only when nothing in the run opened it. Counting
+ * characters is enough, because `\left(` carries a `(` and `\right)` a `)`.
+ */
+function splitTrailingPunctuation(joined: string): [string, string] {
+  let end = joined.length;
+  while (end > 0) {
+    const char = joined[end - 1]!;
+    if (!SENTENCE_PUNCTUATION.includes(char)) break;
+    if (char === ")" && isMatched(joined.slice(0, end))) break;
+    end -= 1;
+  }
+  return [joined.slice(0, end), joined.slice(end)];
+}
+
+/** Does the final `)` of this text have a `(` to close? */
+function isMatched(text: string): boolean {
+  let opens = 0;
+  let closes = 0;
+  for (const char of text) {
+    if (char === "(") opens += 1;
+    else if (char === ")") closes += 1;
+  }
+  return opens >= closes;
+}
 
 type Strength = "strong" | "weak" | "prose";
 
@@ -94,10 +131,7 @@ export function segment(text: string): Segment[] {
     }
 
     // Sentence punctuation belongs to the sentence, not to the formula.
-    const joined = run.join(" ");
-    const trailing = TRAILING_PUNCTUATION.exec(joined);
-    const body = trailing ? joined.slice(0, trailing.index) : joined;
-    const tail = trailing ? trailing[0] : "";
+    const [body, tail] = splitTrailingPunctuation(run.join(" "));
 
     flushText();
     segments.push({ kind: "math", value: body });

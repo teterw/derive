@@ -195,6 +195,30 @@ body {
   line-height: 1.7;
 }
 
+/*
+ * Room for the tool rail.
+ *
+ * `components/tools/tool-rail.tsx` is `position: fixed`, so it cannot push
+ * anything aside on its own; it publishes its width here and the page is
+ * padded by it. Padding the body rather than `main` means the header and the
+ * nav strip stop at the rail too, instead of running underneath it.
+ *
+ * Only above `lg`, which is where the rail exists at all - below that the
+ * tools are a sheet over the page and the variable is never set.
+ */
+@media (min-width: 1024px) {
+  body {
+    padding-right: var(--tool-rail, 0px);
+    transition: padding-right 160ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
+}
+
 :lang(th) {
   word-break: break-word;
 }

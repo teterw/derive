@@ -8,7 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { attempts, runs } from "@/lib/db/schema";
-import { allRules } from "@/content/rules";
+import { allRules, publicRules } from "@/content/rules";
 import { skills } from "@/content/topics";
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { DIFFICULTY_LABELS } from "@/content/types";
@@ -259,7 +259,7 @@ export default async function DailyPage({
         difficultyLabels={DIFFICULTY_LABELS}
       />
       <ToolDock
-        rules={allRules}
+        rules={publicRules}
         desmosApiKey={process.env.NEXT_PUBLIC_DESMOS_API_KEY ?? ""}
       />
     </AppShell>

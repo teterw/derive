@@ -9,7 +9,28 @@ import { cn } from "@/lib/utils";
  *
  * It uses the same mathjs the answer checker uses, so what it accepts and what
  * the answer box accepts are the same language - no separate syntax to learn.
+ *
+ * Its state is **owned by the caller**. A calculator whose working disappears
+ * when the panel closes is not a calculator you can use alongside a question:
+ * you close it to see the stem, and the four lines you had just worked out are
+ * gone. The dock holds the state for as long as the page is open, so closing a
+ * panel hides it rather than resetting it. `useCalculatorState` is the whole
+ * of what a caller has to do.
  */
+export type CalculatorState = {
+  expression: string;
+  history: { input: string; output: string }[];
+};
+
+export const EMPTY_CALCULATOR: CalculatorState = { expression: "", history: [] };
+
+/** How many previous sums stay on screen. */
+const HISTORY = 8;
+
+export function useCalculatorState() {
+  return useState<CalculatorState>(EMPTY_CALCULATOR);
+}
+
 const KEYS: {
   label: string;
   insert?: string;
@@ -49,13 +70,18 @@ const KEYS: {
 
 export function Calculator({
   labels,
+  state,
+  onChange,
 }: {
   labels: { result: string; error: string };
+  state: CalculatorState;
+  onChange: (next: CalculatorState) => void;
 }) {
-  const [expression, setExpression] = useState("");
-  const [history, setHistory] = useState<{ input: string; output: string }[]>(
-    [],
-  );
+  const { expression, history } = state;
+
+  function setExpression(value: string) {
+    onChange({ ...state, expression: value });
+  }
 
   function press(key: (typeof KEYS)[number]) {
     if (key.action === "clear") {
@@ -63,14 +89,14 @@ export function Calculator({
       return;
     }
     if (key.action === "back") {
-      setExpression((value) => value.slice(0, -1));
+      setExpression(expression.slice(0, -1));
       return;
     }
     if (key.action === "equals") {
       compute();
       return;
     }
-    setExpression((value) => value + (key.insert ?? ""));
+    setExpression(expression + (key.insert ?? ""));
   }
 
   function compute() {
@@ -81,14 +107,18 @@ export function Calculator({
         typeof value === "number"
           ? String(Math.round(value * 1e10) / 1e10)
           : String(value);
-      setHistory((current) =>
-        [{ input: expression, output }, ...current].slice(0, 8),
-      );
-      setExpression(output);
+      onChange({
+        expression: output,
+        history: [{ input: expression, output }, ...history].slice(0, HISTORY),
+      });
     } catch {
-      setHistory((current) =>
-        [{ input: expression, output: labels.error }, ...current].slice(0, 8),
-      );
+      onChange({
+        expression,
+        history: [{ input: expression, output: labels.error }, ...history].slice(
+          0,
+          HISTORY,
+        ),
+      });
     }
   }
 

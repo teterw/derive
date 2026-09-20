@@ -23,9 +23,15 @@ const API_VERSION = "v1.11";
 export function DesmosPanel({
   apiKey,
   labels,
+  /**
+   * In the docked rail the panel is given a share of the viewport height and
+   * has to fill it. A viewport-relative height would overflow its own slot.
+   */
+  fill = false,
 }: {
   apiKey: string;
   labels: { missingKey: string; loading: string; failed: string };
+  fill?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
@@ -75,10 +81,14 @@ export function DesmosPanel({
   }
 
   return (
-    <div className="space-y-2">
+    <div className={fill ? "flex h-full flex-col gap-2" : "space-y-2"}>
       <div
         ref={container}
-        className="h-[60dvh] w-full rounded-md border border-border sm:h-[70dvh]"
+        className={
+          fill
+            ? "min-h-0 w-full flex-1 rounded-md border border-border"
+            : "h-[60dvh] w-full rounded-md border border-border sm:h-[70dvh]"
+        }
       />
       {state !== "ready" ? (
         <p className="text-xs text-muted">

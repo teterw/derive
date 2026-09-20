@@ -86,6 +86,23 @@ describe("segment", () => {
     expect(prose("4 + 2 = 6.")).toBe(".");
   });
 
+  /**
+   * The bug: `)` was stripped as sentence punctuation wherever a run ended
+   * with one, so every `\left(...\right)` written inside a sentence lost its
+   * closing bracket and KaTeX threw on the fragment. Half the ม.2 factoring
+   * chapter's explanations are a bracket in the middle of a sentence.
+   */
+  it("keeps a bracket that the formula itself opened", () => {
+    const sentence = "จึงเขียนเป็น \\left(x - 1\\right) ยกกำลังสอง";
+    expect(math(sentence)).toEqual(["\\left(x - 1\\right)"]);
+    expect(prose(sentence)).not.toContain(")");
+  });
+
+  it("still strips a bracket the formula did not open", () => {
+    expect(math("the root is 2 + 3)")).toEqual(["2 + 3"]);
+    expect(math("x^2 = 4).")).toEqual(["x^2 = 4"]);
+  });
+
   it("honours explicit dollar delimiters", () => {
     expect(math("the value $a$ matters")).toEqual(["a"]);
   });
@@ -166,6 +183,45 @@ describe("the real corpus", () => {
         text.replace(/\$/g, "").replace(/\s+/g, " ").trim(),
       );
     }
+  });
+
+  /**
+   * A dash used as punctuation, swallowed by the formula in front of it.
+   *
+   * "ไม่ใช่ x - คูณกลับ" reads as a sentence and renders as one on a page. Put
+   * a variable immediately before the dash and the segmenter sees `x` followed
+   * by an operator, decides the pair is notation, and KaTeX typesets it as
+   * `x−` - a minus sign hanging off the end of a formula, with the sentence's
+   * punctuation gone. It renders perfectly, so the check above is happy.
+   *
+   * A maths fragment ending in a bare operator is always this mistake: no
+   * expression worth showing ends in a `+`. The fix is `$x$`, which says which
+   * part is notation rather than leaving it to be guessed.
+   */
+  it("never ends a formula on a dangling operator", () => {
+    // Every offender at once: this is an authoring mistake, and finding them
+    // one failed run at a time is how a five-minute fix takes an hour.
+    const dangling = new Set<string>();
+    for (const text of corpus) {
+      for (const part of segment(text)) {
+        if (part.kind !== "math") continue;
+        /*
+         * A fragment that is *only* an operator is a deliberate one - the
+         * `$<$` in "the sign turns from < to >" - and renders exactly as
+         * intended. What is wrong is an operator left hanging off the end of
+         * something, which is a sentence dash swallowed by the formula in
+         * front of it.
+         */
+        const fragment = part.value.trim();
+        if (fragment.length > 1 && /[-+*/=<>]$/.test(fragment)) {
+          dangling.add(text);
+        }
+      }
+    }
+    expect(
+      dangling.size,
+      ["wrap the formula in $...$:", ...dangling].join("\n  "),
+    ).toBe(0);
   });
 
   it("only hands KaTeX fragments it can actually render", () => {

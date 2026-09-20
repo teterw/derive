@@ -22,7 +22,20 @@ export default function LocaleError({
   }, [error]);
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
+    /*
+     * `data-error-boundary` is what `pnpm render-check` looks for.
+     *
+     * It used to look for the strings Next.js puts on its *own* error page -
+     * "Application error", a `digest` attribute - and this page is neither: it
+     * is ours, and its text is a translated message. So a page that was
+     * nothing but this rendered, returned 200, contained the shell, shipped
+     * KaTeX's stylesheet and was reported `ok`. An attribute cannot be
+     * translated away, and cannot rot when the copy changes.
+     */
+    <div
+      data-error-boundary
+      className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-4 text-center"
+    >
       <h1 className="text-xl font-semibold">{t("errorTitle")}</h1>
       <p className="text-sm text-muted">{t("errorBody")}</p>
       {error.digest ? (

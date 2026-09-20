@@ -16,7 +16,6 @@ import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import type { SessionUser } from "@/lib/auth/session";
 import { logoutAction } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, avatarSeed, avatarUrl } from "@/components/profile/avatar";
 import { BackLink } from "./back-link";
@@ -24,6 +23,7 @@ import { HeaderXp } from "@/components/profile/header-xp";
 import { XpProvider } from "@/components/profile/xp-context";
 import { getTotalXp } from "@/lib/profile/queries";
 import { NavLink } from "./nav-link";
+import { ProfileMenu } from "./profile-menu";
 import { PageTransition } from "./page-transition";
 import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
@@ -87,7 +87,18 @@ export async function AppShell({
   return (
     <XpProvider initialXp={totalXp}>
       <div className="flex min-h-dvh flex-col">
-        <header className="border-b border-border">
+        {/*
+          `relative z-50` so the header owns a stacking context above the page
+          for the profile menu to hang in.
+
+          It is a guard rather than a fix: the menu already paints on top
+          without it, because it is an absolutely-positioned child of a
+          positioned wrapper and the content below is in normal flow. What it
+          guards against is the content below acquiring a z-index or a
+          stacking context of its own - `.page-enter` already animates a
+          transform, which makes one - and quietly winning.
+        */}
+        <header className="relative z-50 border-b border-border">
           <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-4 px-4">
             <Link href="/" className="flex items-center gap-2">
               {/*
@@ -144,27 +155,49 @@ export async function AppShell({
 
             <div className="ml-auto flex items-center gap-2">
               {/*
-              Your own face is the way in to your profile - the convention
-              everywhere, and it saves a word of chrome in a header that is
-              already tight on a phone.
-            */}
-              {/*
-              A ring rather than a bar: the avatar is round and an underline
-              beneath a circle reads as a mistake. Same accent, same meaning.
-            */}
-              <NavLink
-                href={`/u/${user.username}`}
-                variant="avatar"
-                title={t("profile")}
-                aria-label={t("profile")}
-              >
-                <Avatar
-                  seed={avatarSeed(user.username, user.avatarSlot)}
-                  src={avatarUrl(user.username, user.avatarUpdatedAt)}
-                  size={28}
-                  className="h-7 w-7"
-                />
-              </NavLink>
+                Your own face, and behind it the things that belong to your
+                account rather than to the app. The header used to carry the
+                avatar and a sign-out button as two separate icons beside the
+                locale and theme controls, which mixed "you" in with "the
+                site"; the five account destinations live together now.
+              */}
+              <ProfileMenu
+                username={user.username}
+                displayName={user.displayName}
+                label={t("profile")}
+                labels={{
+                  stats: t("stats"),
+                  people: t("people"),
+                  profile: t("profile"),
+                  settings: t("settings"),
+                }}
+                avatar={
+                  <Avatar
+                    seed={avatarSeed(user.username, user.avatarSlot)}
+                    src={avatarUrl(user.username, user.avatarUpdatedAt)}
+                    size={28}
+                    className="h-7 w-7"
+                  />
+                }
+                /*
+                 * The form is built here, in the server component, so the
+                 * action stays a server action and the menu never has to
+                 * import one.
+                 */
+                signOut={
+                  <form action={logoutAction}>
+                    <input type="hidden" name="locale" value={locale} />
+                    <button
+                      type="submit"
+                      role="menuitem"
+                      className="flex w-full cursor-pointer items-center gap-3 px-4 py-2 text-left text-sm transition-colors hover:bg-surface-2 hover:text-wrong focus-visible:bg-surface-2 focus-visible:text-wrong"
+                    >
+                      <LogOut className="size-4 shrink-0 text-muted" aria-hidden />
+                      {t("logout")}
+                    </button>
+                  </form>
+                }
+              />
               {/*
               The level rides next to your own face, which is the only place it
               belongs - the alternative was a second profile card in the body of
@@ -173,18 +206,6 @@ export async function AppShell({
               <HeaderXp />
               <LocaleSwitch />
               <ThemeToggle label={tCommon("theme")} />
-              <form action={logoutAction}>
-                <input type="hidden" name="locale" value={locale} />
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  size="icon"
-                  title={t("logout")}
-                  aria-label={t("logout")}
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </form>
             </div>
           </div>
 

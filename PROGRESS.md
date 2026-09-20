@@ -5,8 +5,8 @@ should pick up. Update it at the end of every working session.
 
 Phases are defined in `PROMPT.md` §2.
 
-Last updated: 2026-09-20 (Calculus I finished, a sweep over the app, then
-four passes on the twenty-chapter pages; see Rounds eleven to seventeen).
+Last updated: 2026-09-20 (Calculus I finished, then a long run of interface
+work; see Rounds eleven to eighteen).
 
 ---
 
@@ -25,7 +25,7 @@ Beyond the phase plan: the **daily challenge** from
 `docs/CONTENT-PIPELINE.md` §6 is built.
 
 Green as of this commit: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(1384 tests in 64 files), `pnpm build`, `pnpm smoke` (against the real
+(1385 tests in 64 files), `pnpm build`, `pnpm smoke` (against the real
 database), `pnpm render-check` (38 pages, signed in), `pnpm content:coverage`,
 `pnpm check:contrast`, `pnpm vars`.
 
@@ -1096,6 +1096,65 @@ page is merely wrong.
 
 **Worth repeating for the next round:** the app has two themes and the work of
 the last four rounds was all reviewed in one of them.
+
+## Round eighteen - the account menu, and two states instead of three
+
+### Everything about your account, behind your own face
+
+The header had grown a row of single-purpose icons, and the ones belonging to
+*your account* were mixed in with the ones belonging to the app. The avatar was
+a bare link to your profile and sign-out was a separate button three icons
+along.
+
+`components/layout/profile-menu.tsx` puts the five account destinations
+together behind the avatar: statistics, people, public profile, settings, sign
+out. No new message keys - `nav.*` already had every one of these words.
+
+**Hover is the shortcut, not the mechanism.** A menu that opens only on hover
+is unusable on a phone and unreachable by keyboard, so hover is one of four
+ways in: click toggles it (which is what a touch device sends), Escape shuts it
+and returns focus to the button, focus moving inside keeps it open so it can be
+tabbed, and focus leaving shuts it. The close on pointer-leave is delayed
+140ms, because without the delay a pointer taking the diagonal from the button
+to the third item clips the corner and the menu vanishes underneath it.
+
+The sign-out form is built in the server component and passed in as a node, so
+the client component never imports a server action.
+
+All four behaviours were exercised in the browser rather than reasoned about:
+Escape closes and focus lands back on the trigger, click toggles both ways, an
+outside pointerdown closes, and the four links resolve to `/th/stats`,
+`/th/people`, `/th/u/admin`, `/th/settings`.
+
+### The theme toggle is two states
+
+It cycled system → light → dark: a third icon nobody recognised and two presses
+to get from the theme you are looking at to the other one. It flips now.
+
+"System" is still where an account starts - no class stamped, the media query
+decides - but it is no longer somewhere the button can land you. So the button
+reflects the *effective* theme, whatever the page is actually wearing, and
+pressing it writes the opposite; an inherited preference becomes a chosen one
+on the first press. Four presses in the browser give light, dark, light, dark,
+with the class, the stored value and `color-scheme` in step throughout.
+
+The `nav-link` "avatar" variant went with it - the avatar is a menu trigger
+now, not a link - along with its case in `nav-link.test.tsx`.
+
+### A wrong diagnosis worth recording
+
+The menu *looked* like it was painting behind the dashboard cards, and a
+stacking-context explanation was written down and acted on before it was
+tested. It was wrong twice over: `elementFromPoint` at the menu's centre
+returns a menu item with or without the `z-index`, and the overlap was a
+screenshot artifact - the browser tab is backgrounded during automation
+(`document.hidden` is true), so captures composite a fresh frame of the menu
+over a stale frame of the page.
+
+That artifact has been misread all session as pages "fading in". Anything
+judged from a screenshot here needs a second, non-visual check: hit-testing,
+computed style, or the DOM. The `relative z-50` was kept, as a guard rather
+than a fix, and its comment says which it is.
 
 ## Where to pick up
 

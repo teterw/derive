@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
  * than shown.
  */
 
-export type NavVariant = "header" | "strip" | "tab" | "avatar";
+export type NavVariant = "header" | "strip" | "tab";
 
 /**
  * Whether `href` is the page being looked at.
@@ -104,11 +104,6 @@ export function NavLink({
             active
               ? "text-accent before:absolute before:inset-x-5 before:top-0 before:h-0.5 before:rounded-full before:bg-accent"
               : "text-muted active:text-accent",
-          ),
-        variant === "avatar" &&
-          cn(
-            "block shrink-0 rounded-full ring-offset-2 ring-offset-bg",
-            active ? "ring-2 ring-accent" : "hover:ring-2 hover:ring-border",
           ),
         className,
       )}

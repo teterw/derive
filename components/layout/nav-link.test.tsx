@@ -105,7 +105,7 @@ describe("NavLink", () => {
   });
 
   it("shows the state visually as well, in every surface", () => {
-    for (const variant of ["header", "strip", "tab", "avatar"] as const) {
+    for (const variant of ["header", "strip", "tab"] as const) {
       pathname = "/stats";
       const { container, unmount } = render(
         <NavLink href="/stats" variant={variant}>

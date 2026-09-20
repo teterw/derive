@@ -5,8 +5,8 @@ should pick up. Update it at the end of every working session.
 
 Phases are defined in `PROMPT.md` §2.
 
-Last updated: 2026-09-20 (Calculus I finished, a sweep over the app, then two
-passes on navigating twenty chapters; see Rounds eleven to fifteen).
+Last updated: 2026-09-20 (Calculus I finished, a sweep over the app, then
+three passes on navigating twenty chapters; see Rounds eleven to sixteen).
 
 ---
 
@@ -993,6 +993,62 @@ The stage jump also went onto `/stats`, which is the longest page left.
 
 `/practice` is 2,781 pixels with nothing ticked and every chapter shut, against
 7,221 before any of this. `/learn` is 2,417 against 9,036.
+
+## Round sixteen - three pages that stopped looking alike
+
+Collapsing the chapters in round fourteen fixed the scrolling and created a
+new problem: `/learn`, `/practice` and `/exam` all became a column of twenty
+identical chapter cards. Land on one from the nav and there was nothing on
+screen to say which of the three you were on, and nothing to remember it by
+afterwards. Reported from using it, which is the only place that shows up.
+
+The fix is not decoration. The three pages are doing quite different jobs, so
+each is now laid out as the job:
+
+| page | is | looks like |
+|---|---|---|
+| `/learn` | a curriculum, in order | a numbered spine down the left, ticks filling in, overall progress at the top |
+| `/practice` | a thing you configure | settings first, chapter picker under them, a live readout of what is chosen |
+| `/exam` | a paper you sit | a ruled cover sheet of parameters, then the syllabus as a dense two-column checklist |
+
+Each also takes its nav icon into the heading, so the page and the tab that
+led there carry the same mark.
+
+### What each one gained
+
+**`/learn`** has a numbered rail: twenty markers joined by a line, filled green
+with a tick when a chapter is finished, accent-ringed when it is started. The
+line runs from under one marker into the gap below it, so twenty separate
+cards read as one route rather than a stack. The header carries the overall
+bar - "how far through am I" is what this page is for.
+
+**`/practice`** puts difficulty and run length *above* the chapters: the shape
+of the run is the first decision, and the chapters are what fills it. The
+start bar now carries a live count of what is ticked, which is the piece that
+makes it read as a control panel rather than a list - and it catches the
+commonest mistake on the page, starting with nothing ticked by accident, which
+quietly means everything. It is progressive enhancement: with JavaScript off
+it renders nothing and the form is exactly as it was. The per-chapter
+select-all buttons set `.checked` in code, which fires no event, so they now
+dispatch a bubbling `change` at the form or the readout would sit on a stale
+number.
+
+**`/exam`** states its parameters at the top in a block with an accent rule -
+questions, time, explanations, difficulty mix - and then lists the syllabus in
+two columns. Its chapters are names only, with no formulas to fit, so they go
+side by side at half the height: the whole paper is 1,451 pixels, 1.6 screens,
+against 7,221 before any of this. It has no progress bars either. How much of
+a chapter you have finished is not what you are deciding when setting a paper,
+and showing yourself your own scores while you choose is an invitation to set
+an easy one.
+
+### Checked by doing it
+
+Ticked a skill and watched the readout go from "ยังไม่ได้เลือก · จะสุ่มจากทุกบท"
+to "เลือกไว้ 1 ทักษะ"; pressed a chapter's select-all and watched it go to 3.
+Opened an exam chapter from the grid and ticked a skill in it. `pnpm perf` is
+unmoved - 169ms for `/learn`, 139ms for `/exam` - which is the expected answer,
+since none of this changes what the server does.
 
 ## Where to pick up
 

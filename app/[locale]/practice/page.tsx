@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Dumbbell } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing, type Locale } from "@/i18n/routing";
@@ -15,6 +16,7 @@ import { Checkbox } from "@/components/ui/field";
 import { ROUND, RUN_LENGTHS } from "@/lib/practice/session";
 import { Tex } from "@/components/math/katex";
 import { SkillGroupToggle } from "./skill-group-toggle";
+import { SelectionCount } from "./selection-count";
 
 /**
  * Setup for a practice run. A plain GET form, so it works with JavaScript
@@ -51,10 +53,21 @@ export default async function PracticeSetupPage({
 
   return (
     <AppShell locale={activeLocale} user={user}>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("setupTitle")}
-        </h1>
+      {/*
+        A control panel, not a list. `/learn` is a numbered path and `/exam` is
+        a cover sheet; this page's job is choosing, so the run's shape is set
+        first, the chapters are picked under it, and the bar at the bottom says
+        live what has been chosen. Three jobs, three layouts - they used to be
+        three copies of the same page and nobody could tell which one they were
+        looking at.
+      */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2.5">
+          <Dumbbell className="size-6 text-accent" />
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("setupTitle")}
+          </h1>
+        </div>
         {/*
           Said out loud, because a page of empty boxes with a start button is
           otherwise a page that looks like it will refuse.
@@ -77,6 +90,76 @@ export default async function PracticeSetupPage({
         method="get"
         className="mt-6 space-y-6"
       >
+        <Card className="space-y-4">
+          <CardTitle>{t("difficulty")}</CardTitle>
+          <div className="flex flex-wrap gap-2">
+            {DIFFICULTIES.map((difficulty) => (
+              <label
+                key={difficulty}
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2"
+              >
+                <Checkbox
+                  name="difficulty"
+                  value={difficulty}
+                  defaultChecked={difficulty <= 2}
+                />
+                {difficulty} · {DIFFICULTY_LABELS[difficulty][activeLocale]}
+              </label>
+            ))}
+          </div>
+        </Card>
+
+        {/*
+          How long the run is. It used to be endless, which sounds generous and
+          is not: nothing ever concludes, so there is no score to have earned
+          and no reason to stop at any particular point rather than drifting
+          off. A run with an end has both.
+
+          "One of each" is the default because it is the length that matches
+          what was ticked above - every lesson asked once, nothing missed - and
+          it is the only option whose number depends on the selection, so the
+          server works it out rather than the form.
+        */}
+        <Card className="space-y-4">
+          <CardTitle>{t("runLength")}</CardTitle>
+          <div className="flex flex-wrap gap-2">
+            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10">
+              <input
+                type="radio"
+                name="len"
+                value={ROUND}
+                defaultChecked
+                className="accent-accent"
+              />
+              {t("lengthRound")}
+            </label>
+            {RUN_LENGTHS.map((length) => (
+              <label
+                key={length}
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10"
+              >
+                <input
+                  type="radio"
+                  name="len"
+                  value={length}
+                  className="accent-accent"
+                />
+                {t("lengthCount", { count: length })}
+              </label>
+            ))}
+            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10">
+              <input
+                type="radio"
+                name="len"
+                value=""
+                className="accent-accent"
+              />
+              {t("lengthEndless")}
+            </label>
+          </div>
+          <CardDescription>{t("runLengthNote")}</CardDescription>
+        </Card>
+
         {topics.map((topic) => {
           const topicSkills = skillsOfTopic(topic.id);
           const done = topicSkills.filter((skill) =>
@@ -157,76 +240,6 @@ export default async function PracticeSetupPage({
           );
         })}
 
-        <Card className="space-y-4">
-          <CardTitle>{t("difficulty")}</CardTitle>
-          <div className="flex flex-wrap gap-2">
-            {DIFFICULTIES.map((difficulty) => (
-              <label
-                key={difficulty}
-                className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2"
-              >
-                <Checkbox
-                  name="difficulty"
-                  value={difficulty}
-                  defaultChecked={difficulty <= 2}
-                />
-                {difficulty} · {DIFFICULTY_LABELS[difficulty][activeLocale]}
-              </label>
-            ))}
-          </div>
-        </Card>
-
-        {/*
-          How long the run is. It used to be endless, which sounds generous and
-          is not: nothing ever concludes, so there is no score to have earned
-          and no reason to stop at any particular point rather than drifting
-          off. A run with an end has both.
-
-          "One of each" is the default because it is the length that matches
-          what was ticked above - every lesson asked once, nothing missed - and
-          it is the only option whose number depends on the selection, so the
-          server works it out rather than the form.
-        */}
-        <Card className="space-y-4">
-          <CardTitle>{t("runLength")}</CardTitle>
-          <div className="flex flex-wrap gap-2">
-            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10">
-              <input
-                type="radio"
-                name="len"
-                value={ROUND}
-                defaultChecked
-                className="accent-accent"
-              />
-              {t("lengthRound")}
-            </label>
-            {RUN_LENGTHS.map((length) => (
-              <label
-                key={length}
-                className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10"
-              >
-                <input
-                  type="radio"
-                  name="len"
-                  value={length}
-                  className="accent-accent"
-                />
-                {t("lengthCount", { count: length })}
-              </label>
-            ))}
-            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/10">
-              <input
-                type="radio"
-                name="len"
-                value=""
-                className="accent-accent"
-              />
-              {t("lengthEndless")}
-            </label>
-          </div>
-          <CardDescription>{t("runLengthNote")}</CardDescription>
-        </Card>
-
         {/*
           The start button follows you down the page. Fourteen skills and four
           difficulties is a lot to scroll past on a phone, and having to scroll
@@ -239,10 +252,11 @@ export default async function PracticeSetupPage({
           bar along the bottom edge below `sm`, and a bar stuck to 0 sits
           underneath it - the start button was there, and invisible.
         */}
-        <div className="sticky bottom-16 -mx-4 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:bottom-0 sm:mx-0 sm:rounded-lg sm:border">
+        <div className="sticky bottom-16 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-bg/95 px-4 py-3 backdrop-blur sm:bottom-0 sm:mx-0 sm:rounded-lg sm:border">
           <Button type="submit" size="lg" className="w-full sm:w-auto">
             {t("start")}
           </Button>
+          <SelectionCount />
         </div>
       </form>
     </AppShell>

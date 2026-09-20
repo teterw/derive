@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { FileText } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { and, desc, eq } from "drizzle-orm";
@@ -7,7 +8,6 @@ import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { runs } from "@/lib/db/schema";
-import { getPassedSkillIds } from "@/lib/learn/progress";
 import { skillsOfTopic, topics } from "@/content/topics";
 import { DIFFICULTIES, DIFFICULTY_LABELS } from "@/content/types";
 import { startExamFormAction } from "@/lib/exam/actions";
@@ -32,7 +32,7 @@ export default async function ExamSetupPage({
   const tCommon = await getTranslations("common");
   const active = locale as Locale;
 
-  const [recent, passed] = await Promise.all([
+  const [recent] = await Promise.all([
     db
       .select({
         id: runs.id,
@@ -46,22 +46,35 @@ export default async function ExamSetupPage({
       .where(and(eq(runs.userId, user.id), eq(runs.mode, "exam")))
       .orderBy(desc(runs.startedAt))
       .limit(5),
-    getPassedSkillIds(user.id),
   ]);
 
   /*
    * Nothing starts ticked, for the reason the practice page gives. An exam is
    * something you sit on purpose, over material you choose; the app guessing
    * that for you is worse here than anywhere.
+   *
+   * Nor is there a progress bar per chapter, which `/learn` and `/practice`
+   * both carry: how much of a chapter you have finished is not what you are
+   * deciding here, and a paper that shows you your own scores while you set it
+   * is inviting you to set an easy one.
    */
-  const passedSkills = new Set(passed);
 
   return (
     <AppShell locale={active} user={user}>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("setupTitle")}
-        </h1>
+      {/*
+        A cover sheet, not a list. `/learn` is a numbered path and `/practice`
+        is a control panel; an exam is a paper you sit, so this page reads like
+        one - the parameters stated at the top in a ruled block, and the
+        syllabus under it as a dense two-column checklist rather than a column
+        of tall cards. The three pages were indistinguishable before.
+      */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2.5">
+          <FileText className="size-6 text-accent" />
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("setupTitle")}
+          </h1>
+        </div>
         <p className="text-sm text-muted">{t("setupHint")}</p>
         <div className="flex flex-wrap items-center gap-2 pt-2">
           <span className="text-xs text-muted">{tCommon("jumpTo")}</span>
@@ -78,40 +91,7 @@ export default async function ExamSetupPage({
       <form action={startExamFormAction} className="mt-6 space-y-6">
         <input type="hidden" name="locale" value={locale} />
 
-        {topics.map((topic) => {
-          const topicSkills = skillsOfTopic(topic.id);
-          const done = topicSkills.filter((skill) =>
-            passedSkills.has(skill.id),
-          ).length;
-
-          return (
-            <Chapter
-              key={topic.id}
-              id={topic.id}
-              title={topic.name[active]}
-              meta={topic.grade[active]}
-              done={done}
-              total={topicSkills.length}
-            >
-              <div className="grid gap-2 sm:grid-cols-2">
-                {topicSkills.map((skill) => (
-                  <label
-                    key={skill.id}
-                    className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2"
-                  >
-                    <Checkbox
-                      name="skills"
-                      value={skill.id}
-                    />
-                    {skill.name[active]}
-                  </label>
-                ))}
-              </div>
-            </Chapter>
-          );
-        })}
-
-        <Card className="space-y-5">
+        <Card className="space-y-5 border-t-2 border-t-accent">
           <div className="space-y-2">
             <CardTitle className="text-base">{t("difficultyMix")}</CardTitle>
             <div className="flex flex-wrap gap-2">
@@ -185,6 +165,48 @@ export default async function ExamSetupPage({
           </div>
           <p className="text-xs text-muted">{t("explainModeNote")}</p>
         </Card>
+
+
+        {/*
+          Two columns of compact cards. The exam's chapters are names only -
+          no formulas, unlike the practice page - so they fit side by side, and
+          twenty of them become a syllabus you can take in rather than a
+          column you scroll. The figure on the right is how many skills the
+          chapter would draw from, which is what matters when setting a paper;
+          the bar showing how far through you are belongs on `/learn`.
+        */}
+        <div className="grid gap-3 lg:grid-cols-2">
+          {topics.map((topic) => {
+            const topicSkills = skillsOfTopic(topic.id);
+
+            return (
+              <Chapter
+                key={topic.id}
+                id={topic.id}
+                title={topic.name[active]}
+                meta={topic.grade[active]}
+                dense
+                trailing={
+                  <span className="shrink-0 font-mono text-xs tabular-nums text-muted">
+                    {topicSkills.length}
+                  </span>
+                }
+              >
+                <div className="grid gap-1.5">
+                  {topicSkills.map((skill) => (
+                    <label
+                      key={skill.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-surface-2 has-[:checked]:text-accent"
+                    >
+                      <Checkbox name="skills" value={skill.id} />
+                      {skill.name[active]}
+                    </label>
+                  ))}
+                </div>
+              </Chapter>
+            );
+          })}
+        </div>
 
         <Button type="submit" size="lg">
           {t("start")}

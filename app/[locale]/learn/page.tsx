@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, BookOpen, Check } from "lucide-react";
 import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
@@ -66,31 +66,81 @@ export default async function LearnIndexPage({
 
   return (
     <AppShell locale={active} user={user}>
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        {/*
-          The subtitle carries the count now. "How far through am I" is the
-          question this page exists to answer, and it was previously a sentence
-          of encouragement that answered nothing.
-        */}
-        <p className="text-sm text-muted">{t("progress", { done, total })}</p>
+      {/*
+        Learn, practice and exam were three lists of twenty chapters and became
+        impossible to tell apart at a glance - which page am I on? The three
+        are doing quite different jobs, so each now looks like the job.
+        This one is a *path*: a numbered spine down the left, in curriculum
+        order, with the ticks filling in as you go.
+      */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2.5">
+          <BookOpen className="size-6 text-accent" />
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("title")}
+          </h1>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="text-sm text-muted">{t("progress", { done, total })}</p>
+          <span
+            className="h-1.5 w-40 overflow-hidden rounded-full bg-surface-2"
+            aria-hidden
+          >
+            <span
+              className="block h-full rounded-full bg-correct transition-[width] duration-500"
+              style={{ width: `${Math.round((done / total) * 100)}%` }}
+            />
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted">{tCommon("jumpTo")}</span>
+          <StageJump
+            labels={{
+              lower: tCommon("stage.lower"),
+              upper: tCommon("stage.upper"),
+              university: tCommon("stage.university"),
+            }}
+          />
+        </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted">{tCommon("jumpTo")}</span>
-        <StageJump
-          labels={{
-            lower: tCommon("stage.lower"),
-            upper: tCommon("stage.upper"),
-            university: tCommon("stage.university"),
-          }}
-        />
-      </div>
+      <ol className="mt-6 space-y-3">
+        {progress.map(({ topic, skills, passed, finished }, index) => (
+          <li key={topic.id} className="relative flex gap-3 sm:gap-4">
+            {/*
+              The spine. The line runs from under one marker into the gap below
+              it, so twenty separate cards read as one continuous route rather
+              than as a stack.
+            */}
+            <div className="relative flex w-8 shrink-0 justify-center pt-4">
+              <span
+                className={cn(
+                  "z-10 grid size-8 shrink-0 place-items-center rounded-full border font-mono text-xs tabular-nums transition-colors",
+                  finished
+                    ? "border-correct bg-correct text-white"
+                    : passed > 0
+                      ? "border-accent bg-surface text-accent"
+                      : "border-border bg-surface text-muted",
+                )}
+              >
+                {finished ? (
+                  <Check className="size-4" aria-hidden />
+                ) : (
+                  index + 1
+                )}
+              </span>
+              {index < progress.length - 1 ? (
+                <span
+                  className="absolute inset-x-0 top-12 -bottom-3 mx-auto w-px bg-border"
+                  aria-hidden
+                />
+              ) : null}
+            </div>
 
-      <div className="mt-4 space-y-3">
-        {progress.map(({ topic, skills, passed }) => (
+            <div className="min-w-0 flex-1">
           <Chapter
-            key={topic.id}
             id={topic.id}
             title={topic.name[active]}
             meta={topic.grade[active]}
@@ -157,8 +207,10 @@ export default async function LearnIndexPage({
               })}
             </ol>
           </Chapter>
+            </div>
+          </li>
         ))}
-      </div>
+      </ol>
     </AppShell>
   );
 }

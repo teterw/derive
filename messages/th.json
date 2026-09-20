@@ -192,6 +192,8 @@
     "incompleteSet": "ที่ตอบมาถูกต้อง แต่สมการนี้มี {expected} คำตอบ คุณตอบมา {found} คำตอบ",
     "readsAs": "อ่านว่า",
     "cannotReadYet": "ยังอ่านไม่ออก ลองตรวจวงเล็บดูอีกครั้ง",
+    "selectionNone": "ยังไม่ได้เลือก · จะสุ่มจากทุกบท",
+    "selectionSome": "เลือกไว้ {count} ทักษะ",
     "selectAll": "เลือกทั้งหมด",
     "selectNone": "ล้างทั้งหมด",
     "hintWord": "คำใบ้",

@@ -47,6 +47,8 @@ export function Chapter({
   meta,
   done,
   total,
+  trailing,
+  dense = false,
   open = false,
   children,
 }: {
@@ -57,11 +59,22 @@ export function Chapter({
   /** How many of the chapter's skills count as done, for the bar and the figure. */
   done?: number;
   total?: number;
+  /** Replaces the bar and figure. The exam uses it: a paper is not about your progress. */
+  trailing?: React.ReactNode;
+  /**
+   * Smaller type and tighter padding, for a page that puts these in a grid
+   * rather than a column. See `/exam`.
+   */
+  dense?: boolean;
   open?: boolean;
   children: React.ReactNode;
 }) {
-  const hasCount = done !== undefined && total !== undefined && total > 0;
-  const fraction = hasCount ? done / total : 0;
+  const hasCount =
+    trailing === undefined &&
+    done !== undefined &&
+    total !== undefined &&
+    total > 0;
+  const fraction = hasCount ? done! / total! : 0;
 
   /*
    * A *named* group. The rows inside these panels carry their own `group` for
@@ -81,7 +94,8 @@ export function Chapter({
     >
       <summary
         className={cn(
-          "flex cursor-pointer list-none items-center gap-3 px-6 py-4",
+          "flex cursor-pointer list-none items-center gap-3",
+          dense ? "px-4 py-3" : "px-6 py-4",
           "transition-colors duration-200 hover:bg-surface-2",
           // Safari draws its own triangle without this.
           "[&::-webkit-details-marker]:hidden",
@@ -92,11 +106,25 @@ export function Chapter({
           aria-hidden
         />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-lg font-semibold tracking-tight">
+          <span
+            className={cn(
+              "block truncate font-semibold tracking-tight",
+              dense ? "text-sm" : "text-lg",
+            )}
+          >
             {title}
           </span>
-          <span className="block truncate text-sm text-muted">{meta}</span>
+          <span
+            className={cn(
+              "block truncate text-muted",
+              dense ? "text-xs" : "text-sm",
+            )}
+          >
+            {meta}
+          </span>
         </span>
+
+        {trailing}
 
         {hasCount ? (
           <span className="flex shrink-0 items-center gap-2.5">
@@ -119,7 +147,14 @@ export function Chapter({
         ) : null}
       </summary>
 
-      <div className="border-t border-border px-6 pb-6 pt-4">{children}</div>
+      <div
+        className={cn(
+          "border-t border-border",
+          dense ? "px-4 pb-4 pt-3" : "px-6 pb-6 pt-4",
+        )}
+      >
+        {children}
+      </div>
     </details>
   );
 }

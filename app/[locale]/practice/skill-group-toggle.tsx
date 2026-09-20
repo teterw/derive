@@ -29,6 +29,14 @@ export function SkillGroupToggle({ skillIds }: { skillIds: string[] }) {
     for (const box of boxes) {
       if (skillIds.includes(box.value)) box.checked = checked;
     }
+
+    /*
+     * Setting `.checked` in code fires nothing, so the live count in the start
+     * bar would sit on a stale number until the next box was clicked by hand.
+     * One bubbling event at the form tells it, and costs nothing when there is
+     * nothing listening.
+     */
+    form.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   return (

@@ -119,7 +119,7 @@ export default async function LearnIndexPage({
                 className={cn(
                   "z-10 grid size-8 shrink-0 place-items-center rounded-full border font-mono text-xs tabular-nums transition-colors",
                   finished
-                    ? "border-correct bg-correct text-white"
+                    ? "border-correct bg-correct text-bg"
                     : passed > 0
                       ? "border-accent bg-surface text-accent"
                       : "border-border bg-surface text-muted",
@@ -180,7 +180,7 @@ export default async function LearnIndexPage({
                         className={cn(
                           "flex size-5 shrink-0 items-center justify-center rounded-md border",
                           done
-                            ? "border-correct bg-correct text-white"
+                            ? "border-correct bg-correct text-bg"
                             : "border-border",
                         )}
                         aria-hidden

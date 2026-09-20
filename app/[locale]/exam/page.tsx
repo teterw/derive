@@ -175,7 +175,12 @@ export default async function ExamSetupPage({
           chapter would draw from, which is what matters when setting a paper;
           the bar showing how far through you are belongs on `/learn`.
         */}
-        <div className="grid gap-3 lg:grid-cols-2">
+        {/*
+          `items-start` is load-bearing. A grid item stretches to its row by
+          default, so opening one chapter stretched the shut one beside it to
+          the same height and left a tall empty card sitting next to it.
+        */}
+        <div className="grid items-start gap-3 lg:grid-cols-2">
           {topics.map((topic) => {
             const topicSkills = skillsOfTopic(topic.id);
 

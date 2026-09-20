@@ -6,7 +6,7 @@ should pick up. Update it at the end of every working session.
 Phases are defined in `PROMPT.md` §2.
 
 Last updated: 2026-09-20 (Calculus I finished, a sweep over the app, then
-three passes on navigating twenty chapters; see Rounds eleven to sixteen).
+four passes on the twenty-chapter pages; see Rounds eleven to seventeen).
 
 ---
 
@@ -1049,6 +1049,53 @@ to "เลือกไว้ 1 ทักษะ"; pressed a chapter's select-all 
 Opened an exam chapter from the grid and ticked a skill in it. `pnpm perf` is
 unmoved - 169ms for `/learn`, 139ms for `/exam` - which is the expected answer,
 since none of this changes what the server does.
+
+## Round seventeen - one reported bug, and two it led to
+
+### The reported one
+
+Opening a chapter on `/exam` stretched the shut chapter beside it to the same
+height, leaving a tall empty card. A grid item stretches to its row by default,
+and the two-column layout from round sixteen had not said otherwise.
+`items-start` on the grid, and each card keeps its own height.
+
+Screenshotted rather than described, which is why it was one line to find.
+
+### Two more the same look turned up
+
+Neither was in the reported area. Both were found by opening the pages in
+**light mode**, which none of the last three rounds of work had been looked at
+in - every screenshot had been dark.
+
+**White on a filled chip is 2.1:1 in dark mode.** The tick in a green circle on
+`/learn`, and the label on the danger button, were `text-white`. In light mode
+both sit on a dark token and read fine; in dark mode `--d-correct` is `#4ec77f`
+and `--d-wrong` is `#ef6f5e`, and white on either is far under the floor. The
+fix is `text-bg`, which follows the theme - near-black on a dark page,
+near-white on a light one - and clears 4.5:1 in both directions.
+
+`check:contrast` could not have caught it. Its table checked `correct` and
+`wrong` as *ink on a page* and nothing as ink on *them*, so the palette was
+being validated while the components wrote something else on top of it. Two
+pairings were added for the filled case, and - because a pairing table is a
+statement about the palette and cannot see a class name - the script now also
+scans `app/` and `components/` for `text-white` beside a filled `bg-`. Put the
+old class back and it fails on that line with an exit code; that was checked
+before it was kept.
+
+**The theme toggle did not reach the browser's own controls.** `html` declared
+`color-scheme: light dark`, which means "this page does both" and leaves the
+choice to the operating system. So on a dark OS, choosing the light theme gave
+a light page with every unchecked checkbox painted a solid black square, and
+the same for radios, select menus and scrollbars. `html.light` and `html.dark`
+now pin it, mirroring the token overrides directly above them.
+
+That one was app-wide and had been there since the toggle was built. It is the
+kind of thing only looking finds: nothing throws, every test passes, and the
+page is merely wrong.
+
+**Worth repeating for the next round:** the app has two themes and the work of
+the last four rounds was all reviewed in one of them.
 
 ## Where to pick up
 

@@ -134,8 +134,27 @@
   --viz-empty: var(--d-viz-empty);
 }
 
+/*
+ * `color-scheme` decides how the *browser* paints the things the stylesheet
+ * does not: checkbox and radio ticks, select menus, scrollbars.
+ *
+ * `light dark` alone means "this page does both", and the browser then follows
+ * the OS. That is right until someone uses the theme toggle, which is the
+ * whole reason the toggle exists: on a dark OS, choosing the light theme left
+ * every unchecked checkbox painted as a solid black square on a white card.
+ * The manual choice has to carry here too, so the two overrides below mirror
+ * the token overrides above.
+ */
 html {
   color-scheme: light dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 /*

@@ -8,6 +8,7 @@
  * checking nothing.
  */
 import { readFile } from "node:fs/promises";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -62,6 +63,16 @@ const PAIRINGS = [
   ["wrong on the page", "wrong", "bg", 4.5],
   ["correct on a card", "correct", "surface", 4.5],
   ["wrong on a card", "wrong", "surface", 4.5],
+  /*
+   * The *filled* versions - a tick in a green circle, a label on a red button.
+   * These were missed for a long time because the table only ever checked
+   * `correct` and `wrong` as ink on a page, and the app was writing white on
+   * top of them. That is fine in light mode, where both are dark, and 2.1:1
+   * in dark mode, where both are light. `bg` is the text colour that works in
+   * both, being near-black on a dark page and near-white on a light one.
+   */
+  ["a tick on a correct chip", "bg", "correct", 4.5],
+  ["a label on a wrong button", "bg", "wrong", 4.5],
   ["a border against its card", "border", "surface", 1.2],
   ["a raised panel against its card", "surface-2", "surface", 1.05],
   ["the emptiest chart cell", "viz-empty", "surface", 1.02],
@@ -130,6 +141,42 @@ for (const [mode, lookup] of Object.entries(modes)) {
     `\n  ${monotone ? "ok  " : "FAIL"}  ${mode} chart ramp is monotone` +
       `  [${luminances.map((l) => l.toFixed(3)).join(" → ")}]`,
   );
+}
+
+/*
+ * The pairings above are a statement about the palette. They cannot see what
+ * the components actually write on top of it, and the bug that prompted them
+ * lived entirely there: `bg-correct text-white` reads fine in light mode, where
+ * the green is dark, and 2.1:1 in dark mode, where it is not. Nothing in the
+ * CSS was wrong; the class was.
+ *
+ * So the filled chips get scanned too. `text-white` is a literal that ignores
+ * the theme, which is the whole problem with it - on a token that changes
+ * lightness between modes there is no fixed colour that works, and `text-bg`
+ * is the one that follows.
+ */
+const FILLED = /\bbg-(?:accent|correct|wrong)\b(?![/-])/;
+
+function* sourceFiles(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) yield* sourceFiles(full);
+    else if (/\.tsx?$/.test(entry.name)) yield full;
+  }
+}
+
+for (const file of [...sourceFiles("app"), ...sourceFiles("components")]) {
+  const source = readFileSync(file, "utf8");
+  source.split("\n").forEach((line, index) => {
+    if (!line.includes("text-white")) return;
+    if (!FILLED.test(line)) return;
+    failures += 1;
+    console.log(
+      `\n  FAIL  ${file}:${index + 1} writes text-white on a filled chip` +
+        `\n        use text-bg, which follows the theme`,
+    );
+  });
 }
 
 if (failures > 0) {

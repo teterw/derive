@@ -278,7 +278,7 @@ export const quadSolveCommonFactor: Generator = {
       steps.push(
         makeStep(`${quadraticExpr(a, b, 0)} = 0`, "eq.move-term", {
           th: "ย้ายทุกพจน์มาข้างเดียวกัน อย่าหารทั้งสองข้างด้วย x เพราะจะทำให้คำตอบหายไปหนึ่งคำตอบ",
-          en: "Move everything to one side. Do not divide by x - that loses a root.",
+          en: "Move everything to one side. Do not divide by x, because that loses a root.",
         }),
       );
     }
@@ -321,8 +321,8 @@ export const quadSolveCommonFactor: Generator = {
       steps,
       hints: [
         {
-          th: "ห้ามหารทั้งสองข้างด้วย x - คำตอบจะหายไปหนึ่งคำตอบ",
-          en: "Do not divide both sides by x - you would lose a root.",
+          th: "ห้ามหารทั้งสองข้างด้วย $x$ เพราะคำตอบจะหายไปหนึ่งคำตอบ",
+          en: "Do not divide both sides by x, or you would lose a root.",
         },
         {
           th: "ดึง x ออกมาเป็นตัวประกอบร่วมแทน",

@@ -28,6 +28,74 @@ import {
   quadSolveFactorSimple,
 } from "./quad-solve";
 import { quadWordConsecutive, quadWordRectangle } from "./quad-word";
+import {
+  trigDefinition,
+  trigSolve,
+  trigSpecial,
+} from "./trig-ratios";
+import { trigUnitCircle } from "./trig-unit-circle";
+import { trigIdentities } from "./trig-identities";
+import { trigEquations } from "./trig-equations";
+import { trigLaws } from "./trig-laws";
+import { seqArithmetic, seqGeometric } from "./seq-sequences";
+import { seriesArithmetic, seriesGeometric } from "./seq-series";
+import { calcLimit } from "./calc-limit";
+import { calcDerivative } from "./calc-derivative";
+import { calcTangent } from "./calc-tangent";
+import { calcIntegral } from "./calc-integral";
+import { c1Infinity, c1OneSided } from "./c1-limits";
+import { c1Continuity, c1TrigLimit } from "./c1-continuity";
+import {
+  c1FirstPrinciples,
+  c1ProductQuotient,
+} from "./c1-derivative";
+import {
+  c1ExpLogDerivative,
+  c1TrigDerivative,
+} from "./c1-transcendental";
+import { c1ChainPower, c1ChainTranscendental } from "./c1-chain";
+import { c1ChainCombined, c1Implicit } from "./c1-implicit";
+import { c1Extrema, c1Monotonic } from "./c1-applications";
+import { c1Optimisation, c1RelatedRates } from "./c1-optimisation";
+import { c1MeanValue, c1MvtBound, c1Rolle } from "./c1-mvt";
+import {
+  c1Definite,
+  c1IntegralPower,
+  c1Substitution,
+} from "./c1-integral";
+import { c1Riemann } from "./c1-riemann";
+import {
+  c1AreaBetween,
+  c1FtcFirst,
+  c1FtcSecond,
+  c1NetChange,
+} from "./c1-ftc";
+import { polyGrouping } from "./poly-grouping";
+import { eqLinearFractions, eqLinearSolve } from "./eq-linear";
+import { eqLinearWord } from "./eq-linear-word";
+import {
+  funcQuadIntercepts,
+  funcQuadVertex,
+  funcQuadVertexForm,
+} from "./func-quadratic-graph";
+import {
+  expLogEquations,
+  logDefinition,
+  logLaws,
+} from "./func-exp-log";
+import {
+  funcComposite,
+  funcEvaluate,
+  funcInverse,
+} from "./func-relations";
+import { ineqLinearIntegers, ineqLinearSolve } from "./ineq-linear";
+import { ineqLinearWord } from "./ineq-linear-word";
+import { polyCubes } from "./poly-cubes";
+import { polyFactorTheorem } from "./poly-factor-theorem";
+import { polyHigherGrouping } from "./poly-higher-grouping";
+import { polySubstitution } from "./poly-substitution";
+import { polyTwoVariables } from "./poly-two-variables";
+import { polyPerfectSquare } from "./poly-perfect-square";
 
 /**
  * Every generator in the app.
@@ -53,6 +121,70 @@ export const generators: Generator[] = [
   quadDiscriminantCount,
   quadWordRectangle,
   quadWordConsecutive,
+  polyPerfectSquare,
+  polyGrouping,
+  polyTwoVariables,
+  polySubstitution,
+  polyCubes,
+  polyHigherGrouping,
+  polyFactorTheorem,
+  eqLinearSolve,
+  eqLinearFractions,
+  eqLinearWord,
+  ineqLinearSolve,
+  ineqLinearIntegers,
+  ineqLinearWord,
+  funcQuadVertexForm,
+  funcQuadVertex,
+  funcQuadIntercepts,
+  funcEvaluate,
+  funcComposite,
+  funcInverse,
+  logDefinition,
+  logLaws,
+  expLogEquations,
+  trigDefinition,
+  trigSpecial,
+  trigSolve,
+  trigUnitCircle,
+  trigIdentities,
+  trigEquations,
+  trigLaws,
+  seqArithmetic,
+  seqGeometric,
+  seriesArithmetic,
+  seriesGeometric,
+  calcLimit,
+  calcDerivative,
+  calcTangent,
+  calcIntegral,
+  c1OneSided,
+  c1Infinity,
+  c1Continuity,
+  c1TrigLimit,
+  c1FirstPrinciples,
+  c1ProductQuotient,
+  c1TrigDerivative,
+  c1ExpLogDerivative,
+  c1ChainPower,
+  c1ChainTranscendental,
+  c1ChainCombined,
+  c1Implicit,
+  c1Monotonic,
+  c1Extrema,
+  c1Optimisation,
+  c1RelatedRates,
+  c1Rolle,
+  c1MeanValue,
+  c1MvtBound,
+  c1IntegralPower,
+  c1Substitution,
+  c1Definite,
+  c1Riemann,
+  c1FtcFirst,
+  c1FtcSecond,
+  c1NetChange,
+  c1AreaBetween,
 ];
 
 const byId = new Map(generators.map((generator) => [generator.id, generator]));

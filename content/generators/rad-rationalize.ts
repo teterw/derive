@@ -103,7 +103,7 @@ function monomial(rng: RNG, difficulty: Difficulty): Built {
       "rad.rationalize-monomial",
       {
         th: `คูณทั้งเศษและส่วนด้วย \\sqrt{${b}} ซึ่งเท่ากับคูณด้วย 1`,
-        en: `Multiply top and bottom by \\sqrt{${b}} - that is multiplying by 1.`,
+        en: `Multiply top and bottom by \\sqrt{${b}}, which is multiplying by 1.`,
       },
     ),
     makeStep(`\\frac{${radical(a, b)}}{${b}}`, "rad.product", {

@@ -206,9 +206,21 @@ function checkAnswerSatisfiesStem(question: Question, where: string): void {
   expectEquivalentToAnswer(stem, question.answer, where);
 }
 
-/** An `exact` answer to an equation is a single root, not an expression. */
+/**
+ * An `exact` answer to an equation is a single root, not an expression.
+ *
+ * "To an equation" is the load-bearing part. `\sec^2 x - \tan^2 x + 3` has one
+ * variable and the constant answer 4, and 4 is emphatically not a root of it -
+ * it is its value, the same at every x, which is the whole point of an
+ * identity. Only an equation has roots, so only an equation gets substituted
+ * into: either the stem says so with an `=`, or the generator supplied the
+ * zero form itself, which is how a word problem states the equation it models.
+ */
 function isRootAnswer(question: Question): boolean {
   if (question.answer.kind !== "exact") return false;
+  const isEquation =
+    question.stem.includes("=") || question.machineStem !== undefined;
+  if (!isEquation) return false;
   const stem = zeroFormOfStem(question);
   if (!stem) return false;
   return symbolsOf(stem).length === 1 && symbolsOf(question.answer.value).length === 0;

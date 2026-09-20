@@ -16,7 +16,7 @@ import { JSDOM } from "jsdom";
 import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
 import { sessions, users } from "../lib/db/schema";
-import { skills } from "../content/topics";
+import { skills, topics } from "../content/topics";
 import { allRules } from "../content/rules";
 import { SESSION_COOKIE } from "../lib/auth/constants";
 import { hashSessionToken, newSessionToken } from "../lib/auth/token";
@@ -103,6 +103,15 @@ async function main() {
     "/th/daily",
     "/th/practice",
     "/th/practice/run?skills=quad.solve-by-factoring&difficulty=1,2",
+    /*
+     * One runner per topic. The runner is where the tool dock lives, and the
+     * dock is handed the whole rule registry - so it is the page that breaks
+     * when something that cannot cross to a client component gets into a rule.
+     */
+    ...topics.map(
+      (topic) =>
+        `/th/practice/run?skills=${topic.skillIds[0]}&difficulty=1,2`,
+    ),
     "/th/learn",
     `/th/learn/${skills[0]!.id}`,
     `/th/learn/${skills.at(-1)!.id}`,
@@ -247,8 +256,42 @@ async function checkPage(path: string, token: string): Promise<Result> {
     notes.push(`possible untranslated keys: ${suspicious.slice(0, 5).join(", ")}`);
   }
 
-  if (/Application error|Internal Server Error|digest&quot;/.test(html)) {
-    notes.push("the page rendered an error boundary");
+  /*
+   * The app's own error boundary, not Next's.
+   *
+   * This used to look only for "Application error" and friends, which are the
+   * strings Next puts on *its* error page. `app/[locale]/error.tsx` is ours and
+   * its text is a translated message, so a page that had thrown and rendered
+   * nothing but the error boundary came back 200, carried the shell, shipped
+   * KaTeX's stylesheet, and was reported `ok`. Four of the five modes were
+   * broken and this script said every page rendered.
+   */
+  if (html.includes("data-error-boundary")) {
+    notes.push("the page rendered the error boundary");
+  }
+
+  /*
+   * And the case where the boundary is not in the HTML at all.
+   *
+   * When what throws is the *serialisation* of props for a client component -
+   * "Functions cannot be passed directly to Client Components" - the server
+   * still streams a 200 with the shell in it, and the error page only appears
+   * once the client picks the stream apart. Nothing a reader of the bytes
+   * recognises as an error is on the page: no "Application error", no boundary
+   * markup, and the Thai title is in the message bundle of every page anyway.
+   *
+   * What *is* there is the flight stream's own record of the throw, one
+   * `E{"digest":"..."}` row per boundary that caught it. A page that rendered
+   * has none. This is the check that would have caught four of the app's five
+   * modes going down, and did not.
+   */
+  const thrown = /E\{\\*"digest\\*":\\*"(\w+)/.exec(html);
+  if (thrown) {
+    notes.push(`a server component threw (digest ${thrown[1]})`);
+  }
+
+  if (/Application error|Internal Server Error/.test(html)) {
+    notes.push("the page rendered Next's own error page");
   }
 
   notes.push(...accessibilityNotes(html));

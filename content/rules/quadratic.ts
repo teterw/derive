@@ -1,6 +1,29 @@
 import type { Rule } from "../types";
+import {
+  asOperator,
+  binary,
+  divide,
+  negate,
+  rewriteFirst,
+  unparen,
+} from "./misapply";
 
 const TOPIC = ["quadratic-equations"];
+
+/**
+ * Rules the ม.2 factoring chapter uses too. A rule can belong to several
+ * topics - the formula sheet filters by topic, and a ม.2 learner looking up
+ * ผลต่างกำลังสอง should find it under their own chapter rather than under a
+ * ม.3 one they have not reached.
+ */
+const BOTH = [
+  "quadratic-equations",
+  "poly.factor-degree-2",
+  "poly.factor-higher",
+];
+
+/** The graphing chapter reaches back for these three. */
+const GRAPHED = ["quadratic-equations", "func.quadratic-graph"];
 
 /**
  * สมการกำลังสองตัวแปรเดียว · Quadratic equations in one variable.
@@ -11,7 +34,7 @@ const TOPIC = ["quadratic-equations"];
 export const quadraticRules: Rule[] = [
   {
     id: "quad.common-factor",
-    topicIds: TOPIC,
+    topicIds: BOTH,
     name: {
       th: "การแยกตัวประกอบด้วยตัวประกอบร่วม",
       en: "Factoring out a common factor",
@@ -29,7 +52,7 @@ export const quadraticRules: Rule[] = [
   },
   {
     id: "quad.trinomial-pattern",
-    topicIds: TOPIC,
+    topicIds: [...BOTH, "func.quadratic-graph"],
     name: {
       th: "การแยกตัวประกอบตรีนาม",
       en: "Factoring a trinomial",
@@ -58,7 +81,7 @@ export const quadraticRules: Rule[] = [
   },
   {
     id: "quad.diff-squares",
-    topicIds: TOPIC,
+    topicIds: BOTH,
     name: {
       th: "ผลต่างกำลังสอง",
       en: "Difference of squares",
@@ -80,7 +103,7 @@ export const quadraticRules: Rule[] = [
   },
   {
     id: "quad.perfect-square-trinomial",
-    topicIds: TOPIC,
+    topicIds: [...BOTH, "func.quadratic-graph"],
     name: {
       th: "ตรีนามกำลังสองสมบูรณ์",
       en: "Perfect square trinomial",
@@ -102,7 +125,7 @@ export const quadraticRules: Rule[] = [
   },
   {
     id: "quad.zero-product",
-    topicIds: TOPIC,
+    topicIds: GRAPHED,
     name: {
       th: "สมบัติการคูณเป็นศูนย์",
       en: "Zero product property",
@@ -130,7 +153,7 @@ export const quadraticRules: Rule[] = [
   },
   {
     id: "quad.complete-square",
-    topicIds: TOPIC,
+    topicIds: GRAPHED,
     name: {
       th: "การทำให้เป็นกำลังสองสมบูรณ์",
       en: "Completing the square",
@@ -197,10 +220,44 @@ export const quadraticRules: Rule[] = [
       },
     ],
     seeAlso: ["quad.discriminant", "quad.complete-square"],
+    /**
+     * The sign of `-b`. Far and away the most common slip on this formula,
+     * and the reason the mnemonic starts with the word ลบ.
+     */
+    misapplications: [
+      {
+        id: "quad.formula/dropped-minus-b",
+        apply: (math) =>
+          rewriteFirst(math, (node) => {
+            const quotient = asOperator(node, "/");
+            if (!quotient) return null;
+            const numerator = unparen(quotient.args[0]!);
+            // (-b ± something) / (2a): flip the sign of the -b in front.
+            for (const op of ["+", "-"]) {
+              const sum = asOperator(numerator, op);
+              if (!sum) continue;
+              return divide(
+                binary(op, negate(sum.args[0]!), sum.args[1]!),
+                quotient.args[1]!,
+              );
+            }
+            return null;
+          }),
+        explain: {
+          th: "ลืมเครื่องหมายลบหน้า b - สูตรขึ้นต้นด้วย -b ไม่ใช่ b",
+          en: "Dropped the minus in front of b. The formula starts with -b, not b.",
+        },
+        example: {
+          from: "(-(-5) + sqrt((-5)^2 - 4*1*6)) / (2*1)",
+          right: "3",
+          wrong: "-2",
+        },
+      },
+    ],
   },
   {
     id: "quad.discriminant",
-    topicIds: TOPIC,
+    topicIds: GRAPHED,
     name: {
       th: "ดิสคริมิแนนต์กับจำนวนคำตอบ",
       en: "The discriminant and the number of roots",

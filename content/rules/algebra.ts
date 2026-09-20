@@ -6,12 +6,29 @@ import type { Rule } from "../types";
  * derivation has to name a rule, and these are the honest names for the steps
  * that would otherwise be hand-waved as "simplify".
  */
-const BOTH = ["exponents-radicals", "quadratic-equations"];
+const BOTH = [
+  "exponents-radicals",
+  "quadratic-equations",
+  "poly.factor-degree-2",
+  "poly.factor-higher",
+  "eq.linear-one-var",
+  "ineq.linear-one-var",
+  "func.quadratic-graph",
+  "func.relations",
+];
+
+/** Balancing and modelling start in ม.1 and never stop being used. */
+const EQUATIONS = [
+  "quadratic-equations",
+  "eq.linear-one-var",
+  "ineq.linear-one-var",
+  "func.relations",
+];
 
 export const algebraRules: Rule[] = [
   {
     id: "eq.balance",
-    topicIds: ["quadratic-equations"],
+    topicIds: EQUATIONS,
     name: {
       th: "สมบัติการเท่ากัน (ทำสิ่งเดียวกันทั้งสองข้าง)",
       en: "Balance property of equations",
@@ -29,7 +46,7 @@ export const algebraRules: Rule[] = [
   },
   {
     id: "eq.move-term",
-    topicIds: ["quadratic-equations"],
+    topicIds: EQUATIONS,
     name: {
       th: "การย้ายข้าง",
       en: "Moving a term to the other side",
@@ -87,7 +104,7 @@ export const algebraRules: Rule[] = [
   },
   {
     id: "model.equation",
-    topicIds: ["quadratic-equations"],
+    topicIds: EQUATIONS,
     name: {
       th: "การตั้งสมการจากโจทย์ปัญหา",
       en: "Translating a word problem into an equation",

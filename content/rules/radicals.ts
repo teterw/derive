@@ -2,6 +2,9 @@ import type { Rule } from "../types";
 
 const TOPIC = ["exponents-radicals"];
 
+/** The special-angle values are rationalised radicals, so ม.3 needs this too. */
+const WITH_TRIG = ["exponents-radicals", "trig.ratios"];
+
 /**
  * กรณฑ์ที่สอง · Square roots.
  *
@@ -111,7 +114,7 @@ export const radicalRules: Rule[] = [
   },
   {
     id: "rad.rationalize-monomial",
-    topicIds: TOPIC,
+    topicIds: WITH_TRIG,
     name: {
       th: "การทำให้ตัวส่วนไม่ติดกรณฑ์ (ตัวส่วนพจน์เดียว)",
       en: "Rationalising a single-term denominator",

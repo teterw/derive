@@ -25,6 +25,49 @@ export const DIFFICULTY_LABELS: Record<Difficulty, L> = {
   4: { th: "ท้าทาย", en: "Challenge" },
 };
 
+/**
+ * A way this rule gets applied wrongly, written down at authoring time.
+ *
+ * "Work out what the learner did wrong" is an open-ended search if it is
+ * attempted at diagnosis time (docs/NEXT.md §P1). Enumerating the mistakes
+ * here bounds it: for each step of a derivation, apply that step's rule's
+ * mis-applications and see whether any of the results is what was submitted.
+ * Five steps times three mis-applications is fifteen candidates, not a search.
+ *
+ * It lives on the **rule** rather than the generator on purpose. A rule is
+ * authored once and used by every generator that cites it, so `exp.product`
+ * documents "multiplied the exponents" once instead of every question about
+ * powers documenting it again. It is also worth having on its own merits: a
+ * rule that records its own known failure modes is better teaching material
+ * than one that does not, diagnosis or no diagnosis.
+ *
+ * Nothing reads these yet. The field exists now so that rules authored from
+ * here carry them, rather than every rule needing revisiting later.
+ */
+export type Misapplication = {
+  /** Stable and namespaced under the rule: `exp.product/multiplied-exponents`. */
+  id: string;
+  /**
+   * The wrong move, applied mechanically to the mathjs form of a step.
+   *
+   * Returns `null` when this expression is not a shape the mistake can be made
+   * on - most rules will not apply to most steps, so "not applicable" is the
+   * common answer and must not be an exception. It must never throw: it is
+   * going to be run speculatively over every step of every derivation.
+   */
+  apply(math: string): string | null;
+  /** What the learner did, in their terms: 'คูณเลขชี้กำลังแทนที่จะบวก'. */
+  explain: L;
+  /**
+   * One worked case, in mathjs source. The gate applies `apply` to `from`,
+   * checks the result really is `wrong`, and checks the answer checker marks
+   * `wrong` against `right` as wrong - so a "mistake" that is secretly
+   * correct, or a transform that has stopped transforming, fails the suite
+   * rather than quietly accusing a learner who got it right.
+   */
+  example: { from: string; right: string; wrong: string };
+};
+
 export type Rule = {
   id: RuleId;
   topicIds: TopicId[];
@@ -55,6 +98,8 @@ export type Rule = {
   mnemonic?: L;
   examples: { from: string; to: string; note?: L }[];
   seeAlso?: RuleId[];
+  /** Known ways this rule gets applied wrongly. See `Misapplication`. */
+  misapplications?: Misapplication[];
 };
 
 export type Step = {
@@ -185,13 +230,25 @@ export interface Generator {
 /**
  * Form predicates for skills where the *shape* of the answer is the point
  * (PROMPT.md §6.4). `null` means any equivalent form is accepted.
+ *
+ * The list is a value and the type is derived from it, rather than the other
+ * way round, so the set can be walked at run time. Every one of these is a
+ * message key twice over - `practice.accepts.*` and `practice.formError.*` -
+ * and `vertex-form` reached the app missing the first of them in both
+ * locales, which put the raw key on the screen under a wrong answer. Key
+ * parity between the two files cannot catch that, because it was absent from
+ * both; `i18n/messages.test.ts` walks this list instead.
  */
-export type FormRequirement =
-  | "simplified-radical"
-  | "rationalized-denominator"
-  | "scientific-notation"
-  | "factored"
-  | "positive-exponents";
+export const FORM_REQUIREMENTS = [
+  "simplified-radical",
+  "rationalized-denominator",
+  "scientific-notation",
+  "factored",
+  "positive-exponents",
+  "vertex-form",
+] as const;
+
+export type FormRequirement = (typeof FORM_REQUIREMENTS)[number];
 
 export type Skill = {
   id: SkillId;

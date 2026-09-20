@@ -1,6 +1,10 @@
 import type { Rule } from "../types";
+import { add, asOperator, multiply, power, rewriteFirst, same } from "./misapply";
 
 const TOPIC = ["exponents-radicals"];
+
+/** Read backwards, these are the log laws; ม.4 reaches for them again. */
+const WITH_LOGS = ["exponents-radicals", "func.exp-log"];
 
 /**
  * เลขยกกำลัง · Laws of exponents.
@@ -11,7 +15,7 @@ const TOPIC = ["exponents-radicals"];
 export const exponentRules: Rule[] = [
   {
     id: "exp.product",
-    topicIds: TOPIC,
+    topicIds: WITH_LOGS,
     name: {
       th: "สมบัติการคูณของเลขยกกำลัง",
       en: "Product of powers",
@@ -39,10 +43,58 @@ export const exponentRules: Rule[] = [
       },
     ],
     seeAlso: ["exp.quotient", "exp.power-of-power"],
+    /**
+     * The two mistakes this law actually produces. Both are a real rule
+     * reached for in the wrong place, which is the only kind worth naming.
+     */
+    misapplications: [
+      {
+        id: "exp.product/multiplied-exponents",
+        apply: (math) =>
+          rewriteFirst(math, (node) => {
+            const product = asOperator(node, "*");
+            if (!product) return null;
+            const left = asOperator(product.args[0]!, "^");
+            const right = asOperator(product.args[1]!, "^");
+            if (!left || !right) return null;
+            if (!same(left.args[0]!, right.args[0]!)) return null;
+            return power(
+              left.args[0]!,
+              multiply(left.args[1]!, right.args[1]!),
+            );
+          }),
+        explain: {
+          th: "คูณเลขชี้กำลังแทนที่จะบวก - การคูณเลขยกกำลังฐานเดียวกันให้บวกเลขชี้กำลัง",
+          en: "Multiplied the exponents instead of adding them.",
+        },
+        example: { from: "x^3 * x^4", right: "x^7", wrong: "x^12" },
+      },
+      {
+        id: "exp.product/multiplied-bases",
+        apply: (math) =>
+          rewriteFirst(math, (node) => {
+            const product = asOperator(node, "*");
+            if (!product) return null;
+            const left = asOperator(product.args[0]!, "^");
+            const right = asOperator(product.args[1]!, "^");
+            if (!left || !right) return null;
+            if (!same(left.args[0]!, right.args[0]!)) return null;
+            return power(
+              multiply(left.args[0]!, right.args[0]!),
+              add(left.args[1]!, right.args[1]!),
+            );
+          }),
+        explain: {
+          th: "คูณฐานเข้าด้วยกันด้วย - ฐานไม่เปลี่ยน มีแต่เลขชี้กำลังที่บวกกัน",
+          en: "Multiplied the bases as well. The base does not change; only the exponents add.",
+        },
+        example: { from: "2^3 * 2^4", right: "2^7", wrong: "4^7" },
+      },
+    ],
   },
   {
     id: "exp.quotient",
-    topicIds: TOPIC,
+    topicIds: WITH_LOGS,
     name: {
       th: "สมบัติการหารของเลขยกกำลัง",
       en: "Quotient of powers",
@@ -65,7 +117,7 @@ export const exponentRules: Rule[] = [
   },
   {
     id: "exp.power-of-power",
-    topicIds: TOPIC,
+    topicIds: WITH_LOGS,
     name: {
       th: "เลขยกกำลังของเลขยกกำลัง",
       en: "Power of a power",
@@ -121,7 +173,7 @@ export const exponentRules: Rule[] = [
   },
   {
     id: "exp.zero",
-    topicIds: TOPIC,
+    topicIds: WITH_LOGS,
     name: {
       th: "เลขชี้กำลังเป็นศูนย์",
       en: "Zero exponent",
@@ -147,7 +199,7 @@ export const exponentRules: Rule[] = [
   },
   {
     id: "exp.negative",
-    topicIds: TOPIC,
+    topicIds: WITH_LOGS,
     name: {
       th: "เลขชี้กำลังเป็นจำนวนเต็มลบ",
       en: "Negative exponent",

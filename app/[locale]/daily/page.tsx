@@ -161,6 +161,8 @@ export default async function DailyPage({
   const { id: runId } = await findOrCreateDailyRun(user.id, day, {
     skillIds: passedSkillIds,
     band: isDailyBand(wanted) ? wanted : undefined,
+    // Looked up above; `known` stops it being looked up again.
+    known: started,
   });
 
   const [[run], rows] = await Promise.all([

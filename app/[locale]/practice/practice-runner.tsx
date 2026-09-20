@@ -28,6 +28,7 @@ import { isBlankAnswer } from "@/lib/math/mathfield-latex";
 import { MathText } from "@/components/math/math-text";
 import { QuestionDisplay } from "@/components/math/question-display";
 import { StepViewer } from "@/components/math/step-viewer";
+import { TestVerdict } from "./test-verdict";
 import { cn } from "@/lib/utils";
 
 type Phase = "answering" | "answered";
@@ -281,34 +282,17 @@ export function PracticeRunner({
           that is the only thing anyone is looking for on this screen.
         */}
         {assess ? (
-          <div className="space-y-2">
-            <div
-              className={cn(
-                "mx-auto flex size-14 items-center justify-center rounded-full",
-                verdict?.passed
-                  ? "bg-correct/15 text-correct"
-                  : "bg-wrong/15 text-wrong",
-              )}
-            >
-              {verdict?.passed ? (
-                <Check className="size-7" />
-              ) : (
-                <X className="size-7" />
-              )}
-            </div>
-            <h2 className="text-2xl font-semibold tracking-tight">
-              {verdict?.passed ? t("testPassed") : t("testFailed")}
-            </h2>
-            {verdict ? (
-              <p className="text-sm text-muted">
-                {t("testScore", {
-                  score: verdict.score,
-                  total: tally.asked,
-                  needed: verdict.needed,
-                })}
-              </p>
-            ) : null}
-          </div>
+          <TestVerdict
+            verdict={verdict ?? null}
+            asked={tally.asked}
+            labels={{
+              marking: t("testMarking"),
+              passed: t("testPassed"),
+              failed: t("testFailed"),
+              score: (values: { score: number; total: number; needed: number }) =>
+                t("testScore", values),
+            }}
+          />
         ) : (
           <h2 className="text-2xl font-semibold tracking-tight">
             {t("queueDone")}

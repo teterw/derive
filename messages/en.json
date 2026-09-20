@@ -227,7 +227,8 @@
     },
     "headingPractice": "Practice",
     "headingReview": "Review",
-    "headingTest": "Lesson test"
+    "headingTest": "Lesson test",
+    "testMarking": "Marking your answers"
   },
   "learn": {
     "title": "Learn",

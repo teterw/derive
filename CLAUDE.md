@@ -68,6 +68,14 @@ pnpm resolves from PowerShell, not Git Bash.
   is the only thing that writes the column.
 - Content ids (`topicId`, `skillId`, `generatorId`, `RuleId`) are strings in
   the database and live in `content/` in code. Never renumber one.
+- **The functions must run where the database is.** The Neon branch is in
+  `ap-southeast-1` (Singapore), so `vercel.json` pins `"regions": ["sin1"]`.
+  Without it Vercel uses its default region, `iad1` in Washington, and every
+  round trip crosses the Pacific: about 220ms instead of the ~35ms this repo's
+  measurements assume. Every page here is dynamic, most do several queries, so
+  that lands on all of them at once. If the database is ever moved, move this
+  with it — and Singapore is the nearest region to the learners as well, so the
+  two wants agree.
 
 ## i18n
 

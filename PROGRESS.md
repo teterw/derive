@@ -1224,6 +1224,71 @@ Verified by walking it: browser back restores y=1000 with the group open; the
 header back link lands on the exact card; a fresh `/rules` is shut and at the
 top; search still opens only what it matched.
 
+## Round twenty - the functions were on the wrong continent
+
+Two reports: a lesson test flashed "not this time" before turning into
+"passed", and the deployed site felt slow on the pages that fetch things -
+"daily question and admin load longer, other pages are instant".
+
+### The flash was not a cache
+
+The verdict comes back from a server action, and the moment before it arrives
+was rendered with `verdict?.passed`. That is `undefined`, which is falsy, which
+is the failure branch - so every test showed a red cross and "not this time"
+until the real answer landed. You only ever noticed it when you passed, because
+a fail flashing a fail looks like nothing happening.
+
+Waiting is a third state and now looks like one. `TestVerdict` is its own
+component so the three are explicit and testable, and
+`test-verdict.test.tsx` fails if the waiting state ever says "failed" again
+(falsified by restoring the old expression).
+
+### The slowness was geography
+
+The Neon branch is in `ap-southeast-1`, Singapore. There was no `vercel.json`,
+so the functions ran in Vercel's default region - `iad1`, Washington. Every
+query crossed the Pacific.
+
+`pnpm capacity` (new) settles what the database itself is doing:
+
+```
+ping (round trip floor)            45.6ms
+session lookup by token hash       45.6ms
+attempts for one user, today       46.4ms
+lesson progress for one user       46.8ms
+site stats (admin overview)        46.8ms
+```
+
+Every query costs the round trip and **under 1.2ms of actual database work**.
+The database is not slow and is nowhere near working hard; the time was all
+distance. `vercel.json` now pins `"regions": ["sin1"]`, which is also the
+nearest region to the learners, so both wants agree.
+
+That multiplies by the number of *sequential* round trips a page makes, which
+is why the fetching pages stood out. Two of them were doing more than they
+needed:
+
+- **daily** looked the run up in the opening `Promise.all` and then
+  `findOrCreateDailyRun` looked it up again. It now takes the answer it already
+  has (`known`).
+- **admin** fetched the invite codes *after* the stats and users had resolved,
+  making it three round trips deep instead of two. Nothing depended on
+  anything, so all three go together now.
+- **`recordLessonTest`** was a read then a write; it is one statement, with
+  `greatest`/`coalesce` doing the keeping-the-best part in SQL. That also
+  closes a lost update - two tests filed at once both read the same `attempts`
+  and both wrote it plus one. Verified against the real database by walking
+  fail, pass, failed retake, pass again.
+
+### Capacity, since it was asked
+
+At 2 vCPU / 8GB, on measurements not guesses: `max_connections` is 901 and 16
+are in use; the whole database is 9.9MB; no sequential scans on anything big.
+The binding constraints are storage per attempt (1,120 bytes, because
+`question_snapshot` stores stem, answer and steps so a missed question can be
+replayed) and Vercel's function concurrency - not the database. Numbers in the
+report to the owner; rerun `pnpm capacity` to refresh them.
+
 ## Where to pick up
 
 1. **Use it.** Register a real account (`/admin` issues codes), drill twenty

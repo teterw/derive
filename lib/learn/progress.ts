@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { lessonProgress } from "@/lib/db/schema";
 import { skills } from "@/content/topics";
@@ -56,51 +56,61 @@ export async function recordLessonTest(
   const length = Math.max(1, asked);
   const ratio = correct / length;
   const passesNow = correct >= passMark(length);
+  const now = new Date();
 
-  const [existing] = await db
-    .select({
-      passedAt: lessonProgress.passedAt,
-      bestScore: lessonProgress.bestScore,
-      attempts: lessonProgress.attempts,
-    })
-    .from(lessonProgress)
-    .where(
-      and(
-        eq(lessonProgress.userId, userId),
-        eq(lessonProgress.skillId, skillId),
-      ),
-    )
-    .limit(1);
-
-  const alreadyPassed = Boolean(existing?.passedAt);
-
-  await db
+  /*
+   * One statement, where this used to read the row and then write it.
+   *
+   * The round trip is the point. This runs while the learner is looking at a
+   * screen that cannot say whether they passed yet, and the database is in
+   * Singapore - so a second trip is a second helping of latency in the one
+   * place it is most visible. Doing the keeping-the-best part in SQL rather
+   * than in JavaScript costs nothing and removes it.
+   *
+   * It also closes a lost update. Read-then-write meant two tests filed at
+   * once both read the same `attempts` and both wrote it plus one, so one of
+   * them vanished. `attempts + 1` in the statement cannot do that.
+   *
+   * `passedAt` is only in the SET when this attempt passed; otherwise the
+   * column is left out of the update entirely, which is what "set once and
+   * never cleared" means. `coalesce` then keeps the original date when there
+   * already is one.
+   */
+  const [row] = await db
     .insert(lessonProgress)
     .values({
       userId,
       skillId,
-      passedAt: passesNow ? new Date() : null,
+      passedAt: passesNow ? now : null,
       bestScore: ratio,
       attempts: 1,
-      updatedAt: new Date(),
+      updatedAt: now,
     })
     .onConflictDoUpdate({
       target: [lessonProgress.userId, lessonProgress.skillId],
       set: {
-        // Keep the original pass date; only set it if this is the first pass.
-        passedAt:
-          alreadyPassed || !passesNow
-            ? (existing?.passedAt ?? null)
-            : new Date(),
-        bestScore: Math.max(existing?.bestScore ?? 0, ratio),
-        attempts: (existing?.attempts ?? 0) + 1,
-        updatedAt: new Date(),
+        bestScore: sql`greatest(${lessonProgress.bestScore}, ${ratio})`,
+        attempts: sql`${lessonProgress.attempts} + 1`,
+        updatedAt: now,
+        ...(passesNow
+          ? { passedAt: sql`coalesce(${lessonProgress.passedAt}, ${now})` }
+          : {}),
       },
-    });
+    })
+    .returning({ passedAt: lessonProgress.passedAt });
+
+  /*
+   * `newlyPassed` without a second read: the returned date is the one supplied
+   * above exactly when there was no earlier pass to keep, because `coalesce`
+   * would have preferred the older one. Any other value means it was already
+   * passed before this attempt.
+   */
+  const passedAt = row?.passedAt ?? null;
+  const newlyPassed = passesNow && passedAt?.getTime() === now.getTime();
 
   return {
-    passed: alreadyPassed || passesNow,
-    newlyPassed: !alreadyPassed && passesNow,
+    passed: passedAt !== null,
+    newlyPassed,
     score: correct,
     needed: passMark(length),
   };

@@ -227,7 +227,8 @@
     },
     "headingPractice": "ฝึกโจทย์",
     "headingReview": "ทบทวนข้อที่ตอบผิด",
-    "headingTest": "แบบทดสอบประจำบท"
+    "headingTest": "แบบทดสอบประจำบท",
+    "testMarking": "กำลังตรวจคำตอบ"
   },
   "learn": {
     "title": "เรียน",

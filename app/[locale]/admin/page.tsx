@@ -51,9 +51,23 @@ export default async function AdminPage({
 
   const totalLessons = skills.length;
 
-  const [stats, allUsers] = await Promise.all([
+  /*
+   * All three together. The invite codes used to be fetched further down, after
+   * these two had already resolved, which made the page three round trips deep
+   * instead of two - and this page was one of the two reported as noticeably
+   * slower to load than the rest. Nothing here depends on anything else here.
+   */
+  const [stats, allUsers, codes] = await Promise.all([
     getSiteStats(),
     getAdminUsers(),
+    db
+      .select({
+        code: inviteCodes,
+        creator: { displayName: users.displayName },
+      })
+      .from(inviteCodes)
+      .leftJoin(users, eq(users.id, inviteCodes.createdBy))
+      .orderBy(desc(inviteCodes.createdAt)),
   ]);
 
   /*
@@ -72,15 +86,6 @@ export default async function AdminPage({
     dailyFinishedToday: t("statDailyToday"),
     lessonsPassed: t("statLessonsPassed"),
   };
-
-  const codes = await db
-    .select({
-      code: inviteCodes,
-      creator: { displayName: users.displayName },
-    })
-    .from(inviteCodes)
-    .leftJoin(users, eq(users.id, inviteCodes.createdBy))
-    .orderBy(desc(inviteCodes.createdAt));
 
   const toneOf: Record<CodeStatus, "correct" | "neutral" | "wrong"> = {
     active: "correct",

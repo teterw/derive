@@ -172,9 +172,25 @@ export async function findDailyRun(
 export async function findOrCreateDailyRun(
   userId: string,
   day: string = bangkokDay(),
-  options: { skillIds?: readonly string[]; band?: DailyBand } = {},
+  options: {
+    skillIds?: readonly string[];
+    band?: DailyBand;
+    /**
+     * A lookup the caller has already done, to be used instead of repeating it.
+     *
+     * The daily page needs to know whether today was started before it decides
+     * what to render, so by the time it gets here it has the answer already -
+     * and looking it up a second time is a whole round trip to Singapore in
+     * the one page that was reported as slow to load. `undefined` means "not
+     * asked yet"; `null` means "asked, and there is none".
+     */
+    known?: { id: string; finished: boolean } | null;
+  } = {},
 ): Promise<{ id: string; finished: boolean }> {
-  const existing = await findDailyRun(userId, day);
+  const existing =
+    options.known !== undefined
+      ? options.known
+      : await findDailyRun(userId, day);
 
   /*
    * An existing run wins over whatever was asked for. The band is chosen once

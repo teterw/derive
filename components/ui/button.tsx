@@ -25,13 +25,51 @@ export const buttonVariants = cva(
 );
 
 type ButtonProps = React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants>;
+  VariantProps<typeof buttonVariants> & {
+    /**
+     * Something is in flight because of this button.
+     *
+     * Submitting an answer writes several rows and waits for the database, so
+     * there is a real pause between the press and the verdict. The button was
+     * already disabled for it - and a disabled button is indistinguishable
+     * from a page that has stopped responding. A turning spinner is the whole
+     * difference between "working" and "broken".
+     *
+     * `aria-busy` says the same thing to a screen reader, which otherwise gets
+     * only "dimmed" out of the same moment.
+     */
+    busy?: boolean;
+  };
 
-export function Button({ className, variant, size, ...props }: ButtonProps) {
+export function Button({
+  className,
+  variant,
+  size,
+  busy,
+  disabled,
+  children,
+  ...props
+}: ButtonProps) {
   return (
     <button
       className={cn(buttonVariants({ variant, size }), className)}
+      disabled={disabled ?? busy}
+      aria-busy={busy || undefined}
       {...props}
-    />
+    >
+      {busy ? (
+        <span
+          /*
+           * `border-current` so it takes the button's own text colour and
+           * works on every variant. Reduced motion stops it turning: the
+           * spinner is then a static ring, which still reads as "not ready"
+           * beside a dimmed label.
+           */
+          className="size-4 shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent motion-reduce:animate-none"
+          aria-hidden
+        />
+      ) : null}
+      {children}
+    </button>
   );
 }

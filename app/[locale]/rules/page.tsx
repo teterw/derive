@@ -4,10 +4,12 @@ import { hasLocale } from "next-intl";
 import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
-import { rulesForTopic, searchRules } from "@/content/rules";
+import { allRules, rulesForTopic, searchRules } from "@/content/rules";
+import { groupByFamily } from "@/content/rules/families";
 import { topics } from "@/content/topics";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Chapter } from "@/components/ui/chapter";
 import { Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Tex } from "@/components/math/katex";
@@ -34,16 +36,34 @@ export default async function RulesPage({
   const query = typeof q === "string" ? q : "";
   const topicId = typeof topic === "string" ? topic : "";
 
+  /**
+   * Grouped by what a rule *does*, not by which chapter uses it.
+   *
+   * Grouping by topic showed a rule once per chapter that referenced it - 115
+   * rules made 171 cards - and answered "where would I meet this?" when the
+   * question a formula sheet is opened with is "what does this kind of thing
+   * do?". Every rule about roots together, every rule about powers together.
+   *
+   * The chapter filter still narrows, it just no longer decides the headings.
+   */
   const matching = new Set(searchRules(query).map((rule) => rule.id));
-  const shown = topics
-    .filter((candidate) => !topicId || candidate.id === topicId)
-    .map((candidate) => ({
-      topic: candidate,
-      rules: rulesForTopic(candidate.id).filter((rule) =>
-        matching.has(rule.id),
-      ),
-    }))
-    .filter((group) => group.rules.length > 0);
+  const inTopic = topicId
+    ? new Set(rulesForTopic(topicId).map((rule) => rule.id))
+    : null;
+
+  const shown = groupByFamily(
+    allRules.filter(
+      (rule) =>
+        matching.has(rule.id) && (inTopic === null || inTopic.has(rule.id)),
+    ),
+  );
+
+  /*
+   * Shut by default, because the point of the change is that fifteen headings
+   * fit on a screen and 115 cards do not. A search is the exception: you have
+   * asked a question, and the answer should not need a second click.
+   */
+  const searching = query.trim() !== "" || topicId !== "";
 
   return (
     <AppShell locale={active} user={user}>
@@ -91,12 +111,21 @@ export default async function RulesPage({
         <p className="mt-8 text-sm text-muted">{t("noResults")}</p>
       ) : null}
 
-      <div className="mt-6 space-y-8">
-        {shown.map(({ topic: group, rules }) => (
-          <section key={group.id} className="space-y-3">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-muted">
-              {group.name[active]}
-            </h2>
+      <div className="mt-6 space-y-3">
+        {shown.map(({ family, rules }) => (
+          <Chapter
+            key={family.prefix}
+            title={family.name[active]}
+            meta={family.blurb[active]}
+            /* A count, not a progress bar: a formula sheet has nothing to be
+               part-way through. */
+            trailing={
+              <span className="shrink-0 font-mono text-xs tabular-nums text-muted">
+                {rules.length}
+              </span>
+            }
+            open={searching}
+          >
             <div className="grid gap-3 sm:grid-cols-2">
               {rules.map((rule) => (
                 <Link key={rule.id} href={`/rules/${rule.id}`}>
@@ -117,7 +146,7 @@ export default async function RulesPage({
                 </Link>
               ))}
             </div>
-          </section>
+          </Chapter>
         ))}
       </div>
     </AppShell>

@@ -386,9 +386,10 @@ export function ExamRunner({
             <Button
               variant="primary"
               onClick={submit}
+              busy={pending}
               disabled={pending || isBlankAnswer(draft)}
             >
-              <Check className="h-4 w-4" />
+              {pending ? null : <Check className="h-4 w-4" />}
               {t("checkAnswer")}
             </Button>
           )}

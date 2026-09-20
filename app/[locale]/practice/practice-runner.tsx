@@ -437,11 +437,15 @@ export function PracticeRunner({
             in it looked submittable, went through, and was marked wrong.
           */}
           {phase === "answering" ? (
-            <Button onClick={submit} disabled={pending || isBlankAnswer(answer)}>
+            <Button
+              onClick={submit}
+              busy={pending}
+              disabled={pending || isBlankAnswer(answer)}
+            >
               {t("submit")}
             </Button>
           ) : (
-            <Button onClick={next} disabled={pending}>
+            <Button onClick={next} busy={pending} disabled={pending}>
               <RotateCw className="h-4 w-4" />
               {t("nextQuestion")}
             </Button>

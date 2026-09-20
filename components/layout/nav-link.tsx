@@ -40,6 +40,7 @@ export function NavLink({
   variant,
   className,
   title,
+  live,
   "aria-label": ariaLabel,
   children,
 }: {
@@ -47,6 +48,11 @@ export function NavLink({
   variant: NavVariant;
   className?: string;
   title?: string;
+  /**
+   * This page's numbers change with every answer, so it must not be held in
+   * the client router cache. See the prefetch note below.
+   */
+  live?: boolean;
   "aria-label"?: string;
   children: React.ReactNode;
 }) {
@@ -72,9 +78,25 @@ export function NavLink({
    * Hover, focus and touch are the cheap signal that a navigation is actually
    * coming. `null` is Next's default rather than "off", so before the intent
    * the ordinary shell prefetch still happens.
+   *
+   * ## Why `live` pages are left alone
+   *
+   * A fully prefetched route is held in the client router cache for five
+   * minutes, which is fine for the formula sheet and wrong for anything
+   * counting your answers. The first attempt at this kept them warm and
+   * invalidated them from the answer action instead - and that measured
+   * **100ms added to every single submit**, to save 150ms on a navigation that
+   * happens two or three times a session. A practice run submits forty times
+   * and navigates twice, so it was a straight loss.
+   *
+   * So the volatile pages - the daily and the review queue here, and
+   * everything behind the avatar - keep the default shell prefetch, which
+   * always refetches and is never stale. The stable ones are warmed.
    */
   const [intent, setIntent] = useState(false);
-  const wantIt = () => setIntent(true);
+  const wantIt = () => {
+    if (!live) setIntent(true);
+  };
 
   return (
     <Link

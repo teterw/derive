@@ -169,13 +169,13 @@ export function ProfileMenu({
                 href={href}
                 role="menuitem"
                 /*
-                 * Full prefetch, unconditionally, because this list only
-                 * exists once the menu is open - which is already the intent
-                 * signal the nav links have to wait for a hover to get. Four
-                 * routes warm while the pointer travels down the menu, and
-                 * nothing is fetched for anyone who never opens it.
+                 * Default prefetch, not a full one. Three of these four -
+                 * statistics, the profile, the people board - change with
+                 * every answer, and a fully prefetched route is held for five
+                 * minutes. Warming them would mean invalidating them on every
+                 * submit, which measured 100ms *per answer* to save 150ms on a
+                 * navigation that happens two or three times a session.
                  */
-                prefetch
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-surface-2 hover:text-accent focus-visible:bg-surface-2 focus-visible:text-accent"
               >

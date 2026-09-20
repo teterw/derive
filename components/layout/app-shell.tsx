@@ -46,12 +46,12 @@ import { ThemeToggle } from "./theme-toggle";
  * bottom bar does not.
  */
 const NAV = [
-  { href: "/daily", key: "daily", icon: CalendarDays, onPhone: true },
-  { href: "/learn", key: "learn", icon: BookOpen, onPhone: true },
-  { href: "/practice", key: "practice", icon: Dumbbell, onPhone: true },
-  { href: "/exam", key: "exam", icon: FileText, onPhone: true },
-  { href: "/review", key: "review", icon: RotateCw, onPhone: true },
-  { href: "/rules", key: "formulas", icon: Sigma, onPhone: false },
+  { href: "/daily", key: "daily", icon: CalendarDays, onPhone: true, live: true },
+  { href: "/learn", key: "learn", icon: BookOpen, onPhone: true, live: false },
+  { href: "/practice", key: "practice", icon: Dumbbell, onPhone: true, live: false },
+  { href: "/exam", key: "exam", icon: FileText, onPhone: true, live: false },
+  { href: "/review", key: "review", icon: RotateCw, onPhone: true, live: true },
+  { href: "/rules", key: "formulas", icon: Sigma, onPhone: false, live: false },
 ] as const;
 
 /**
@@ -144,7 +144,12 @@ export async function AppShell({
               {NAV.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <NavLink key={item.href} href={item.href} variant="header">
+                  <NavLink
+                    key={item.href}
+                    href={item.href}
+                    variant="header"
+                    live={item.live}
+                  >
                     <Icon className="size-4 shrink-0" aria-hidden />
                     {t(item.key)}
                   </NavLink>
@@ -234,6 +239,7 @@ export async function AppShell({
                   key={item.href}
                   href={item.href}
                   variant="strip"
+                  live={item.live}
                   className={cn(item.onPhone && "hidden sm:inline-flex")}
                 >
                   <Icon className="size-3.5 shrink-0" aria-hidden />

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import {
-  BarChart3,
   BookOpen,
   CalendarDays,
   Dumbbell,
@@ -10,7 +9,6 @@ import {
   RotateCw,
   ShieldCheck,
   Sigma,
-  Users,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
@@ -29,9 +27,18 @@ import { LocaleSwitch } from "./locale-switch";
 import { ThemeToggle } from "./theme-toggle";
 
 /**
- * `onPhone` marks the five *modes* - the things you come here to do - which
- * get a thumb-reachable slot in the bottom bar.
+ * The places you come here to *do* something, and nothing else.
  *
+ * สถิติ and ผู้คน used to sit here too. They moved into the menu behind the
+ * avatar, where the rest of your account already lives, and listing them in
+ * both places only made the nav longer while saying the same thing twice -
+ * with two highlighted routes to one page, which reads as a bug.
+ *
+ * What is left divides cleanly: these are modes, and the account menu is about
+ * you. If something ever belongs in both, it belongs in the one the learner
+ * would look in first, and only there.
+ *
+ * `onPhone` marks the ones that get a thumb-reachable slot in the bottom bar.
  * It does not mean "only these exist on a phone". It used to: the strip that
  * carried everything else was `hidden sm:flex`, so below 640px สอบ, เรียน and
  * สูตร had no route to them at all. Three destinations, unreachable on the
@@ -40,13 +47,11 @@ import { ThemeToggle } from "./theme-toggle";
  */
 const NAV = [
   { href: "/daily", key: "daily", icon: CalendarDays, onPhone: true },
-  { href: "/learn", key: "learn", icon: BookOpen, onPhone: false },
+  { href: "/learn", key: "learn", icon: BookOpen, onPhone: true },
   { href: "/practice", key: "practice", icon: Dumbbell, onPhone: true },
   { href: "/exam", key: "exam", icon: FileText, onPhone: true },
   { href: "/review", key: "review", icon: RotateCw, onPhone: true },
-  { href: "/stats", key: "stats", icon: BarChart3, onPhone: true },
   { href: "/rules", key: "formulas", icon: Sigma, onPhone: false },
-  { href: "/people", key: "people", icon: Users, onPhone: false },
 ] as const;
 
 /**

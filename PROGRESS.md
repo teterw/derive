@@ -1156,6 +1156,29 @@ judged from a screenshot here needs a second, non-visual check: hit-testing,
 computed style, or the DOM. The `relative z-50` was kept, as a guard rather
 than a fix, and its comment says which it is.
 
+### The nav lost the two the menu gained
+
+Listing สถิติ and ผู้คน in the header *and* in the account menu made the nav
+longer while saying the same thing twice, with two highlighted routes to one
+page - which reads as a bug rather than as convenience. They are in the menu
+only now.
+
+That freed a slot in the phone bottom bar, which was carrying สถิติ; เรียน
+took it, having been the one mode stuck in the overflow strip. The bar is five
+modes again: daily, learn, practice, exam, review.
+
+The header nav is now โจทย์ประจำวัน, เรียน, ฝึก, สอบ, ทบทวน, สูตร (and ผู้ดูแล
+for an admin), and the menu is สถิติ, ผู้คน, โปรไฟล์, ตั้งค่า, ออกจากระบบ.
+Neither repeats the other.
+
+**Note for anyone testing this in the browser here:** the automation tab runs
+backgrounded (`document.hidden` is true), and Chrome defers hydration in a
+background tab - React attaches to nothing, so every menu looks broken. Taking
+a screenshot forces a paint and it hydrates. That cost half an hour of looking
+for a bug that was not there, on top of the screenshot compositing artifact in
+round eighteen. Same lesson, twice: check the tab is actually painting before
+believing what it shows.
+
 ## Where to pick up
 
 1. **Use it.** Register a real account (`/admin` issues codes), drill twenty

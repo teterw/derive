@@ -130,7 +130,7 @@ export const quadraticRules: Rule[] = [
       th: "สมบัติการคูณเป็นศูนย์",
       en: "Zero product property",
     },
-    statement: "AB = 0 \\iff A = 0 \\ \\text{หรือ} \\ B = 0",
+    statement: "AB = 0 \\iff A = 0 \\ \\lor \\ B = 0",
     plain: {
       th: "ถ้าผลคูณเป็นศูนย์ ต้องมีตัวใดตัวหนึ่งเป็นศูนย์",
       en: "If a product is zero, at least one of the factors is zero.",
@@ -142,7 +142,7 @@ export const quadraticRules: Rule[] = [
     examples: [
       {
         from: "(x - 2)(x - 3) = 0",
-        to: "x = 2 \\ \\text{หรือ} \\ x = 3",
+        to: "x = 2, \\ x = 3",
         note: {
           th: "ต้องจัดให้ข้างหนึ่งเป็น 0 ก่อนจึงใช้สมบัตินี้ได้",
           en: "One side must be 0 before this property can be used.",

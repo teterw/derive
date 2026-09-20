@@ -121,7 +121,7 @@ export const calculusFtcRules: Rule[] = [
     examples: [
       {
         from: "v(t) = 3t^2, \\ 0 \\le t \\le 2",
-        to: "\\text{ระยะทาง} = 8",
+        to: "s = 8",
         note: {
           th: "เป็นการกระจัดสุทธิ ถ้าความเร็วติดลบบางช่วง ระยะทางจริงจะมากกว่านี้",
           en: "That is the net displacement. If the velocity ever went negative, the distance travelled would be more.",
@@ -152,7 +152,7 @@ export const calculusFtcRules: Rule[] = [
     },
     examples: [
       {
-        from: "y = x \\text{ และ } y = x^2",
+        from: "y = x, \\ y = x^2",
         to: "A = \\frac{1}{6}",
         note: {
           th: "ระหว่างศูนย์กับหนึ่ง เส้นตรงอยู่เหนือพาราโบลา นอกช่วงนั้นสลับกัน",

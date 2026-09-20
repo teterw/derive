@@ -91,7 +91,7 @@ export const quadWordRectangle: Generator = {
         th: `สี่เหลี่ยมผืนผ้ารูปหนึ่งมีความยาวมากกว่าความกว้าง ${gap} เมตร และมีพื้นที่ ${area} ตารางเมตร จงหาความกว้างเป็นเมตร`,
         en: `A rectangle is ${gap} metres longer than it is wide, and its area is ${area} square metres. Find the width, in metres.`,
       },
-      stem: `\\text{กว้าง} \\times \\text{ยาว} = ${area}`,
+      stem: `w \\times \\ell = ${area}`,
       machineStem: `x*(x + ${gap}) - ${area}`,
       answer: { kind: "exact", value: String(width) },
       steps,

@@ -63,7 +63,7 @@ export const calculusRules: Rule[] = [
       th: "ลิมิตรูปแบบศูนย์ส่วนศูนย์",
       en: "The zero-over-zero form",
     },
-    statement: "\\frac{0}{0} \\Rightarrow \\text{แยกตัวประกอบแล้วตัดทอน}",
+    statement: "\\frac{0}{0} \\Rightarrow \\frac{(x-a)\\,p(x)}{(x-a)\\,q(x)}",
     plain: {
       th: "ศูนย์ส่วนศูนย์ไม่ได้แปลว่าไม่มีลิมิต แต่แปลว่ายังตอบไม่ได้ ต้องจัดรูปก่อน ตัวเศษกับตัวส่วนมีตัวประกอบร่วมเสมอ ตัดทิ้งแล้วจึงแทนค่า",
       en: "Zero over zero does not mean there is no limit; it means the question has not been answered yet. Numerator and denominator always share a factor - cancel it, then substitute.",

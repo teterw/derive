@@ -384,7 +384,7 @@ function wordProblem(rng: RNG, difficulty: number): Question {
       th: `ถนนสองสายออกจากจุดเดียวกัน ทำมุมกัน ${angleKatex(angle)} เรเดียน คนหนึ่งเดินไปตามถนนสายแรก ${first} กิโลเมตร อีกคนเดินไปตามถนนสายที่สอง ${second} กิโลเมตร ขณะนี้ทั้งสองอยู่ห่างกันกี่กิโลเมตร ตอบเป็นค่าที่แน่นอน`,
       en: `Two roads leave the same point at an angle of ${angleKatex(angle)} radians. One person walks ${first} km along the first and another walks ${second} km along the second. How far apart are they now? Give an exact value.`,
     },
-    stem: `${first} \\text{ กม.}, \\ ${second} \\text{ กม.}, \\ ${angleKatex(angle)}`,
+    stem: `${first}\\,\\mathrm{km}, \\ ${second}\\,\\mathrm{km}, \\ ${angleKatex(angle)}`,
     machineStem: null,
     answer,
     steps,

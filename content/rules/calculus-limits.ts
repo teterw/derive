@@ -113,7 +113,7 @@ export const calculusLimitRules: Rule[] = [
       th: "เส้นกำกับ",
       en: "Asymptotes",
     },
-    statement: "y = L \\text{ และ } x = a",
+    statement: "y = L, \\ x = a",
     plain: {
       th: "เส้นกำกับแนวนอนคือค่าที่กราฟเข้าใกล้เมื่อ x ใหญ่ขึ้นเรื่อย ๆ เส้นกำกับแนวตั้งอยู่ตรงที่ตัวส่วนเป็นศูนย์แต่ตัวเศษไม่เป็น ถ้าเป็นศูนย์ทั้งคู่ นั่นคือรูโหว่ ไม่ใช่เส้นกำกับ",
       en: "A horizontal asymptote is what the graph approaches far out. A vertical one sits where the denominator is zero and the numerator is not - if both are zero it is a hole, not an asymptote.",
@@ -126,7 +126,7 @@ export const calculusLimitRules: Rule[] = [
       { from: "\\frac{x + 1}{x - 3}", to: "x = 3" },
       {
         from: "\\frac{x^2 - 9}{x - 3}",
-        to: "\\text{ไม่มีเส้นกำกับแนวตั้ง}",
+        to: "\\varnothing",
         note: {
           th: "ตัวเศษเป็นศูนย์ที่ x = 3 ด้วย จึงตัดกันได้ เหลือเป็นรูโหว่",
           en: "The numerator is zero there too, so it cancels and leaves a hole.",

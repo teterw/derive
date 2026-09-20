@@ -532,8 +532,8 @@ export const c1MvtBound: Generator = {
        */
       stem:
         asks === "change"
-          ? `|f'(x)| \\le ${bound} \\text{ บน } [${from}, ${to}]`
-          : `f(${from}) = ${start}, \\quad |f'(x)| \\le ${bound} \\text{ บน } [${from}, ${to}]`,
+          ? `|f'(x)| \\le ${bound} , \\ x \\in [${from}, ${to}]`
+          : `f(${from}) = ${start}, \\quad |f'(x)| \\le ${bound} , \\ x \\in [${from}, ${to}]`,
       machineStem: null,
       answer,
       steps,

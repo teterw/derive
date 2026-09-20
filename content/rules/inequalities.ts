@@ -19,7 +19,7 @@ export const inequalityRules: Rule[] = [
       th: "คูณหรือหารด้วยจำนวนลบ ต้องกลับเครื่องหมาย",
       en: "Multiplying or dividing by a negative turns the sign round",
     },
-    statement: "a < b \\ \\text{และ} \\ c < 0 \\implies ac > bc",
+    statement: "a < b, \\ c < 0 \\implies ac > bc",
     conditions: { th: "เมื่อ c < 0", en: "for c < 0" },
     plain: {
       th: "คูณหรือหารอสมการทั้งสองข้างด้วยจำนวนลบ เครื่องหมายมากกว่าน้อยกว่าต้องกลับด้าน การบวกและการลบไม่ต้องกลับ",

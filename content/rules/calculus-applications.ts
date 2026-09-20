@@ -21,7 +21,7 @@ export const calculusApplicationRules: Rule[] = [
       th: "ฟังก์ชันเพิ่มและฟังก์ชันลด",
       en: "Increasing and decreasing",
     },
-    statement: "f'(x) > 0 \\Rightarrow f \\text{ เพิ่ม}",
+    statement: "f'(x) > 0 \\Rightarrow f \\nearrow",
     plain: {
       th: "อนุพันธ์คือความชัน ความชันเป็นบวกแปลว่ากราฟกำลังขึ้น เป็นลบแปลว่ากำลังลง เครื่องหมายของอนุพันธ์จึงบอกทิศทางของกราฟได้ทั้งหมด",
       en: "The derivative is the slope, so a positive derivative means the graph is climbing and a negative one means it is falling. The sign of f' is the whole story of which way the graph goes.",
@@ -31,10 +31,10 @@ export const calculusApplicationRules: Rule[] = [
       en: "Positive up, negative down.",
     },
     examples: [
-      { from: "f(x) = x^2, \\ x > 0", to: "f' > 0 \\text{ จึงเพิ่ม}" },
+      { from: "f(x) = x^2, \\ x > 0", to: "f' > 0 \\Rightarrow f \\nearrow" },
       {
         from: "f(x) = x^2 - 6x",
-        to: "\\text{ลดบน } x < 3",
+        to: "x < 3 \\Rightarrow f \\searrow",
         note: {
           th: "เปลี่ยนทิศตรงที่อนุพันธ์เป็นศูนย์พอดี",
           en: "It changes direction exactly where the derivative is zero.",
@@ -50,7 +50,7 @@ export const calculusApplicationRules: Rule[] = [
       th: "การทดสอบด้วยอนุพันธ์อันดับสอง",
       en: "The second derivative test",
     },
-    statement: "f'(c) = 0 \\text{ และ } f''(c) > 0 \\Rightarrow \\text{ต่ำสุด}",
+    statement: "f'(c) = 0, \\ f''(c) > 0 \\Rightarrow \\min",
     conditions: {
       th: "ถ้า f''(c) เป็นศูนย์ การทดสอบนี้บอกอะไรไม่ได้",
       en: "if f''(c) is zero the test says nothing at all",
@@ -64,8 +64,8 @@ export const calculusApplicationRules: Rule[] = [
       en: "Bending up is a valley; bending down is a peak.",
     },
     examples: [
-      { from: "f(x) = x^2, \\ f''= 2", to: "\\text{ต่ำสุดที่ } x = 0" },
-      { from: "f(x) = -x^2, \\ f'' = -2", to: "\\text{สูงสุดที่ } x = 0" },
+      { from: "f(x) = x^2, \\ f''= 2", to: "\\min: x = 0" },
+      { from: "f(x) = -x^2, \\ f'' = -2", to: "\\max: x = 0" },
     ],
     seeAlso: ["calc.critical-point", "c1.inflection"],
     /**
@@ -97,7 +97,7 @@ export const calculusApplicationRules: Rule[] = [
       th: "จุดเปลี่ยนเว้า",
       en: "Inflection points",
     },
-    statement: "f''(x) = 0 \\text{ และเปลี่ยนเครื่องหมาย}",
+    statement: "f''(x) = 0, \\ f'': + \\to -",
     plain: {
       th: "จุดที่กราฟเปลี่ยนจากโค้งขึ้นเป็นโค้งลง หรือกลับกัน อนุพันธ์อันดับสองต้องเป็นศูนย์ที่นั่น แต่แค่เป็นศูนย์ยังไม่พอ ต้องเปลี่ยนเครื่องหมายด้วย",
       en: "Where the graph stops bending one way and starts bending the other. The second derivative has to be zero there - but being zero is not enough, it has to change sign.",
@@ -110,7 +110,7 @@ export const calculusApplicationRules: Rule[] = [
       { from: "f(x) = x^3", to: "x = 0" },
       {
         from: "f(x) = x^4",
-        to: "\\text{ไม่มีจุดเปลี่ยนเว้า}",
+        to: "\\varnothing",
         note: {
           th: "อนุพันธ์อันดับสองเป็นศูนย์ที่ศูนย์ แต่ไม่เปลี่ยนเครื่องหมาย กราฟจึงโค้งขึ้นตลอด",
           en: "Its second derivative is zero at the origin but never changes sign, so the graph bends upwards throughout.",
@@ -137,7 +137,7 @@ export const calculusApplicationRules: Rule[] = [
     },
     examples: [
       {
-        from: "f(x) = x^2 - 4x \\text{ บน } [0, 3]",
+        from: "f(x) = x^2 - 4x, \\ x \\in [0, 3]",
         to: "\\min = -4, \\ \\max = 0",
         note: {
           th: "ปลายช่วงมีสิทธิ์เป็นคำตอบเสมอ แม้ความชันตรงนั้นจะไม่เป็นศูนย์",

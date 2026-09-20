@@ -185,15 +185,15 @@ export const trigDefinition: Generator = {
      * with should be where the eye lands.
      */
     const sides = hidden
-      ? `\\text{ข้าม} = ${triple.opposite}, \\ \\text{ฉาก} = ${triple.hypotenuse}`
-      : `\\text{ข้าม} = ${triple.opposite}, \\ \\text{ชิด} = ${triple.adjacent}, \\ \\text{ฉาก} = ${triple.hypotenuse}`;
+      ? `a = ${triple.opposite}, \\ c = ${triple.hypotenuse}`
+      : `a = ${triple.opposite}, \\ b = ${triple.adjacent}, \\ c = ${triple.hypotenuse}`;
 
     return question(trigDefinition, rng, difficulty, {
       prompt: {
         th: `${describe(triple, known, vertex).th} จงหาค่าของ \\${ratio} ${vertex}`,
         en: `${describe(triple, known, vertex).en} Find \\${ratio} ${vertex}.`,
       },
-      stem: `\\${ratio} ${vertex} \\quad \\text{เมื่อ} \\ ${sides}`,
+      stem: `${sides} \\ \\Rightarrow \\ \\${ratio} ${vertex}`,
       answer: answerMath,
       steps,
       misconceptions: [

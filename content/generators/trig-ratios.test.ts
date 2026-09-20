@@ -146,16 +146,29 @@ describe("the special values shown are the true ones", () => {
 });
 
 describe("trig.definition", () => {
-  /** `\text{ข้าม} = 3, \ \text{ชิด} = 4, \ \text{ฉาก} = 5`. */
+  /**
+   * `a = 3, \ b = 4, \ c = 5`.
+   *
+   * The side-letter convention, where `a` is the side opposite angle A and `c`
+   * is the hypotenuse. The stem used to name the sides in Thai words, which
+   * put Thai on the English page - `content/language-neutral.test.ts` is why
+   * it does not any more, and this reads the letters instead.
+   *
+   * The lookbehind matters: the stem ends with the ratio being asked for, so
+   * an unguarded `a` would also match the `A` of `\sin A` on a case-insensitive
+   * engine and the `a` inside `\tan`.
+   */
   function sidesOf(stem: string) {
     const side = (label: string) => {
-      const match = new RegExp(`\\\\text\\{${label}\\}\\s*=\\s*(\\d+)`).exec(stem);
+      const match = new RegExp(`(?<![A-Za-z\\\\])${label}\\s*=\\s*(\\d+)`).exec(
+        stem,
+      );
       return match ? Number(match[1]) : null;
     };
     return {
-      opposite: side("ข้าม"),
-      adjacent: side("ชิด"),
-      hypotenuse: side("ฉาก"),
+      opposite: side("a"),
+      adjacent: side("b"),
+      hypotenuse: side("c"),
     };
   }
 

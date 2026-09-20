@@ -43,7 +43,7 @@ export const c1ApplicationsSkills: Skill[] = [
       th: "อ่านทิศทางและความโค้งของกราฟจากเครื่องหมายของอนุพันธ์อันดับหนึ่งและอันดับสอง",
       en: "Reading a graph's direction and curvature from the signs of the first and second derivatives.",
     },
-    formula: "f'(x) > 0 \\Rightarrow f \\text{ เพิ่ม}",
+    formula: "f'(x) > 0 \\Rightarrow f \\nearrow",
     strictForm: null,
     prerequisites: ["calc.tangent", "c1.chain-power"],
     ruleIds: [
@@ -64,7 +64,7 @@ export const c1ApplicationsSkills: Skill[] = [
       th: "จำแนกจุดวิกฤตด้วยอนุพันธ์อันดับสอง และหาค่าสูงสุดต่ำสุดบนช่วงปิด",
       en: "Classifying critical points with the second derivative, and finding extreme values on a closed interval.",
     },
-    formula: "f''(c) > 0 \\Rightarrow \\text{ต่ำสุด}",
+    formula: "f''(c) > 0 \\Rightarrow \\min",
     strictForm: null,
     prerequisites: ["c1.monotonic"],
     ruleIds: [

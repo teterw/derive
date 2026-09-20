@@ -32,7 +32,7 @@ export const trigFunctionRules: Rule[] = [
       th: "การวัดมุมเป็นเรเดียน",
       en: "Radian measure",
     },
-    statement: "\\pi \\text{ เรเดียน} = 180^\\circ",
+    statement: "\\pi \\ \\mathrm{rad} = 180^\\circ",
     plain: {
       th: "หนึ่งเรเดียนคือมุมที่รองรับส่วนโค้งยาวเท่ากับรัศมี การวัดแบบนี้ไม่ขึ้นกับหน่วยใด จึงเป็นการวัดมุมที่ใช้ในคณิตศาสตร์ชั้นสูง",
       en: "One radian is the angle that cuts off an arc as long as the radius. It is a pure number rather than a made-up unit, which is why higher mathematics uses it.",
@@ -62,7 +62,7 @@ export const trigFunctionRules: Rule[] = [
       th: "ฟังก์ชันตรีโกณมิติบนวงกลมหนึ่งหน่วย",
       en: "The unit circle definition",
     },
-    statement: "(\\cos \\theta, \\sin \\theta) \\text{ คือจุดบนวงกลมรัศมี } 1",
+    statement: "x^2 + y^2 = 1, \\ (x,\\ y) = (\\cos \\theta, \\sin \\theta)",
     plain: {
       th: "ลากรัศมีทำมุม \\theta กับแกน x จุดปลายรัศมีมีพิกัด x เป็น \\cos \\theta และพิกัด y เป็น \\sin \\theta นิยามนี้ใช้ได้กับมุมทุกขนาด ไม่ว่าจะเกิน 90 องศา หรือติดลบ",
       en: "Draw a radius at angle theta from the x-axis. The point where it lands has x-coordinate cos theta and y-coordinate sin theta. This works for any angle at all, past ninety degrees or negative.",
@@ -92,8 +92,14 @@ export const trigFunctionRules: Rule[] = [
       th: "เครื่องหมายในแต่ละจตุภาค",
       en: "Signs in each quadrant",
     },
+    /*
+     * Roman numerals and a plus sign, because the quadrants are numbered the
+     * same way in both languages and "all positive" is exactly what `+` says.
+     * The three named functions are the ones that stay positive in their own
+     * quadrant; `plain` and the mnemonic carry the rest.
+     */
     statement:
-      "\\text{Q1 บวกหมด} \\quad \\text{Q2 } \\sin \\quad \\text{Q3 } \\tan \\quad \\text{Q4 } \\cos",
+      "\\mathrm{I}: + \\quad \\mathrm{II}: \\sin \\quad \\mathrm{III}: \\tan \\quad \\mathrm{IV}: \\cos",
     plain: {
       th: "เครื่องหมายมาจากพิกัดของจุด จตุภาคที่สอง x เป็นลบ คอสจึงเป็นลบ แต่ y ยังบวก ซินจึงยังบวก",
       en: "The signs come from the coordinates of the point. In the second quadrant x is negative, so cosine is; y is still positive, so sine is.",

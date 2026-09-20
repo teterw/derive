@@ -95,7 +95,7 @@ export const ineqLinearOneVarSkills: Skill[] = [
       th: "คำว่า ไม่เกิน อย่างน้อย และ มากที่สุด คือสัญญาณว่าโจทย์เป็นอสมการ",
       en: "At most, at least and no more than are the words that make a problem an inequality.",
     },
-    formula: "\\text{ไม่เกิน} \\rightarrow \\leq",
+    formula: "\\square \\rightarrow ax + b \\leq c",
     strictForm: null,
     prerequisites: ["ineq.linear.integers", "eq.linear.word"],
     ruleIds: [

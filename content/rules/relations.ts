@@ -21,7 +21,7 @@ export const relationRules: Rule[] = [
       th: "สัญลักษณ์ของฟังก์ชัน",
       en: "Function notation",
     },
-    statement: "f(a) = \\text{ค่าของ } f \\text{ ที่ } a",
+    statement: "f: a \\mapsto f(a)",
     plain: {
       th: "f(a) คือค่าที่ได้จากการแทน a ลงในทุกที่ที่มี x ไม่ใช่ f คูณกับ a วงเล็บตรงนี้ไม่ได้แปลว่าคูณ",
       en: "f(a) is what you get by putting a wherever x appears. It is not f times a: the bracket here does not mean multiply.",
@@ -61,14 +61,14 @@ export const relationRules: Rule[] = [
     },
     examples: [
       {
-        from: "f(x) = x + 3 \\text{ และ } g(x) = 2x",
+        from: "f(x) = x + 3, \\ g(x) = 2x",
         to: "f(g(x)) = 2x + 3",
         note: {
           th: "ส่วน g(f(x)) จะได้ 2x + 6 ซึ่งไม่เท่ากัน",
           en: "Whereas g(f(x)) is 2x + 6, which is not the same.",
         },
       },
-      { from: "f(x) = x^2 \\text{ และ } g(x) = x - 1", to: "f(g(x)) = (x-1)^2" },
+      { from: "f(x) = x^2, \\ g(x) = x - 1", to: "f(g(x)) = (x-1)^2" },
     ],
     seeAlso: ["func.notation"],
     /**

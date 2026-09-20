@@ -173,7 +173,7 @@ export const calculusIntegralRules: Rule[] = [
     },
     examples: [
       {
-        from: "\\int_0^1 x\\,dx \\text{ ด้วย 4 แท่ง}",
+        from: "\\int_0^1 x\\,dx, \\ n = 4",
         to: "\\approx 0.625",
         note: {
           th: "ใช้ปลายขวาจะได้ค่าเกินจริงสำหรับฟังก์ชันเพิ่ม ใช้ปลายซ้ายจะได้ค่าน้อยกว่าจริง",

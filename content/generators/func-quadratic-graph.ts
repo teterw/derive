@@ -377,7 +377,7 @@ export const funcQuadIntercepts: Generator = {
         en: `It factors as ${factored}.`,
       }),
       makeStep(
-        `x = ${p} \\text{ หรือ } x = ${q}`,
+        `x = ${p}, \\ x = ${q}`,
         "quad.zero-product",
         {
           th: "ผลคูณเป็นศูนย์ แสดงว่าต้องมีวงเล็บใดวงเล็บหนึ่งเป็นศูนย์",

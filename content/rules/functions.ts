@@ -20,7 +20,7 @@ export const functionRules: Rule[] = [
       th: "รูปกำลังสองสมบูรณ์และจุดยอด",
       en: "Completed-square form and the vertex",
     },
-    statement: "y = a(x - h)^2 + k \\implies \\text{จุดยอด} = (h,\\ k)",
+    statement: "y = a(x - h)^2 + k \\implies (h,\\ k)",
     plain: {
       th: "เมื่อเขียนฟังก์ชันในรูปนี้ได้ จุดยอดอ่านได้ทันทีจากตัวเลขในวงเล็บและตัวที่บวกอยู่ท้าย โดยค่าในวงเล็บต้องกลับเครื่องหมาย",
       en: "Once it is in this form the vertex can be read straight off - from the number inside the bracket, with its sign flipped, and the one added at the end.",
@@ -121,7 +121,7 @@ export const functionRules: Rule[] = [
       th: "ทิศทางการเปิดของพาราโบลา",
       en: "Which way the parabola opens",
     },
-    statement: "a > 0 \\implies \\text{เปิดขึ้น}, \\quad a < 0 \\implies \\text{เปิดลง}",
+    statement: "a > 0 \\implies \\smile, \\quad a < 0 \\implies \\frown",
     plain: {
       th: "สัมประสิทธิ์หน้า x กำลังสองบอกทิศทางการเปิด และทิศทางนั้นบอกว่าจุดยอดเป็นค่าต่ำสุดหรือค่าสูงสุด",
       en: "The coefficient of x squared says which way it opens, and that says whether the vertex is the least value or the greatest.",
@@ -133,13 +133,13 @@ export const functionRules: Rule[] = [
     examples: [
       {
         from: "y = -2(x - 1)^2 + 8",
-        to: "\\text{ค่าสูงสุด} = 8",
+        to: "\\max = 8",
         note: {
           th: "เปิดลง จุดยอดจึงเป็นจุดที่สูงที่สุด",
           en: "It opens downwards, so the vertex is the highest point.",
         },
       },
-      { from: "y = 3(x + 2)^2 - 4", to: "\\text{ค่าต่ำสุด} = -4" },
+      { from: "y = 3(x + 2)^2 - 4", to: "\\min = -4" },
     ],
     seeAlso: ["func.vertex-form"],
     /**

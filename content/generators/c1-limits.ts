@@ -69,7 +69,7 @@ export const c1OneSided: Generator = {
       makeStep(
         difficulty === 3
           ? `\\lim_{x \\to ${join}^-} f(x) = ${leftAt}`
-          : `f(x) = ${side === "-" ? leftBranch : right} \\quad \\text{ใกล้ ${join} ทาง${side === "-" ? "ซ้าย" : "ขวา"}}`,
+          : `f(x) = ${side === "-" ? leftBranch : right} \\quad x \\to ${join}^{${side}}`,
         "c1.one-sided",
         {
           th:

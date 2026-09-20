@@ -36,7 +36,7 @@ export const calculusMvtRules: Rule[] = [
     },
     examples: [
       {
-        from: "f(x) = x^2 - 4x \\text{ บน } [0, 4]",
+        from: "f(x) = x^2 - 4x, \\ x \\in [0, 4]",
         to: "c = 2",
         note: {
           th: "f(0) = f(4) = 0 จึงมีจุดที่ความชันเป็นศูนย์ และอยู่ตรงกลางพอดีสำหรับพาราโบลา",
@@ -68,7 +68,7 @@ export const calculusMvtRules: Rule[] = [
     },
     examples: [
       {
-        from: "f(x) = x^2 \\text{ บน } [1, 3]",
+        from: "f(x) = x^2, \\ x \\in [1, 3]",
         to: "c = 2",
         note: {
           th: "ความชันของคอร์ดคือ 4 และ f'(2) = 4 พอดี",
@@ -120,12 +120,12 @@ export const calculusMvtRules: Rule[] = [
     },
     examples: [
       {
-        from: "|f'| \\le 3 \\text{ บน } [0, 4]",
+        from: "|f'| \\le 3, \\ x \\in [0, 4]",
         to: "|f(4) - f(0)| \\le 12",
       },
       {
-        from: "f' = 0 \\text{ ทุกจุด}",
-        to: "f \\text{ เป็นค่าคงตัว}",
+        from: "f' \\equiv 0",
+        to: "f \\equiv c",
         note: {
           th: "ผลที่ตามมาที่สำคัญที่สุด และเป็นเหตุผลที่ปฏิยานุพันธ์ต่างกันได้แค่ค่าคงตัว",
           en: "The most important consequence of all, and the reason two antiderivatives can differ only by a constant.",

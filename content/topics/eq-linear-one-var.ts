@@ -82,7 +82,7 @@ export const eqLinearOneVarSkills: Skill[] = [
       th: "ตั้งตัวแปรแทนสิ่งที่โจทย์ถาม เขียนเงื่อนไขเป็นสมการ แล้วแก้",
       en: "Name the unknown, write the condition as an equation, then solve it.",
     },
-    formula: "\\text{โจทย์} \\rightarrow ax + b = c",
+    formula: "\\square \\rightarrow ax + b = c",
     strictForm: null,
     prerequisites: ["eq.linear.solve"],
     ruleIds: [

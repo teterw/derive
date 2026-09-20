@@ -275,7 +275,7 @@ function quadraticInRatio(rng: RNG, difficulty: number): Question {
       { math: null },
     ),
     makeStep(
-      `\\${ratio}\\theta = ${first.katex} \\quad \\text{หรือ} \\quad \\${ratio}\\theta = ${second.katex}`,
+      `\\${ratio}\\theta = ${first.katex} \\quad \\lor \\quad \\${ratio}\\theta = ${second.katex}`,
       "quad.zero-product",
       {
         th: "ผลคูณเป็นศูนย์ เมื่อตัวประกอบตัวใดตัวหนึ่งเป็นศูนย์",

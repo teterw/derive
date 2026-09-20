@@ -175,7 +175,7 @@ export const quadraticEquationsSkills: Skill[] = [
       th: "ตั้งสมการจากสถานการณ์ แก้สมการ แล้วตรวจว่าคำตอบสมเหตุสมผล",
       en: "Set up the equation, solve it, then check the answer makes sense.",
     },
-    formula: "\\text{โจทย์} \\rightarrow x",
+    formula: "\\square \\rightarrow x",
     strictForm: null,
     prerequisites: ["quad.solve-by-factoring"],
     ruleIds: [

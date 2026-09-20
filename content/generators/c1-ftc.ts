@@ -520,7 +520,7 @@ export const c1AreaBetween: Generator = {
         { math: null },
       ),
       makeStep(
-        `\\int_{${p}}^{${q}} \\left(\\text{เส้นบน} - \\text{เส้นล่าง}\\right) dx`,
+        `\\int_{${p}}^{${q}} \\left(f(x) - g(x)\\right) dx`,
         "c1.area-between",
         {
           th: `ระหว่าง ${p} กับ ${q} เส้นตรงอยู่เหนือพาราโบลา`,

@@ -109,14 +109,14 @@ export const algebraRules: Rule[] = [
       th: "การตั้งสมการจากโจทย์ปัญหา",
       en: "Translating a word problem into an equation",
     },
-    statement: "\\text{สิ่งที่โจทย์ถาม} \\rightarrow x",
+    statement: "\\square \\rightarrow x",
     plain: {
       th: "ตั้งตัวแปรแทนสิ่งที่โจทย์ถาม แล้วเขียนเงื่อนไขในโจทย์เป็นสมการ",
       en: "Name the unknown, then write the condition in the problem as an equation.",
     },
     examples: [
       {
-        from: "\\text{พื้นที่ } 40, \\ \\text{ยาวกว่ากว้าง } 3",
+        from: "A = 40, \\ \\ell = w + 3",
         to: "x(x + 3) = 40",
       },
     ],
@@ -136,7 +136,7 @@ export const algebraRules: Rule[] = [
     },
     examples: [
       {
-        from: "x = 5 \\text{ หรือ } x = -8",
+        from: "x = 5, \\ x = -8",
         to: "x = 5",
         note: {
           th: "ความยาวเป็นลบไม่ได้",

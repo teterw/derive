@@ -13,6 +13,43 @@ describe("katexToMath", () => {
     expect(value("\\frac{\\frac{1}{2}}{\\frac{1}{4}}")).toBeCloseTo(2);
   });
 
+  /**
+   * `xy` is a product, not a symbol called "xy". mathjs would happily read it
+   * as the latter, so `x^2 + 5xy + 6y^2` and its own factorisation would be
+   * expressions in different variables and would never be found equivalent -
+   * a correct two-variable answer, marked wrong.
+   */
+  it("reads two variables side by side as a product", () => {
+    const scope = { x: 2, y: 5 };
+    expect(value("xy", scope)).toBeCloseTo(10);
+    expect(value("5xy", scope)).toBeCloseTo(50);
+    expect(value("x^2 + 5xy + 6y^2", scope)).toBeCloseTo(4 + 50 + 150);
+    expect(
+      value("\\left(x + 2y\\right)\\left(x + 3y\\right)", scope),
+    ).toBeCloseTo(12 * 17);
+    // Either way round, and a lone variable is untouched.
+    expect(value("yx", scope)).toBeCloseTo(10);
+    expect(katexToMath("x")).toBe("x");
+  });
+
+  /**
+   * The same trap with the constant `e`, which the calculus chapters put
+   * beside a variable constantly: `xe^x` read as a symbol called `xe` made a
+   * correct derivative come back unreadable.
+   */
+  it("reads a variable beside e as a product", () => {
+    expect(value("xe^x", { x: 2 })).toBeCloseTo(2 * Math.E ** 2);
+    expect(value("-2xe^x", { x: 1 })).toBeCloseTo(-2 * Math.E);
+    // And `e` on its own is still the number.
+    expect(value("e")).toBeCloseTo(Math.E);
+  });
+
+  it("leaves a function name beside a variable alone", () => {
+    // Not five factors: `sqrt` is a name, even with a coefficient in front.
+    expect(katexToMath("2\\sqrt{3}")).toContain("sqrt(3)");
+    expect(value("2\\sqrt{3}")).toBeCloseTo(2 * Math.sqrt(3));
+  });
+
   it("converts roots", () => {
     expect(value("\\sqrt{9}")).toBeCloseTo(3);
     expect(value("2\\sqrt{2}")).toBeCloseTo(Math.SQRT2 * 2);
@@ -82,15 +119,15 @@ describe("katexToMath", () => {
     });
 
     /**
-     * `\pi` is not a command this parser supports, and that is fine - what is
-     * being pinned is that the whole command is taken as *one* token. The
+     * `\alpha` is not a command this parser supports, and that is fine - what
+     * is being pinned is that the whole command is taken as *one* token. The
      * failure must therefore be "unsupported command", not "expected a group":
      * the first says the argument was read and rejected, the second says it was
      * never read at all.
      */
     it("reads a command as one token", () => {
-      expect(() => katexToMath("\\sqrt\\pi")).toThrow(/unsupported command/);
-      expect(() => katexToMath("\\sqrt\\pi")).not.toThrow(/expected a group/);
+      expect(() => katexToMath("\\sqrt\\alpha")).toThrow(/unsupported command/);
+      expect(() => katexToMath("\\sqrt\\alpha")).not.toThrow(/expected a group/);
     });
 
     it("takes only the one token, not the rest of the expression", () => {
@@ -114,5 +151,119 @@ describe("katexToMath", () => {
         expect(katexToMath(bare!), bare).toBe(katexToMath(braced!));
       }
     });
+  });
+});
+
+/**
+ * Trigonometric and logarithmic function commands.
+ *
+ * This subset was refused outright until the ม.5 chapter needed it, and
+ * calculus needs it more: the derivative of a sine is a cosine, so a converter
+ * that cannot read one cannot check any of it.
+ */
+describe("function commands", () => {
+  it("reads a braced, bracketed or bare argument", () => {
+    expect(value("\\sin{x}", { x: 1 })).toBeCloseTo(Math.sin(1));
+    expect(value("\\sin(x)", { x: 1 })).toBeCloseTo(Math.sin(1));
+    expect(value("\\sin x", { x: 1 })).toBeCloseTo(Math.sin(1));
+    expect(value("\\sin\\left(x\\right)", { x: 1 })).toBeCloseTo(Math.sin(1));
+  });
+
+  it("binds to the term beside it, not to the whole expression", () => {
+    // sin(2x) + 1, not sin(2x + 1).
+    expect(value("\\sin 2x + 1", { x: 0.5 })).toBeCloseTo(Math.sin(1) + 1);
+    expect(value("\\cos x + 1", { x: 0 })).toBeCloseTo(2);
+  });
+
+  /**
+   * The brackets are the only difference between these two, and the maths
+   * field writes the first one whenever an answer is built from `\sin`.
+   */
+  it("reads a power after a bracketed argument as the square of the value", () => {
+    expect(value("\\sin(x)^2", { x: 2 })).toBeCloseTo(Math.sin(2) ** 2);
+    expect(value("\\sin x^2", { x: 2 })).toBeCloseTo(Math.sin(4));
+    expect(value("\\sin\\left(x\\right)^2", { x: 2 })).toBeCloseTo(
+      Math.sin(2) ** 2,
+    );
+  });
+
+  it("puts a power on the value, not on the angle", () => {
+    // `\sin^2 x` is (sin x)^2; `\sin x^2` is sin(x^2). They are different.
+    expect(value("\\sin^2 x", { x: 1 })).toBeCloseTo(Math.sin(1) ** 2);
+    expect(value("\\sin x^2", { x: 2 })).toBeCloseTo(Math.sin(4));
+    expect(value("\\cos^{2}x + \\sin^{2}x", { x: 0.7 })).toBeCloseTo(1);
+  });
+
+  it("knows pi, and the values at the special angles", () => {
+    expect(value("\\sin\\frac{\\pi}{6}")).toBeCloseTo(0.5);
+    expect(value("\\cos\\frac{\\pi}{3}")).toBeCloseTo(0.5);
+    expect(value("\\tan\\frac{\\pi}{4}")).toBeCloseTo(1);
+    expect(value("\\sin\\frac{5\\pi}{6}")).toBeCloseTo(0.5);
+  });
+
+  it("multiplies two of them together", () => {
+    expect(value("\\sin x \\cos x", { x: 0.6 })).toBeCloseTo(
+      Math.sin(0.6) * Math.cos(0.6),
+    );
+    expect(value("2\\sin x", { x: 0.3 })).toBeCloseTo(2 * Math.sin(0.3));
+  });
+
+  /**
+   * The compound angle formula is written with no space at all between the
+   * two factors. Reading `\sin A\cos B` as the sine of a product would have
+   * made every line of that derivation quietly wrong.
+   */
+  it("multiplies them with no space between", () => {
+    expect(value("\\sin x\\cos x", { x: 0.6 })).toBeCloseTo(
+      Math.sin(0.6) * Math.cos(0.6),
+    );
+    expect(value("\\sin\\frac{\\pi}{4}\\cos\\frac{\\pi}{6}")).toBeCloseTo(
+      Math.sin(Math.PI / 4) * Math.cos(Math.PI / 6),
+    );
+    expect(
+      value("\\sin\\frac{\\pi}{4}\\cos\\frac{\\pi}{6} + \\cos\\frac{\\pi}{4}\\sin\\frac{\\pi}{6}"),
+    ).toBeCloseTo(Math.sin(Math.PI / 4 + Math.PI / 6));
+  });
+
+  it("multiplies a bracket against what follows it", () => {
+    expect(value("(x + 1)y", { x: 2, y: 5 })).toBeCloseTo(15);
+  });
+
+  /**
+   * `x\ln x` is x times a logarithm. Run together it becomes a symbol called
+   * `xlog`, which is not a thing.
+   */
+  it("multiplies what comes before a function against it", () => {
+    expect(value("x\\ln x", { x: 2 })).toBeCloseTo(2 * Math.log(2));
+    expect(value("x^2\\sin x", { x: 1.3 })).toBeCloseTo(1.69 * Math.sin(1.3));
+    expect(value("2\\cos x", { x: 0.5 })).toBeCloseTo(2 * Math.cos(0.5));
+  });
+
+  it("reads the reciprocal and inverse functions", () => {
+    expect(value("\\sec x", { x: 0.4 })).toBeCloseTo(1 / Math.cos(0.4));
+    expect(value("\\arctan 1")).toBeCloseTo(Math.PI / 4);
+  });
+
+  it("reads a bare log as base ten and ln as natural", () => {
+    expect(value("\\log 1000")).toBeCloseTo(3);
+    expect(value("\\ln e", { e: Math.E })).toBeCloseTo(1);
+  });
+
+  /**
+   * mathjs works in radians. `\sin 30^\circ` is a half and `sin(30)` is
+   * -0.988, so reading a degree stem would not be a small inaccuracy - it
+   * would be a different question. It still refuses, on purpose.
+   */
+  it("still refuses degrees", () => {
+    expect(() => katexToMath("\\sin 30^\\circ")).toThrow(KatexConversionError);
+  });
+
+  it("still refuses a log written with a base", () => {
+    expect(() => katexToMath("\\log_{2} 8")).toThrow(KatexConversionError);
+  });
+
+  it("refuses a function with nothing to apply to", () => {
+    expect(() => katexToMath("\\sin")).toThrow(KatexConversionError);
+    expect(() => katexToMath("\\sin + 1")).toThrow(KatexConversionError);
   });
 });

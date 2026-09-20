@@ -211,7 +211,40 @@ export function satisfiesForm(
       return isFactored(node);
     case "positive-exponents":
       return !hasNegativeExponent(node);
+    case "vertex-form":
+      return isVertexForm(node);
   }
+}
+
+/**
+ * `a(x - h)^2 + k`, which is the only form the vertex can be read off.
+ *
+ * The test is not "does it look like that" but the property that makes it
+ * useful: **every occurrence of the variable is inside one squared bracket.**
+ * `2x^2 - 12x + 13` is the same function and tells you nothing about where the
+ * graph turns, which is the entire reason the skill exists - so an equivalent
+ * answer in the expanded form has to come back as "right value, wrong form"
+ * rather than as correct.
+ */
+function isVertexForm(node: MathNode): boolean {
+  const squared: MathNode[] = [];
+  node.traverse((current) => {
+    if (current.type !== "OperatorNode") return;
+    const operator = current as unknown as { op: string; args: MathNode[] };
+    if (operator.op !== "^" || operator.args.length !== 2) return;
+    if (constantValue(operator.args[1]!) !== 2) return;
+    if (isSum(stripParens(operator.args[0]!))) squared.push(operator.args[0]!);
+  });
+  if (squared.length !== 1) return false;
+  return countSymbols(node) === countSymbols(squared[0]!);
+}
+
+function countSymbols(node: MathNode): number {
+  let count = 0;
+  node.traverse((current) => {
+    if (current.type === "SymbolNode") count += 1;
+  });
+  return count;
 }
 
 function isSquareFree(value: number): boolean {
@@ -315,8 +348,22 @@ function isFactored(node: MathNode): boolean {
       // A leading unary minus is fine: -(x-1)(x+2) is still factored.
       return operator.args.length === 1 && isFactored(operator.args[0]!);
     }
-    if (operator.op === "*" || operator.op === "^") {
-      return operator.args.some((argument) => isSum(stripParens(argument)));
+    if (operator.op === "*") {
+      /*
+       * Recursive, not just "one argument is a sum": `2(x+3)^2` has two
+       * arguments, a number and a power, and neither of them is a sum - so
+       * the flat version rejected a perfect square with a common factor
+       * pulled out, which is the standard hardest case of the ม.2 factoring
+       * chapter. Its answer would have been marked "right value, wrong form".
+       */
+      return operator.args.some(
+        (argument) =>
+          isSum(stripParens(argument)) || isFactored(stripParens(argument)),
+      );
+    }
+    if (operator.op === "^") {
+      // Only the base: `2^(x+1)` is a power of a sum, not a factorisation.
+      return isSum(stripParens(operator.args[0]!));
     }
   }
   return false;

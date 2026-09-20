@@ -25,7 +25,39 @@ type Token =
 
 class ParseError extends Error {}
 
-const FUNCTIONS = new Set(["sqrt", "cbrt", "abs"]);
+/**
+ * Functions that print as a named operator: `sin(x)` as `\sin\left(x\right)`.
+ *
+ * Without these, `cos` reaches the letter-run branch below and is printed as
+ * the product c times o times s - which is what an answer of `\cos x` would
+ * have looked like on the page. mathjs calls the natural logarithm `log` and
+ * base ten `log10`; TeX calls them the other way round, which is why the two
+ * are crossed over here.
+ */
+const NAMED_FUNCTIONS: Record<string, string> = {
+  sin: "\\sin",
+  cos: "\\cos",
+  tan: "\\tan",
+  csc: "\\csc",
+  sec: "\\sec",
+  cot: "\\cot",
+  asin: "\\arcsin",
+  acos: "\\arccos",
+  atan: "\\arctan",
+  sinh: "\\sinh",
+  cosh: "\\cosh",
+  tanh: "\\tanh",
+  log: "\\ln",
+  log10: "\\log",
+  exp: "\\exp",
+};
+
+const FUNCTIONS = new Set([
+  "sqrt",
+  "cbrt",
+  "abs",
+  ...Object.keys(NAMED_FUNCTIONS),
+]);
 
 /** Names that are a symbol rather than a variable, and their TeX. */
 const CONSTANTS: Record<string, string> = {
@@ -64,6 +96,16 @@ function tokenize(source: string): Token[] {
       while (index < source.length && /[a-zA-Z]/.test(source[index]!)) {
         text += source[index];
         index += 1;
+      }
+      /*
+       * `log10` is one name, not a log times ten. This is the only name in
+       * mathjs with a digit in it that reaches here, and widening the rule to
+       * letters-then-digits would silently turn `x2` - a perfectly ordinary
+       * typo for `x^2` - into a variable nobody can see is wrong.
+       */
+      if (text === "log" && source.slice(index, index + 2) === "10") {
+        text = "log10";
+        index += 2;
       }
       tokens.push({ kind: "name", text });
       continue;
@@ -125,6 +167,12 @@ function wrap(node: Rendered, minimum: number): string {
  * thing that can run into the left.
  */
 function times(left: string, right: string): string {
+  /*
+   * A negative right-hand side needs its brackets back. `x \cdot (-\sin x)`
+   * printed as `x-\sin x` does not merely look wrong - it *is* a different
+   * expression, and it is the one the learner would be shown as correct.
+   */
+  if (right.startsWith("-")) return `${left}\\left(${right}\\right)`;
   return /^[0-9.]/.test(right) ? `${left} \\cdot ${right}` : `${left}${right}`;
 }
 
@@ -264,6 +312,13 @@ class Parser {
         }
         if (lower === "cbrt") {
           return { tex: `\\sqrt[3]{${argument.tex}}`, precedence: ATOM };
+        }
+        const named = NAMED_FUNCTIONS[lower];
+        if (named) {
+          return {
+            tex: `${named}\\left(${argument.tex}\\right)`,
+            precedence: ATOM,
+          };
         }
         return { tex: `\\left|${argument.tex}\\right|`, precedence: ATOM };
       }

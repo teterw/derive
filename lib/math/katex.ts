@@ -82,6 +82,109 @@ function readGroup(source: string, start: number): [string, number] {
   );
 }
 
+/**
+ * Named constants. `\theta` becomes the symbol `theta`, which mathjs treats as
+ * an ordinary variable - which is what it is.
+ */
+const CONSTANTS: Record<string, string> = {
+  pi: "pi",
+  theta: "theta",
+};
+
+/**
+ * The functions TeX writes as commands, and their mathjs names.
+ *
+ * `\ln` is mathjs's `log`, and `\log` written without a base is `log10` -
+ * base ten is what ม.ปลาย means by a bare `\log`. A base written as a
+ * subscript still refuses, because `_` does, and that is the honest answer:
+ * `\log_{2} 8` needs a decision this parser should not make silently.
+ *
+ * `^\circ` is deliberately absent, so a stem in degrees still refuses. mathjs
+ * works in radians, and `sin(30)` is not `\sin 30^\circ` - it is a different
+ * number, and the only thing worse than refusing a stem is converting one
+ * into a plausible wrong answer.
+ */
+const FUNCTIONS: Record<string, string> = {
+  sin: "sin",
+  cos: "cos",
+  tan: "tan",
+  csc: "csc",
+  sec: "sec",
+  cot: "cot",
+  arcsin: "asin",
+  arccos: "acos",
+  arctan: "atan",
+  sinh: "sinh",
+  cosh: "cosh",
+  tanh: "tanh",
+  ln: "log",
+  log: "log10",
+  exp: "exp",
+};
+
+/**
+ * The argument of a function command, taken off the front of already-converted
+ * mathjs source.
+ *
+ * `\sin 2x + 1` is `sin(2x) + 1` and not `sin(2x + 1)`: a function binds to the
+ * term beside it, and an operator ends that term. Reading it from the converted
+ * text rather than the TeX means `\sin\frac{\pi}{6}` needs no special case -
+ * `((pi)/(6))` is one balanced atom by the time this sees it.
+ *
+ * A space ends the argument too, so `\sin 2 x` is `sin(2) x`. That is the one
+ * place this guesses, and it guesses the way the spacing reads.
+ */
+function takeAtom(text: string, command: string): [string, number] {
+  let i = 0;
+  while (i < text.length && /\s/.test(text[i]!)) i += 1;
+  const start = i;
+  let depth = 0;
+
+  /*
+   * A bracketed argument ends at its bracket. `\sin(x)^2` is the square of the
+   * sine and `\sin x^2` is the sine of the square - the brackets are the only
+   * thing telling them apart, and the power left behind here attaches to the
+   * whole call, which is what it means.
+   */
+  if (text[i] === "(") {
+    for (let j = i; j < text.length; j += 1) {
+      if (text[j] === "(") depth += 1;
+      else if (text[j] === ")") {
+        depth -= 1;
+        if (depth === 0) return [text.slice(i, j + 1), j + 1];
+      }
+    }
+    throw new KatexConversionError(
+      `${command} has an unclosed argument in ${JSON.stringify(text)}`,
+    );
+  }
+
+  while (i < text.length) {
+    const char = text[i]!;
+    /*
+     * The next function call starts a new factor: `\sin A\cos B` is a product
+     * of two values and not the sine of a product, however little space the
+     * typesetting leaves between them.
+     */
+    if (depth === 0 && i > start && /^[A-Za-z_]\w*\(/.test(text.slice(i))) {
+      break;
+    }
+    if (char === "(") depth += 1;
+    else if (char === ")") {
+      if (depth === 0) break;
+      depth -= 1;
+    } else if (depth === 0 && /[\s+\-*/=<>,]/.test(char)) break;
+    i += 1;
+  }
+
+  if (i === start) {
+    throw new KatexConversionError(
+      `${command} has no argument in ${JSON.stringify(text)}`,
+    );
+  }
+  return [text.slice(start, i), i];
+}
+
 /** Reads `[...]` (the optional argument of \sqrt). */
 function readOptional(source: string, index: number): [string | null, number] {
   if (source[index] !== "[") return [null, index];
@@ -155,6 +258,48 @@ function convertCommands(source: string): string {
     }
 
     if (source[i] === "\\") {
+      const named = /^\\([a-zA-Z]+)/.exec(rest);
+      const constant = named && CONSTANTS[named[1]!];
+      if (constant) {
+        out += constant;
+        i += named![0].length;
+        continue;
+      }
+
+      const fn = named && FUNCTIONS[named[1]!];
+      if (fn) {
+        let index = i + named![0].length;
+        while (index < source.length && /\s/.test(source[index]!)) index += 1;
+
+        /*
+         * `\sin^2 x` is `sin(x)^2`. The power sits on the value of the
+         * function, not on its angle - the one piece of notation in school
+         * mathematics that means something other than what it looks like.
+         */
+        let power: string | null = null;
+        if (source[index] === "^") {
+          const [group, after] = readGroup(source, index + 1);
+          power = convertCommands(group);
+          index = after;
+        }
+
+        const following = convertCommands(source.slice(index));
+        const [argument, used] = takeAtom(following, named![0]);
+        /*
+         * `x\ln x` is x times a logarithm. Without this separator the two run
+         * together into `xlog(x)`, which mathjs reads as a function called
+         * `xlog` - and then fails on a symbol nobody wrote.
+         */
+        if (/[A-Za-z0-9_)]$/.test(out)) out += "*";
+        out +=
+          power === null
+            ? `${fn}(${argument})`
+            : `(${fn}(${argument}))^(${power})`;
+        out += following.slice(used);
+        i = source.length;
+        continue;
+      }
+
       const match = /^\\[a-zA-Z]+/.exec(rest);
       throw new KatexConversionError(
         `unsupported command ${match ? match[0] : "\\"} in ${JSON.stringify(source)}`,
@@ -201,12 +346,40 @@ const FUNCTION_NAMES = new Set([
   "sin",
   "cos",
   "tan",
+  "csc",
+  "sec",
+  "cot",
   "asin",
   "acos",
   "atan",
+  "sinh",
+  "cosh",
+  "tanh",
   "min",
   "max",
 ]);
+
+/**
+ * Two variables written side by side.
+ *
+ * mathjs reads `xy` as a single symbol *named* `xy`, so `x^2 + 5xy + 6y^2` and
+ * `(x + 2y)(x + 3y)` come out in different alphabets and a correct two-variable
+ * factorisation is marked wrong - the exact "silent mistranslation" this file
+ * exists to refuse. `2y` is fine, because a digit beside a letter is already
+ * implicit multiplication to mathjs; it is only letter-beside-letter that is
+ * ambiguous.
+ *
+ * Narrow on purpose: only runs made entirely of the letters questions use for
+ * unknowns (`VARIABLES` in `content/format.ts`), the sequence index `n`, and
+ * the constant `e`. Splitting every letter run would turn `pi` into a product
+ * and, where `convertCommands` has just written a function name, `xsqrt(3)`
+ * into five factors.
+ *
+ * `e` earns its place here for the calculus chapters: `xe^x` is x times the
+ * exponential, and left alone mathjs reads `xe` as one symbol and then cannot
+ * evaluate it - so a correct derivative came back "unreadable".
+ */
+const VARIABLE_RUN = /(?<![A-Za-z])[xyne]{2,}(?![A-Za-z])/g;
 
 /**
  * mathjs reads `x(4x - 9)` as a call to a function named x, which then fails
@@ -215,10 +388,17 @@ const FUNCTION_NAMES = new Set([
  */
 export function insertImplicitMultiplication(text: string): string {
   return text
+    .replace(VARIABLE_RUN, (run) => run.split("").join("*"))
     .replace(/([A-Za-z_]\w*|\d)\s*\(/g, (match, token: string) =>
       FUNCTION_NAMES.has(token) ? match : `${token}*(`,
     )
-    .replace(/\)\s*\(/g, ")*(");
+    .replace(/\)\s*\(/g, ")*(")
+    /*
+     * A bracket closing against a name: `\sin x\cos x` converts to
+     * `sin(x)cos(x)`, and `(x+1)y` is a product a learner writes without
+     * thinking. mathjs reads neither as multiplication on its own.
+     */
+    .replace(/\)\s*(?=[A-Za-z_])/g, ")*");
 }
 
 /** True when the string is inside the subset `katexToMath` understands. */

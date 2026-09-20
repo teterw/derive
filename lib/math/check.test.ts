@@ -156,6 +156,23 @@ describe("satisfiesForm", () => {
     expect(satisfiesForm("3x(x-2)", "factored")).toBe(true);
     expect(satisfiesForm("(x-2)^2", "factored")).toBe(true);
     expect(satisfiesForm("-(x-1)(x+2)", "factored")).toBe(true);
+    // A common factor in front of a perfect square: two arguments, neither of
+    // them a sum, and still as factored as an expression gets.
+    expect(satisfiesForm("2(x+3)^2", "factored")).toBe(true);
+    expect(satisfiesForm("3x(2x-5)^2", "factored")).toBe(true);
+    // A power of a sum is a factorisation; a power *by* a sum is not.
+    expect(satisfiesForm("2^(x+1)", "factored")).toBe(false);
+  });
+
+  it("vertex-form", () => {
+    expect(satisfiesForm("2(x-3)^2 - 5", "vertex-form")).toBe(true);
+    expect(satisfiesForm("(x+1)^2", "vertex-form")).toBe(true);
+    expect(satisfiesForm("-(x-4)^2 + 7", "vertex-form")).toBe(true);
+    // The same function, expanded: the vertex is no longer readable.
+    expect(satisfiesForm("2x^2 - 12x + 13", "vertex-form")).toBe(false);
+    // A stray x outside the bracket means the square is not the whole story.
+    expect(satisfiesForm("(x-3)^2 + x", "vertex-form")).toBe(false);
+    expect(satisfiesForm("x^2 + 4", "vertex-form")).toBe(false);
   });
 
   it("positive-exponents", () => {

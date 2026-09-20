@@ -114,6 +114,31 @@ describe("toTex", () => {
     expect(toTex("1/(x+1)")).toBe("\\frac{1}{x + 1}");
     expect(toTex("x^2")).toBe("x^{2}");
   });
+
+  /**
+   * A trigonometric answer, which used to come out as a product of the three
+   * letters of its own name.
+   */
+  it("prints a named function as a name", () => {
+    expect(toTex("sin(x)")).toBe("\\sin\\left(x\\right)");
+    expect(toTex("cos(2x)")).toBe("\\cos\\left(2x\\right)");
+    expect(toTex("cos(x)^2")).toBe("\\cos\\left(x\\right)^{2}");
+    expect(toTex("2sin(x)cos(x)")).toContain("\\sin");
+  });
+
+  /**
+   * Without the brackets this printed as `x-\sin x`, which is a subtraction -
+   * a different expression, shown to the learner as the right answer.
+   */
+  it("keeps the brackets round a negative factor", () => {
+    expect(toTex("x*(-sin(x))")).toBe("x\\left(-\\sin\\left(x\\right)\\right)");
+    expect(toTex("2*(-3)")).toBe("2\\left(-3\\right)");
+  });
+
+  it("crosses over the two logarithms, as TeX names them", () => {
+    expect(toTex("log(x)")).toBe("\\ln\\left(x\\right)");
+    expect(toTex("log10(x)")).toBe("\\log\\left(x\\right)");
+  });
 });
 
 describe("answerToTex", () => {

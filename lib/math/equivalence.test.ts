@@ -55,3 +55,39 @@ describe("evaluateConstant", () => {
     expect(evaluateConstant("sqrt(-4)")).toBeNull();
   });
 });
+
+/**
+ * Trigonometric expressions, which the ม.5 chapter leans on entirely.
+ *
+ * Sampling is a better test of an identity than it is of anything else in this
+ * file: an identity is *defined* as "true at every angle", so twelve awkward
+ * angles agreeing is close to the statement itself. What needs pinning is that
+ * `sin` is not mistaken for a variable, that a pole is skipped rather than
+ * counted as disagreement, and that a near-miss is still caught.
+ */
+describe("areEquivalent, on trigonometry", () => {
+  it("does not treat a function name or pi as a variable", () => {
+    expect(symbolsOf("sin(x) + pi")).toEqual(["x"]);
+  });
+
+  it("recognises the identities", () => {
+    expect(areEquivalent("sin(x)^2 + cos(x)^2", "1")).toBe(true);
+    expect(areEquivalent("1 - cos(x)^2", "sin(x)^2")).toBe(true);
+    expect(areEquivalent("sin(x)/cos(x)", "tan(x)")).toBe(true);
+    expect(areEquivalent("1 + tan(x)^2", "sec(x)^2")).toBe(true);
+    expect(areEquivalent("sin(x + pi/2)", "cos(x)")).toBe(true);
+    expect(areEquivalent("2 sin(x) cos(x)", "sin(2x)")).toBe(true);
+  });
+
+  it("still says no to something that merely looks similar", () => {
+    expect(areEquivalent("sin(x)/cos(x)", "cot(x)")).toBe(false);
+    expect(areEquivalent("sin(2x)", "2 sin(x)")).toBe(false);
+    expect(areEquivalent("cos(x)^2 - sin(x)^2", "1")).toBe(false);
+  });
+
+  it("evaluates an exact angle", () => {
+    expect(areEquivalent("sin(pi/6)", "1/2")).toBe(true);
+    expect(areEquivalent("cos(5pi/6)", "-sqrt(3)/2")).toBe(true);
+    expect(areEquivalent("sin(pi/6)", "-1/2")).toBe(false);
+  });
+});

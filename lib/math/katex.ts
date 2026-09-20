@@ -146,8 +146,21 @@ function takeAtom(text: string, command: string): [string, number] {
    * thing telling them apart, and the power left behind here attaches to the
    * whole call, which is what it means.
    */
-  if (text[i] === "(") {
-    for (let j = i; j < text.length; j += 1) {
+  /*
+   * A function call *is* the argument when it starts the atom: `\ln|x-3|`
+   * arrives here already converted to `abs(x-3)`, and `\ln\sqrt{x}` as
+   * `sqrt(x)`. Without this the loop below stops at the first letter - the
+   * "a" of "abs" - and the rest becomes a stray factor, so `\ln|x-3|` came out
+   * as `log(a)*bs*(x-3)`.
+   *
+   * It has to sit *before* the rule that a following call starts a new factor,
+   * which is about `\sin A\cos B` and is right there and wrong here: the
+   * difference is whether the call begins the atom or follows something.
+   */
+  const leadingCall = /^[A-Za-z_]\w*\(/.exec(text.slice(i));
+  if (text[i] === "(" || leadingCall) {
+    const open = i + (leadingCall ? leadingCall[0].length - 1 : 0);
+    for (let j = open; j < text.length; j += 1) {
       if (text[j] === "(") depth += 1;
       else if (text[j] === ")") {
         depth -= 1;
@@ -223,11 +236,42 @@ function convertCommands(source: string): string {
     if (rest.startsWith("\\sqrt")) {
       const [degree, afterOpt] = readOptional(source, i + "\\sqrt".length);
       const [radicand, afterGroup] = readGroup(source, afterOpt);
+      /*
+       * `x\sqrt{...}` is a product, and this branch writes a *name* before its
+       * bracket - so without the star it lands as the symbol `xsqrt`, which
+       * mathjs cannot evaluate and a correct answer comes back unreadable.
+       * `\frac` needs no such guard because it emits a bracket directly, which
+       * `insertImplicitMultiplication` already handles. Same trap, and same
+       * fix, as `x\ln x` in round eight.
+       */
+      if (/[A-Za-z0-9_)]$/.test(out)) out += "*";
       out +=
         degree === null
           ? `sqrt(${convertCommands(radicand)})`
           : `nthRoot(${convertCommands(radicand)}, ${convertCommands(degree)})`;
       i = afterGroup;
+      continue;
+    }
+
+    /*
+     * `|x - 3|`, which Calculus II writes constantly - `\ln|x-p|` is the
+     * antiderivative of `1/(x-p)` as every textbook states it, and writing it
+     * without the bars to keep the parser happy would be teaching the wrong
+     * notation. `\left|` and `\right|` have already been stripped to bare
+     * bars by `BINARY_REPLACEMENTS`.
+     *
+     * Bars do not nest - there is no `||a| - |b||` in this curriculum - so the
+     * match is the next bar, and an unmatched one is an error rather than a
+     * guess.
+     */
+    if (rest.startsWith("|")) {
+      const close = source.indexOf("|", i + 1);
+      if (close === -1) {
+        throw new KatexConversionError("an absolute value bar is unmatched");
+      }
+      if (/[A-Za-z0-9_)]$/.test(out)) out += "*";
+      out += `abs(${convertCommands(source.slice(i + 1, close))})`;
+      i = close + 1;
       continue;
     }
 

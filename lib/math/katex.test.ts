@@ -107,7 +107,14 @@ describe("katexToMath", () => {
    */
   describe("an argument with no braces, which is still TeX", () => {
     it("reads a single digit", () => {
-      expect(katexToMath("5\\sqrt5")).toBe("5sqrt(5)");
+      /*
+       * The value rather than the exact string: what this is about is that an
+       * unbraced `\sqrt5` is read as `\sqrt{5}` at all. Whether the product in
+       * front of it is written `5sqrt(5)` or `5*sqrt(5)` is mathjs's business
+       * and has already changed once, for an unrelated reason.
+       */
+      expect(katexToMath("5\\sqrt5")).toContain("sqrt(5)");
+      expect(value("5\\sqrt5")).toBeCloseTo(5 * Math.sqrt(5), 12);
       expect(value("\\sqrt9")).toBeCloseTo(3);
       expect(value("\\frac12")).toBeCloseTo(0.5);
       expect(value("\\frac34")).toBeCloseTo(0.75);
@@ -265,5 +272,62 @@ describe("function commands", () => {
   it("refuses a function with nothing to apply to", () => {
     expect(() => katexToMath("\\sin")).toThrow(KatexConversionError);
     expect(() => katexToMath("\\sin + 1")).toThrow(KatexConversionError);
+  });
+});
+
+/**
+ * What Calculus II needs and the parser could not read.
+ *
+ * `\ln|x - p|` is the antiderivative of `1/(x - p)` as every textbook states
+ * it, so partial fractions cannot be written honestly without bars; and
+ * `x\sqrt{a^2 - x^2}` is half of the trigonometric-substitution answer.
+ */
+describe("absolute values and radicals as factors", () => {
+  const value = (tex: string, x: number) =>
+    Number(evaluate(katexToMath(tex), { x }));
+
+  it("reads bars as an absolute value", () => {
+    expect(katexToMath("|x-3|")).toBe("abs(x-3)");
+    expect(value("|x-3|", 1)).toBe(2);
+    // `\left|` and `\right|` are stripped before this sees them.
+    expect(katexToMath("\\left|x-3\\right|")).toBe("abs(x-3)");
+  });
+
+  it("multiplies into a bar rather than running into it", () => {
+    expect(value("2|x-3|", 1)).toBe(4);
+  });
+
+  /**
+   * The bug this was written for: `\ln|x-3|` came out as `log(a)*bs*(x-3)`.
+   * `takeAtom` runs on already-converted text, so it met `abs(x-3)`, stopped
+   * at the first letter, and left the rest as a stray factor.
+   */
+  it("takes a whole function call as a function's argument", () => {
+    expect(katexToMath("\\ln|x-3|")).toBe("log(abs(x-3))");
+    expect(katexToMath("\\ln\\sqrt{x}")).toBe("log(sqrt(x))");
+    expect(value("3\\ln|x-2| - \\ln|x+1|", 5)).toBeCloseTo(
+      3 * Math.log(3) - Math.log(6),
+      12,
+    );
+  });
+
+  /**
+   * The same trap as `x\ln x` in round eight: this branch writes a *name*
+   * before its bracket, so without an explicit star it lands as the symbol
+   * `xsqrt` and a correct answer comes back unreadable.
+   */
+  it("multiplies a variable into a radical", () => {
+    expect(katexToMath("x\\sqrt{25-x^2}")).toBe("x*sqrt(25-x^2)");
+    expect(value("x\\sqrt{25-x^2}", 4)).toBe(12);
+  });
+
+  /** The two rules it must not have broken while learning the new one. */
+  it("still reads a following call as a new factor, and a bracket as an argument", () => {
+    expect(katexToMath("\\sin x\\cos x")).toBe("sin(x)*cos(x)");
+    expect(value("\\sin(x)^2", 1)).toBeCloseTo(Math.sin(1) ** 2, 12);
+  });
+
+  it("refuses a bar that never closes", () => {
+    expect(() => katexToMath("|x-3")).toThrow(KatexConversionError);
   });
 });

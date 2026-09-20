@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { evaluate } from "mathjs";
 import { checkAnswer, normalizeInput, satisfiesForm, splitSet } from "./check";
 
 const exact = (value: string) => ({ kind: "exact" as const, value });
@@ -11,7 +12,17 @@ describe("normalizeInput", () => {
 
   it("accepts what the keypad emits", () => {
     expect(normalizeInput("\\frac{1}{2}")).toBe("((1)/(2))");
-    expect(normalizeInput("2\\sqrt{3}")).toBe("2sqrt(3)");
+    /*
+     * By value, not by spelling. What matters is that the keypad's LaTeX comes
+     * back as something mathjs reads as two root three; whether the product is
+     * written `2sqrt(3)` or `2*sqrt(3)` is the converter's business, and it
+     * changed once already for an unrelated reason.
+     */
+    expect(normalizeInput("2\\sqrt{3}")).toContain("sqrt(3)");
+    expect(Number(evaluate(normalizeInput("2\\sqrt{3}")))).toBeCloseTo(
+      2 * Math.sqrt(3),
+      12,
+    );
   });
 
   it("accepts typographic symbols", () => {

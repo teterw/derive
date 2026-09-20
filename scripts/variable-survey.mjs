@@ -41,6 +41,14 @@ for (const generator of generators) {
           // Before the commands go, or `c = \sqrt{19}` loses what follows the
           // equals sign and stops looking like a given.
           .replace(/(?<![a-zA-Z])[a-zA-Z]\s*=\s*(?=[-\d\\])/g, " ")
+          /*
+           * `\text{...}` and `\mathrm{...}` hold prose and units - `\mathrm{km}`
+           * is a kilometre, not a k times an m. Both go *with their contents*,
+           * and before the generic command strip below, which would otherwise
+           * remove the command and leave the letters behind looking like
+           * algebra.
+           */
+          .replace(/\\(?:text|mathrm|operatorname)\{[^{}]*\}/g, " ")
           // `\begin{cases}` names an environment; c, a, s and e are not algebra.
           .replace(/\\(?:begin|end)\{[a-zA-Z*]+\}/g, " ")
           .replace(/\\[a-zA-Z]+/g, " ")
@@ -93,8 +101,13 @@ for (const generator of generators) {
  * unknown, and calling them `x` and `y` would make the model harder to read
  * rather than easier. "The distance after x seconds" is not an improvement on
  * anything.
+ *
+ * `w` joins them for the same reason: the rectangle word problems set up
+ * `w \times \ell`, a width and a length. That stem used to say
+ * `\text{กว้าง} \times \text{ยาว}`, which put Thai on the English page and is
+ * why it now uses letters at all.
  */
-const ALLOWED = new Set(["x", "y", "n", "k", "e", "r", "h", "t"]);
+const ALLOWED = new Set(["x", "y", "n", "k", "e", "r", "h", "t", "w"]);
 let unexpected = 0;
 
 for (const [letter, owners] of [...seen].sort()) {

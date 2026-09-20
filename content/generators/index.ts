@@ -12,6 +12,7 @@ import type {
 import { expLawsCore } from "./exp-integer-laws";
 import { expZeroNegative } from "./exp-negative-zero";
 import { expScientificNotation } from "./exp-scientific";
+import { expRational } from "./exp-rational";
 import { radOperationsCore } from "./rad-operations";
 import { radRationalizeCore } from "./rad-rationalize";
 import { radSimplifySqrt } from "./rad-simplify";
@@ -108,6 +109,7 @@ export const generators: Generator[] = [
   expLawsCore,
   expZeroNegative,
   expScientificNotation,
+  expRational,
   radSimplifySqrt,
   radOperationsCore,
   radRationalizeCore,

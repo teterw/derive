@@ -221,6 +221,56 @@ export const exponentRules: Rule[] = [
     seeAlso: ["exp.quotient", "exp.zero"],
   },
   {
+    id: "exp.rational",
+    topicIds: WITH_LOGS,
+    name: {
+      th: "เลขชี้กำลังที่เป็นเศษส่วน",
+      en: "Rational exponents",
+    },
+    statement: "a^{1/n} = \\sqrt[n]{a}",
+    conditions: {
+      th: "เมื่อ a \\geq 0 หรือ n เป็นจำนวนคี่",
+      en: "for a \\geq 0, or n odd",
+    },
+    plain: {
+      th: "กรณฑ์คือเลขยกกำลังที่เลขชี้กำลังเป็นเศษส่วน ตัวหารของเศษส่วนคืออันดับของกรณฑ์",
+      en: "A root is a power with a fraction as its exponent. The bottom of the fraction is the order of the root.",
+    },
+    mnemonic: {
+      th: "ตัวส่วนคืออันดับราก ตัวเศษคือกำลัง",
+      en: "Bottom is the root, top is the power.",
+    },
+    examples: [
+      { from: "\\sqrt{x}", to: "x^{1/2}" },
+      { from: "\\sqrt[3]{7}", to: "7^{1/3}" },
+      { from: "9^{1/2}", to: "3" },
+    ],
+    seeAlso: ["exp.rational-power", "rad.product", "exp.power-of-power"],
+  },
+  {
+    id: "exp.rational-power",
+    topicIds: WITH_LOGS,
+    name: {
+      th: "กรณฑ์ของเลขยกกำลัง",
+      en: "A power inside a root",
+    },
+    statement: "a^{m/n} = \\sqrt[n]{a^m} = \\left(\\sqrt[n]{a}\\right)^m",
+    conditions: {
+      th: "เมื่อ a \\geq 0 หรือ n เป็นจำนวนคี่",
+      en: "for a \\geq 0, or n odd",
+    },
+    plain: {
+      th: "ถอดรากก่อนแล้วค่อยยกกำลังจะคิดเลขง่ายกว่า เพราะตัวเลขเล็กกว่ามาก",
+      en: "Take the root first and then the power: the numbers stay far smaller that way.",
+    },
+    examples: [
+      { from: "8^{2/3}", to: "\\left(\\sqrt[3]{8}\\right)^2 = 4" },
+      { from: "16^{3/4}", to: "\\left(\\sqrt[4]{16}\\right)^3 = 8" },
+      { from: "x^{3/2}", to: "\\sqrt{x^3}" },
+    ],
+    seeAlso: ["exp.rational", "exp.negative", "exp.power-of-power"],
+  },
+  {
     id: "exp.scientific-form",
     topicIds: TOPIC,
     name: {

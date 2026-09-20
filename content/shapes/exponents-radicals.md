@@ -49,3 +49,13 @@ See `docs/CONTENT-PIPELINE.md` §2.
 - [x] `\frac{c}{p \pm \sqrt{b}}`, conjugate → `rad.rationalize-core`
 - [ ] `\frac{\sqrt{a}}{\sqrt{b}}` where the answer reduces
 - [ ] `\frac{c}{\sqrt{a} - \sqrt{b}}`, conjugate of two radicals
+
+## exp.rational
+- [x] A root written as a fractional power, evaluated -> `exp.rational-core`
+- [x] A fractional power written as a root, evaluated -> `exp.rational-core`
+- [x] A numerator above one, root first -> `exp.rational-core`
+- [x] A negative rational exponent -> `exp.rational-core`
+- [ ] A rational exponent on a variable base, left symbolic
+- [ ] A product of two fractional powers of the same base
+- [ ] A rational exponent inside a surd needing simplifying first
+- [ ] Comparing `a^{1/2}` and `a^{1/3}` for a between 0 and 1

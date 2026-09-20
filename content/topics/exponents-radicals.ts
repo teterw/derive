@@ -15,6 +15,7 @@ export const exponentsRadicalsTopic: Topic = {
     "exp.integer-laws",
     "exp.negative-zero",
     "exp.scientific",
+    "exp.rational",
     "rad.simplify",
     "rad.operations",
     "rad.rationalize",
@@ -83,6 +84,30 @@ export const exponentsRadicalsSkills: Skill[] = [
     strictForm: "scientific-notation",
     prerequisites: ["exp.negative-zero"],
     ruleIds: ["exp.scientific-form", "exp.product", "exp.quotient"],
+  },
+  {
+    id: "exp.rational",
+    topicId: "exponents-radicals",
+    name: {
+      th: "เลขชี้กำลังที่เป็นเศษส่วน",
+      en: "Rational exponents",
+    },
+    summary: {
+      th: "กรณฑ์เขียนเป็นเลขยกกำลังได้ ตัวส่วนคืออันดับราก ตัวเศษคือกำลัง",
+      en: "A root is a power: the bottom of the exponent is the order of the root, the top is the power.",
+    },
+    formula: "a^{m/n} = \\sqrt[n]{a^m}",
+    strictForm: null,
+    prerequisites: ["exp.negative-zero", "rad.simplify"],
+    ruleIds: [
+      "exp.rational",
+      "exp.rational-power",
+      "exp.power-of-power",
+      // Difficulty 3 puts a minus on the exponent, so the reciprocal rule is
+      // genuinely used and the registry test insists a skill lists what its
+      // generators reach for.
+      "exp.negative",
+    ],
   },
   {
     id: "rad.simplify",

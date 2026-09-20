@@ -317,6 +317,53 @@ const lessonList: Lesson[] = [
   },
 
   {
+    skillId: "exp.rational",
+    title: { th: "เลขชี้กำลังที่เป็นเศษส่วน", en: "Rational exponents" },
+    intro: {
+      th: "บทนี้ได้เรียนเลขยกกำลังมาแล้ว และได้เรียนกรณฑ์มาแล้ว แต่ยังไม่ได้บอกว่าทั้งสองอย่างคือสิ่งเดียวกันที่เขียนคนละแบบ ประโยคที่เชื่อมสองเรื่องนี้เข้าด้วยกันคือ $\\sqrt{a} = a^{1/2}$",
+      en: "This chapter has taught powers, and it has taught roots, without ever saying they are the same thing written two ways. The sentence that joins them is $\\sqrt{a} = a^{1/2}$.",
+    },
+    bigIdea: {
+      th: "ตัวส่วนของเลขชี้กำลังคืออันดับของราก ตัวเศษคือกำลัง ถอดรากก่อนแล้วค่อยยกกำลัง ตัวเลขจะเล็กกว่ามาก",
+      en: "The bottom of the exponent is the order of the root and the top is the power. Take the root first: the numbers stay far smaller that way.",
+    },
+    ruleIds: ["exp.rational", "exp.rational-power", "exp.power-of-power"],
+    examples: [
+      { generatorId: "exp.rational-core", seed: 4, difficulty: 1 },
+      {
+        generatorId: "exp.rational-core",
+        seed: 11,
+        difficulty: 2,
+        note: {
+          th: "ถอดรากก่อนเสมอ 16^{3/4} คิดจาก 2 แล้วยกกำลังสาม ไม่ใช่คิด 16^3 ก่อน",
+          en: "Always take the root first. 16^{3/4} goes through 2 and then cubes; it does not start by cubing 16.",
+        },
+      },
+      { generatorId: "exp.rational-core", seed: 7, difficulty: 3 },
+      { generatorId: "exp.rational-core", seed: 21, difficulty: 4 },
+    ],
+    pitfalls: [
+      {
+        th: "8^{2/3} ไม่ใช่ 8 \\div 3 \\times 2 ตัวส่วนบอกอันดับราก ไม่ใช่ตัวหาร",
+        en: "8^{2/3} is not 8 divided by 3 then doubled. The bottom names a root, it does not divide.",
+      },
+      {
+        th: "ยกกำลังก่อนถอดรากได้คำตอบเดียวกัน แต่ตัวเลขใหญ่กว่ามาก 16^3 = 4096 ก่อนจะถอดรากที่สี่",
+        en: "Taking the power first gives the same answer through far bigger numbers: 16^3 is 4096 before the fourth root undoes it.",
+      },
+      {
+        th: "ฐานติดลบกับอันดับรากที่เป็นเลขคู่ไม่มีค่าในจำนวนจริง เช่น (-4)^{1/2}",
+        en: "A negative base with an even root has no real value, as in (-4)^{1/2}.",
+      },
+    ],
+    practice: [
+      { generatorId: "exp.rational-core", seed: 2001, difficulty: 1 },
+      { generatorId: "exp.rational-core", seed: 2002, difficulty: 2 },
+      { generatorId: "exp.rational-core", seed: 2003, difficulty: 3 },
+    ],
+  },
+
+  {
     skillId: "exp.scientific",
     title: { th: "สัญกรณ์วิทยาศาสตร์", en: "Scientific notation" },
     intro: {

@@ -168,6 +168,14 @@ export function ProfileMenu({
                 key={href}
                 href={href}
                 role="menuitem"
+                /*
+                 * Full prefetch, unconditionally, because this list only
+                 * exists once the menu is open - which is already the intent
+                 * signal the nav links have to wait for a hover to get. Four
+                 * routes warm while the pointer travels down the menu, and
+                 * nothing is fetched for anyone who never opens it.
+                 */
+                prefetch
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm transition-colors hover:bg-surface-2 hover:text-accent focus-visible:bg-surface-2 focus-visible:text-accent"
               >

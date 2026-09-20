@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { generateQuestion, toPublicQuestion } from "@/content/generators";
 import { getSkill } from "@/content/topics";
 import type { FormRequirement } from "@/content/types";
@@ -116,6 +117,30 @@ export async function submitAnswerAction(input: {
    * by choice, which is the fastest way to make the count feel wrong.
    */
   await recordReview(userId, question.skillId, result.correct);
+
+  /**
+   * The pages this answer just changed the numbers on.
+   *
+   * Nothing needed this while nothing was cached, and the app was correct by
+   * accident: every navigation re-rendered from the database, so every figure
+   * was current whether or not anyone had said so. Prefetching ends that.
+   * A fully prefetched route is held in the client router cache for five
+   * minutes, so without this you could answer twenty questions and open
+   * สถิติ on the numbers you had before you started - which in an app whose
+   * whole point is watching those numbers move is a worse bug than the
+   * slowness the prefetching was for.
+   *
+   * The dashboard, statistics and the review queue are the three that move on
+   * every answer. `/learn` and the setup pages show *lessons passed*, which an
+   * answer does not change - passing a lesson does, and `lib/learn/actions.ts`
+   * already revalidates there.
+   *
+   * The `[locale]` form invalidates every locale at once, which matters
+   * because a learner can switch language mid-run.
+   */
+  for (const path of ["/[locale]", "/[locale]/stats", "/[locale]/review"]) {
+    revalidatePath(path, "page");
+  }
 
   return {
     result,

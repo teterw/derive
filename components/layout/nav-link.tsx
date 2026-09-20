@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -52,11 +53,38 @@ export function NavLink({
   const pathname = usePathname();
   const active = isActive(pathname, href);
 
+  /**
+   * Prefetch the whole page once you look like you mean it.
+   *
+   * Every page here is dynamic - they all read the session cookie - so Next
+   * prefetches only as far as the loading boundary by default. Clicking
+   * therefore gives you the skeleton instantly and the real page about 150ms
+   * later: one round trip to Neon in Singapore is 35ms of that, the rest is
+   * the render.
+   *
+   * `prefetch` upgraded to `true` fetches the whole thing, so the click has
+   * nothing left to wait for. What it must *not* be is `true` from the start:
+   * these links sit in the header of every page and Next prefetches whatever
+   * is in the viewport, so a constant `true` would fire a full render of all
+   * six routes on every single page load - six times the server work to save
+   * one navigation.
+   *
+   * Hover, focus and touch are the cheap signal that a navigation is actually
+   * coming. `null` is Next's default rather than "off", so before the intent
+   * the ordinary shell prefetch still happens.
+   */
+  const [intent, setIntent] = useState(false);
+  const wantIt = () => setIntent(true);
+
   return (
     <Link
       href={href}
       title={title}
       aria-label={ariaLabel}
+      prefetch={intent ? true : null}
+      onMouseEnter={wantIt}
+      onFocus={wantIt}
+      onTouchStart={wantIt}
       aria-current={active ? "page" : undefined}
       className={cn(
         "transition-colors",

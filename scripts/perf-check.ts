@@ -10,6 +10,7 @@
  * measures whatever else the machine was doing.
  */
 import { get as httpGet } from "node:http";
+import { get as httpsGet } from "node:https";
 import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
 import { sessions, users } from "../lib/db/schema";
@@ -30,19 +31,51 @@ const SLOW_MS = 500;
  * and compresses very well. Reporting the decompressed figure would have sent
  * someone optimising a page that is already small on the wire.
  */
-function wireBytes(url: string, cookie: string): Promise<number> {
+function wireBytes(
+  url: string,
+  cookie: string,
+): Promise<{ bytes: number; ttfb: number; status: number; served: string }> {
   return new Promise((resolve, reject) => {
-    const request = httpGet(
+    // `PERF_BASE` can be the deployment, so this has to speak both.
+    const get = url.startsWith("https:") ? httpsGet : httpGet;
+    const started = performance.now();
+    const request = get(
       url,
       {
         headers: { cookie, "accept-encoding": "gzip, deflate, br" },
       },
       (response) => {
+        /*
+         * Time to first byte, measured separately from the total.
+         *
+         * Against a deployment these two answer different questions. The total
+         * includes the transfer, which is this machine's connection; the first
+         * byte is the server thinking, which is the thing any change here can
+         * do something about. When the deployment was in the wrong region they
+         * differed by a second.
+         */
+        let ttfb = 0;
         let bytes = 0;
+        response.once("data", () => {
+          ttfb = performance.now() - started;
+        });
         response.on("data", (chunk: Buffer) => {
           bytes += chunk.length;
         });
-        response.on("end", () => resolve(bytes));
+        response.on("end", () =>
+          resolve({
+            bytes,
+            ttfb,
+            status: response.statusCode ?? 0,
+            /*
+             * `x-vercel-id` names the regions that handled the request, edge
+             * first. Worth printing, because "the functions are not where the
+             * database is" is invisible from the timings alone and is the
+             * single biggest thing that can be wrong here - see CLAUDE.md.
+             */
+            served: String(response.headers["x-vercel-id"] ?? ""),
+          }),
+        );
       },
     );
     request.on("error", reject);
@@ -92,7 +125,8 @@ async function main() {
 
   console.log(`\nperf · ${BASE} · median of ${RUNS} · signed in as ${user.username}\n`);
 
-  const results: { path: string; ms: number; bytes: number }[] = [];
+  const results: { path: string; ms: number; bytes: number; ttfb: number }[] = [];
+  let served = "";
 
   for (const path of paths) {
     const timings: number[] = [];
@@ -114,9 +148,24 @@ async function main() {
       timings.push(performance.now() - started);
     }
 
-    bytes = await wireBytes(`${BASE}${path}`, `${SESSION_COOKIE}=${token}`);
-    results.push({ path, ms: median(timings), bytes });
+    const probe = await wireBytes(`${BASE}${path}`, `${SESSION_COOKIE}=${token}`);
+    bytes = probe.bytes;
+    /*
+     * A redirect is not a page. Without this the run silently measures the
+     * proxy bouncing an unauthenticated request to the login screen and
+     * reports it as a fast page - which is exactly what it looks like.
+     */
+    if (probe.status >= 300 && probe.status < 400) {
+      throw new Error(
+        `${path} returned ${probe.status} - the session was not accepted, so nothing here is a real page timing.`,
+      );
+    }
+    results.push({ path, ms: median(timings), bytes, ttfb: probe.ttfb });
+    if (!served && probe.served) served = probe.served;
   }
+
+  if (served) console.log(`  served by: ${served}
+`);
 
   await db.delete(sessions).where(eq(sessions.id, session!.id));
 
@@ -125,7 +174,8 @@ async function main() {
     const bar = "#".repeat(Math.max(1, Math.round((result.ms / worst) * 32)));
     const flag = result.ms > SLOW_MS ? " SLOW" : "";
     console.log(
-      `  ${String(Math.round(result.ms)).padStart(5)}ms  ` +
+      `  ${String(Math.round(result.ttfb)).padStart(5)}ms ttfb  ` +
+        `${String(Math.round(result.ms)).padStart(5)}ms total  ` +
         `${String(Math.round(result.bytes / 1024)).padStart(4)}KB  ` +
         `${bar.padEnd(33)} ${result.path}${flag}`,
     );

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { getGenerator } from "@/content/generators";
+import { skills } from "@/content/topics";
 import {
   MAX_RUN_LENGTH,
   normalizeConfig,
   planQuestions,
+  preselectedSkills,
   reachableSkills,
   type PracticeConfig,
 } from "./session";
@@ -140,5 +142,35 @@ describe("normalizeConfig", () => {
   it("keeps a seed it is given and invents one otherwise", () => {
     expect(normalizeConfig({ seed: 4242 }).seed).toBe(4242);
     expect(normalizeConfig({}).seed).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * The setup pages' default selection.
+ *
+ * The case worth pinning is the empty one, because it is the one nobody can
+ * reach by hand: an account that has passed nothing must still arrive at a
+ * usable page, and that account is the hardest to keep around to look at.
+ */
+describe("the tiles a setup page starts with ticked", () => {
+  it("is the lessons passed", () => {
+    const chosen = preselectedSkills(["quad.formula", "exp.integer-laws"]);
+
+    expect([...chosen].sort()).toEqual(["exp.integer-laws", "quad.formula"]);
+  });
+
+  it("is everything when nothing has been passed yet", () => {
+    expect(preselectedSkills([]).size).toBe(skills.length);
+  });
+
+  /**
+   * A skill id that no longer exists - a renamed chapter, a stale row - must
+   * not silently empty the page, and must not survive into the form either.
+   */
+  it("ignores skills that no longer exist", () => {
+    expect([...preselectedSkills(["quad.formula", "gone.missing"])]).toEqual([
+      "quad.formula",
+    ]);
+    expect(preselectedSkills(["gone.missing"]).size).toBe(skills.length);
   });
 });

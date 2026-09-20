@@ -7,10 +7,12 @@ import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { runs } from "@/lib/db/schema";
+import { getPassedSkillIds } from "@/lib/learn/progress";
 import { skillsOfTopic, topics } from "@/content/topics";
 import { DIFFICULTIES, DIFFICULTY_LABELS } from "@/content/types";
 import { startExamFormAction } from "@/lib/exam/actions";
 import { QUESTION_COUNTS, TIME_LIMITS_MINUTES } from "@/lib/exam/session";
+import { preselectedSkills } from "@/lib/practice/session";
 import { bangkokStamp } from "@/lib/stats/day";
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge, Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -28,19 +30,30 @@ export default async function ExamSetupPage({
   const t = await getTranslations("exam");
   const active = locale as Locale;
 
-  const recent = await db
-    .select({
-      id: runs.id,
-      startedAt: runs.startedAt,
-      finishedAt: runs.finishedAt,
-      total: runs.total,
-      correct: runs.correct,
-    })
-    .from(runs)
-    // Only exams: a daily challenge is its own thing with its own page.
-    .where(and(eq(runs.userId, user.id), eq(runs.mode, "exam")))
-    .orderBy(desc(runs.startedAt))
-    .limit(5);
+  const [recent, passed] = await Promise.all([
+    db
+      .select({
+        id: runs.id,
+        startedAt: runs.startedAt,
+        finishedAt: runs.finishedAt,
+        total: runs.total,
+        correct: runs.correct,
+      })
+      .from(runs)
+      // Only exams: a daily challenge is its own thing with its own page.
+      .where(and(eq(runs.userId, user.id), eq(runs.mode, "exam")))
+      .orderBy(desc(runs.startedAt))
+      .limit(5),
+    getPassedSkillIds(user.id),
+  ]);
+
+  /*
+   * The same rule as the practice page, and it matters more here: an exam is
+   * timed and scored, so one drawn from all seventy-eight skills two months
+   * into ม.3 does not measure anything, it just produces a bad number.
+   */
+  const preselected = preselectedSkills(passed);
+  const nothingPassed = passed.length === 0;
 
   return (
     <AppShell locale={active} user={user}>
@@ -48,6 +61,11 @@ export default async function ExamSetupPage({
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("setupTitle")}
         </h1>
+        {nothingPassed ? null : (
+          <p className="text-sm text-muted">
+            {t("setupPreselected", { count: passed.length })}
+          </p>
+        )}
       </div>
 
       <form action={startExamFormAction} className="mt-6 space-y-6">
@@ -65,7 +83,11 @@ export default async function ExamSetupPage({
                   key={skill.id}
                   className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2"
                 >
-                  <Checkbox name="skills" value={skill.id} defaultChecked />
+                  <Checkbox
+                    name="skills"
+                    value={skill.id}
+                    defaultChecked={preselected.has(skill.id)}
+                  />
                   {skill.name[active]}
                 </label>
               ))}

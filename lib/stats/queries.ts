@@ -57,6 +57,8 @@ export type StreakInfo = {
   /** Attempts so far today, and how many a day needs to count. */
   todayAttempts: number;
   threshold: number;
+  /** How many more today needs. Zero once the day is secured. */
+  remaining: number;
   /** True when today already counts, so the streak is safe. */
   todaySecured: boolean;
 };
@@ -95,6 +97,13 @@ export async function getStreak(userId: string): Promise<StreakInfo> {
     longest: user?.longest ?? 0,
     todayAttempts,
     threshold: STREAK_MIN_ATTEMPTS,
+    /**
+     * How many more the day still needs, which is what the learner is
+     * actually told. It is computed here rather than at the two call sites
+     * because both of them used to render `threshold` into a sentence that
+     * says "N more" - so five questions in, the app claimed ten were left.
+     */
+    remaining: Math.max(0, STREAK_MIN_ATTEMPTS - todayAttempts),
     todaySecured: todayAttempts >= STREAK_MIN_ATTEMPTS,
   };
 }

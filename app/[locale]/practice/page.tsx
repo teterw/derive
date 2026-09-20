@@ -3,13 +3,18 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing, type Locale } from "@/i18n/routing";
 import { requireUser } from "@/lib/auth/current-user";
+import { getPassedSkillIds } from "@/lib/learn/progress";
 import { skillsOfTopic, topics } from "@/content/topics";
 import { DIFFICULTY_LABELS, DIFFICULTIES } from "@/content/types";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/field";
-import { ROUND, RUN_LENGTHS } from "@/lib/practice/session";
+import {
+  ROUND,
+  RUN_LENGTHS,
+  preselectedSkills,
+} from "@/lib/practice/session";
 import { Tex } from "@/components/math/katex";
 import { SkillGroupToggle } from "./skill-group-toggle";
 
@@ -28,12 +33,31 @@ export default async function PracticeSetupPage({
   const t = await getTranslations("practice");
   const activeLocale = locale as Locale;
 
+  /*
+   * Ticked to start with: the lessons passed, or everything for an account
+   * that has passed none. `preselectedSkills` explains why. Nothing is
+   * hidden - every skill is still on the page, one click away, and the
+   * per-chapter toggles are still there.
+   */
+  const passed = await getPassedSkillIds(user.id);
+  const preselected = preselectedSkills(passed);
+  const nothingPassed = passed.length === 0;
+
   return (
     <AppShell locale={activeLocale} user={user}>
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("setupTitle")}
         </h1>
+        {/*
+          Said out loud, because a page that arrives with most of its boxes
+          unticked and no explanation reads as a page that failed to load.
+        */}
+        {nothingPassed ? null : (
+          <p className="text-sm text-muted">
+            {t("setupPreselected", { count: passed.length })}
+          </p>
+        )}
       </div>
 
       <form
@@ -88,7 +112,7 @@ export default async function PracticeSetupPage({
                   <Checkbox
                     name="skills"
                     value={skill.id}
-                    defaultChecked
+                    defaultChecked={preselected.has(skill.id)}
                     className="shrink-0"
                   />
                   <span className="min-w-0 flex-1">

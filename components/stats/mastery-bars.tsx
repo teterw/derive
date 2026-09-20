@@ -19,12 +19,19 @@ export function MasteryBars({
   levelLabels,
   notEnoughLabel,
   drillLabel,
+  showTopic = true,
 }: {
   progress: SkillProgress[];
   locale: Locale;
   levelLabels: string[];
   notEnoughLabel: string;
   drillLabel: string;
+  /**
+   * The chapter name beside each skill. Wanted when the list cuts across
+   * chapters, as the weakest-five does; noise when the list is already under
+   * a chapter heading.
+   */
+  showTopic?: boolean;
 }) {
   return (
     <ul className="space-y-3">
@@ -40,7 +47,7 @@ export function MasteryBars({
                 <span className="text-sm">
                   {skill ? skill.name[locale] : row.skillId}
                 </span>
-                {skill ? (
+                {skill && showTopic ? (
                   <span className="ml-2 text-xs text-muted">
                     {getTopic(skill.topicId).name[locale]}
                   </span>

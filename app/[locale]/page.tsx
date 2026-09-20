@@ -74,7 +74,7 @@ export default async function DashboardPage({
             ? t("todayDone", { count: today.attempts })
             : t("todayToGo", {
                 done: today.attempts,
-                threshold: streak.threshold,
+                remaining: streak.remaining,
               })}
         </p>
       </div>

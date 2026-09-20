@@ -9,10 +9,10 @@
  * ## The curve
  *
  * Reaching level `L + 1` from level `L` costs `50L + 50` XP. So the first
- * level is cheap (50), and the cost grows by a flat 50 each time rather than
- * multiplying. That matters for a practice app: a learner two years in should
- * still see the bar move in a session, and an exponential curve stops giving
- * that long before then.
+ * level is cheap (100, about eight correct answers), and the cost grows by a
+ * flat 50 each time rather than multiplying. That matters for a practice app:
+ * a learner two years in should still see the bar move in a session, and an
+ * exponential curve stops giving that long before then.
  *
  * Total XP to *reach* level L is therefore a triangular number:
  *

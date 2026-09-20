@@ -83,7 +83,7 @@
     "greeting": "Hello {name}",
     "empty": "No practice yet. Let's do your first question.",
     "todayDone": "{count} questions today. Nice.",
-    "todayToGo": "{done} questions today. {threshold} makes the day count.",
+    "todayToGo": "{done} questions today. {remaining} more makes the day count.",
     "dayStreak": "day streak",
     "questionsToday": "questions today",
     "accuracyToday": "accuracy today",
@@ -149,6 +149,7 @@
   },
   "practice": {
     "setupTitle": "Set up a practice run",
+    "setupPreselected": "The {count} skills you have passed are ticked. Add any others you want.",
     "difficulty": "Difficulty",
     "start": "Start practising",
     "submit": "Submit",
@@ -176,7 +177,8 @@
       "rationalized-denominator": "Right value, but there is still a root on the bottom.",
       "scientific-notation": "Right value, but not in scientific notation.",
       "factored": "Right value, but it is not factorised.",
-      "positive-exponents": "Right value, but a negative exponent is still there."
+      "positive-exponents": "Right value, but a negative exponent is still there.",
+      "vertex-form": "Right value, but not in the completed-square form the vertex can be read from."
     },
     "queueDone": "Queue finished",
     "queueDoneBody": "The ones you got right have left the review queue.",
@@ -207,7 +209,8 @@
       "simplified-radical": "The radical must be simplified; otherwise any form counts.",
       "rationalized-denominator": "The denominator must be free of radicals; otherwise any form counts.",
       "scientific-notation": "Must be in scientific notation.",
-      "positive-exponents": "No negative exponents; otherwise any form counts."
+      "positive-exponents": "No negative exponents; otherwise any form counts.",
+      "vertex-form": "Must be in completed-square form - the expanded form does not count."
     },
     "headingPractice": "Practice",
     "headingReview": "Review",
@@ -246,6 +249,7 @@
   },
   "exam": {
     "setupTitle": "Set up an exam",
+    "setupPreselected": "The {count} skills you have passed are ticked. Add any others you want.",
     "difficultyMix": "Difficulty mix",
     "questionCount": "Questions",
     "timeLimit": "Time limit",
@@ -317,7 +321,7 @@
     "monthsShort": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec",
     "weekdaysShort": "M,T,W,T,F,S,S",
     "todaySecured": "{count} questions today - the day counts towards your streak.",
-    "todayToGo": "{done} questions today. {threshold} in a day makes it count.",
+    "todayToGo": "{done} questions today. {remaining} more makes it count.",
     "byDifficulty": "By difficulty",
     "totals": "Totals",
     "questionsAnswered": "Questions answered",
@@ -369,7 +373,8 @@
       "shortcuts": "Show these shortcuts",
       "close": "Close the panel"
     },
-    "tools": "Tools"
+    "tools": "Tools",
+    "close": "Close"
   },
   "daily": {
     "title": "Daily challenge",

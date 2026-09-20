@@ -5,7 +5,7 @@ import { Flame, Target, Timer, Trophy } from "lucide-react";
 import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth/current-user";
-import { getTopic } from "@/content/topics";
+import { getTopic, topics } from "@/content/topics";
 import { DIFFICULTY_LABELS, type Difficulty } from "@/content/types";
 import {
   getAccuracyTrend,
@@ -115,7 +115,7 @@ export default async function StatsPage({
               ? t("todaySecured", { count: streak.todayAttempts })
               : t("todayToGo", {
                   done: streak.todayAttempts,
-                  threshold: streak.threshold,
+                  remaining: streak.remaining,
                 })}
           </p>
         </Card>
@@ -230,15 +230,46 @@ export default async function StatsPage({
           </Card>
         ) : null}
 
-        <Card className="space-y-4">
+        {/*
+          By chapter, not as one list.
+
+          `getSkillProgress` returns every skill on purpose, so that "not
+          started" is visible rather than missing - and that is still right.
+          What changed is the length: at 33 skills a flat list was readable,
+          at 78 it is seventy-eight rows in curriculum order, most of them a
+          dash, and the eight you have actually practised are somewhere in the
+          middle of it. The chapter headings put them back in reach without
+          hiding anything, and the count beside each says at a glance where
+          there is nothing yet.
+        */}
+        <Card className="space-y-6">
           <CardTitle className="text-base">{t("perSkill")}</CardTitle>
-          <MasteryBars
-            progress={progress}
-            locale={active}
-            levelLabels={t("levels").split(",")}
-            notEnoughLabel={t("notEnoughAttempts")}
-            drillLabel={t("drill")}
-          />
+          {topics.map((topic) => {
+            const rows = progress.filter((row) => row.topicId === topic.id);
+            if (rows.length === 0) return null;
+            const started = rows.filter((row) => row.attempts > 0).length;
+
+            return (
+              <section key={topic.id} className="space-y-3">
+                <div className="flex items-baseline justify-between gap-3 border-b border-border pb-1">
+                  <h3 className="text-sm font-medium">
+                    {topic.name[active]}
+                  </h3>
+                  <span className="font-mono text-xs tabular-nums text-muted">
+                    {started}/{rows.length}
+                  </span>
+                </div>
+                <MasteryBars
+                  progress={rows}
+                  locale={active}
+                  levelLabels={t("levels").split(",")}
+                  notEnoughLabel={t("notEnoughAttempts")}
+                  drillLabel={t("drill")}
+                  showTopic={false}
+                />
+              </section>
+            );
+          })}
         </Card>
 
         <Card className="space-y-4">

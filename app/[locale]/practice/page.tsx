@@ -8,6 +8,8 @@ import { skillsOfTopic, topics } from "@/content/topics";
 import { DIFFICULTY_LABELS, DIFFICULTIES } from "@/content/types";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Chapter } from "@/components/ui/chapter";
+import { StageJump } from "@/components/ui/stage-jump";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/field";
 import {
@@ -31,6 +33,7 @@ export default async function PracticeSetupPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("practice");
+  const tCommon = await getTranslations("common");
   const activeLocale = locale as Locale;
 
   /*
@@ -58,6 +61,16 @@ export default async function PracticeSetupPage({
             {t("setupPreselected", { count: passed.length })}
           </p>
         )}
+        <div className="flex flex-wrap items-center gap-2 pt-2">
+          <span className="text-xs text-muted">{tCommon("jumpTo")}</span>
+          <StageJump
+            labels={{
+              lower: tCommon("stage.lower"),
+              upper: tCommon("stage.upper"),
+              university: tCommon("stage.university"),
+            }}
+          />
+        </div>
       </div>
 
       <form
@@ -65,23 +78,39 @@ export default async function PracticeSetupPage({
         method="get"
         className="mt-6 space-y-6"
       >
-        {topics.map((topic) => (
-          <Card key={topic.id} className="space-y-4">
+        {topics.map((topic) => {
+          const topicSkills = skillsOfTopic(topic.id);
+          const ticked = topicSkills.filter((skill) =>
+            preselected.has(skill.id),
+          ).length;
+
+          return (
+          <Chapter
+            key={topic.id}
+            id={topic.id}
+            title={topic.name[activeLocale]}
+            meta={topic.grade[activeLocale]}
+            count={`${ticked}/${topicSkills.length}`}
+            /*
+             * Open where there is something ticked, which after the change to
+             * the default means the chapters being worked on. A chapter with
+             * nothing ticked is one to go looking for, and looking for it is
+             * now a click rather than a scroll past it.
+             */
+            open={ticked > 0}
+          >
             {/*
-              The toggles sit beside the heading on a wide screen and below it
-              on a phone. Side by side at 390px they squeezed the Thai topic
-              name into a two-line column barely wider than the words
-              themselves, which made the heading look broken.
+              The toggles moved inside the panel. In the summary they were a
+              button inside a `<summary>`, so clicking either of them would
+              also shut the chapter they had just acted on - and they are only
+              wanted while it is open anyway.
             */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 space-y-1">
-                <CardTitle>{topic.name[activeLocale]}</CardTitle>
-                <CardDescription>
-                  {topic.grade[activeLocale]} · {topic.summary[activeLocale]}
-                </CardDescription>
-              </div>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <CardDescription className="min-w-0">
+                {topic.summary[activeLocale]}
+              </CardDescription>
               <SkillGroupToggle
-                skillIds={skillsOfTopic(topic.id).map((skill) => skill.id)}
+                skillIds={topicSkills.map((skill) => skill.id)}
               />
             </div>
 
@@ -104,7 +133,7 @@ export default async function PracticeSetupPage({
               checkboxes.
             */}
             <div className="grid gap-2 sm:grid-cols-2">
-              {skillsOfTopic(topic.id).map((skill) => (
+              {topicSkills.map((skill) => (
                 <label
                   key={skill.id}
                   className="group flex cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-3 transition-colors hover:bg-surface-2 has-[:checked]:border-accent has-[:checked]:bg-accent/5"
@@ -132,8 +161,9 @@ export default async function PracticeSetupPage({
                 </label>
               ))}
             </div>
-          </Card>
-        ))}
+          </Chapter>
+          );
+        })}
 
         <Card className="space-y-4">
           <CardTitle>{t("difficulty")}</CardTitle>

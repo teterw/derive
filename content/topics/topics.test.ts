@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import katex from "katex";
-import { skills, topics, skillsOfTopic } from "./index";
+import {
+  STAGES,
+  getTopic,
+  skills,
+  skillsOfTopic,
+  stageAnchors,
+  stageOf,
+  topics,
+} from "./index";
 
 describe("skills", () => {
   it("each carry a formula that renders", () => {
@@ -66,6 +74,49 @@ describe("topics", () => {
         expect(field.th.trim(), topic.id).not.toBe("");
         expect(field.en.trim(), topic.id).not.toBe("");
       }
+    }
+  });
+});
+
+/**
+ * The stage a chapter is filed under, which the jump links on `/learn`,
+ * `/practice` and `/stats` are built from.
+ *
+ * `stageOf` reads `grade.en`, and a grade it does not recognise would fall
+ * through to "university" and put a ม.2 chapter under Calculus - quietly, and
+ * only visible to someone who scrolled to check. So the test cross-checks it
+ * against a fact it does not consult: the chapter's own id. Every `c1.`
+ * chapter is university and no other chapter is, which means a new chapter
+ * with an unfamiliar grade string fails here rather than mis-filing itself.
+ */
+describe("the stage a chapter belongs to", () => {
+  it("agrees with what its id says", () => {
+    for (const topic of topics) {
+      const university =
+        topic.id.startsWith("c1.") || topic.id.startsWith("c2.");
+      expect(
+        stageOf(topic) === "university",
+        `${topic.id} is graded "${topic.grade.en}"`,
+      ).toBe(university);
+    }
+  });
+
+  it("puts every chapter somewhere, and the school ones in school", () => {
+    const schoolStages = topics
+      .filter((topic) => !topic.id.startsWith("c1."))
+      .map(stageOf);
+
+    expect(schoolStages.every((stage) => stage !== "university")).toBe(true);
+    expect(new Set(schoolStages)).toEqual(new Set(["lower", "upper"]));
+  });
+
+  /** One anchor per stage, each pointing at the first chapter of it. */
+  it("gives each stage a chapter to jump to", () => {
+    const anchors = stageAnchors();
+
+    expect(anchors.map((anchor) => anchor.stage)).toEqual([...STAGES]);
+    for (const anchor of anchors) {
+      expect(stageOf(getTopic(anchor.topicId))).toBe(anchor.stage);
     }
   });
 });

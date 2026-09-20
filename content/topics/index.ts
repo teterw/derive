@@ -129,3 +129,39 @@ export function hasSkill(id: SkillId): boolean {
 export function skillsOfTopic(topicId: TopicId): Skill[] {
   return getTopic(topicId).skillIds.map(getSkill);
 }
+
+/**
+ * The three stages the chapter list is navigated by.
+ *
+ * Twenty chapters in curriculum order is the right order and the wrong length:
+ * a university learner opening `/learn` for Calculus I met eight screens of
+ * ม.1-ม.6 first. Collapsing the chapters cut that to two and a half; these cut
+ * it to none, because each one is an anchor to where its stage begins.
+ *
+ * Derived from `grade.en` rather than stored on the topic, so there is one
+ * fact about each chapter's level and not two that can disagree. English
+ * because those strings are a fixed vocabulary - "Grade 9, basic", "Calculus
+ * I" - while the Thai carries ม./พื้นฐาน/เพิ่มเติม distinctions that are
+ * about the *track*, which is a different question. `topics.test.ts` checks
+ * every chapter lands somewhere, so a new one with an unfamiliar grade fails
+ * the suite rather than quietly filing itself under university.
+ */
+export const STAGES = ["lower", "upper", "university"] as const;
+export type Stage = (typeof STAGES)[number];
+
+export function stageOf(topic: Topic): Stage {
+  const grade = topic.grade.en;
+  if (/^Grade [789],/.test(grade)) return "lower";
+  if (/^Grade 1[012],/.test(grade) || grade.startsWith("Upper secondary")) {
+    return "upper";
+  }
+  return "university";
+}
+
+/** The first chapter of each stage - what the jump links point at. */
+export function stageAnchors(): { stage: Stage; topicId: TopicId }[] {
+  return STAGES.flatMap((stage) => {
+    const first = topics.find((topic) => stageOf(topic) === stage);
+    return first ? [{ stage, topicId: first.id }] : [];
+  });
+}

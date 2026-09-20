@@ -21,6 +21,7 @@ import {
 } from "@/lib/stats/queries";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardTitle } from "@/components/ui/card";
+import { Chapter } from "@/components/ui/chapter";
 import { Heatmap } from "@/components/stats/heatmap";
 import { DifficultyRings } from "@/components/stats/difficulty-rings";
 import { MasteryBars } from "@/components/stats/mastery-bars";
@@ -242,7 +243,7 @@ export default async function StatsPage({
           hiding anything, and the count beside each says at a glance where
           there is nothing yet.
         */}
-        <Card className="space-y-6">
+        <div className="space-y-3">
           <CardTitle className="text-base">{t("perSkill")}</CardTitle>
           {topics.map((topic) => {
             const rows = progress.filter((row) => row.topicId === topic.id);
@@ -250,15 +251,19 @@ export default async function StatsPage({
             const started = rows.filter((row) => row.attempts > 0).length;
 
             return (
-              <section key={topic.id} className="space-y-3">
-                <div className="flex items-baseline justify-between gap-3 border-b border-border pb-1">
-                  <h3 className="text-sm font-medium">
-                    {topic.name[active]}
-                  </h3>
-                  <span className="font-mono text-xs tabular-nums text-muted">
-                    {started}/{rows.length}
-                  </span>
-                </div>
+              <Chapter
+                key={topic.id}
+                id={topic.id}
+                title={topic.name[active]}
+                meta={topic.grade[active]}
+                count={`${started}/${rows.length}`}
+                /*
+                 * Open where there is something to read. A chapter you have
+                 * not touched has twenty identical dashes in it, and twenty of
+                 * those chapters is what made this list unreadable.
+                 */
+                open={started > 0}
+              >
                 <MasteryBars
                   progress={rows}
                   locale={active}
@@ -267,10 +272,10 @@ export default async function StatsPage({
                   drillLabel={t("drill")}
                   showTopic={false}
                 />
-              </section>
+              </Chapter>
             );
           })}
-        </Card>
+        </div>
 
         <Card className="space-y-4">
           <CardTitle className="text-base">{t("personalBests")}</CardTitle>

@@ -15,7 +15,9 @@ import { QUESTION_COUNTS, TIME_LIMITS_MINUTES } from "@/lib/exam/session";
 import { preselectedSkills } from "@/lib/practice/session";
 import { bangkokStamp } from "@/lib/stats/day";
 import { AppShell } from "@/components/layout/app-shell";
-import { Badge, Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Badge, Card, CardTitle } from "@/components/ui/card";
+import { Chapter } from "@/components/ui/chapter";
+import { StageJump } from "@/components/ui/stage-jump";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/field";
 
@@ -28,6 +30,7 @@ export default async function ExamSetupPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("exam");
+  const tCommon = await getTranslations("common");
   const active = locale as Locale;
 
   const [recent, passed] = await Promise.all([
@@ -66,34 +69,54 @@ export default async function ExamSetupPage({
             {t("setupPreselected", { count: passed.length })}
           </p>
         )}
+        <div className="flex flex-wrap items-center gap-2 pt-2">
+          <span className="text-xs text-muted">{tCommon("jumpTo")}</span>
+          <StageJump
+            labels={{
+              lower: tCommon("stage.lower"),
+              upper: tCommon("stage.upper"),
+              university: tCommon("stage.university"),
+            }}
+          />
+        </div>
       </div>
 
       <form action={startExamFormAction} className="mt-6 space-y-6">
         <input type="hidden" name="locale" value={locale} />
 
-        {topics.map((topic) => (
-          <Card key={topic.id} className="space-y-4">
-            <div className="space-y-1">
-              <CardTitle>{topic.name[active]}</CardTitle>
-              <CardDescription>{topic.grade[active]}</CardDescription>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {skillsOfTopic(topic.id).map((skill) => (
-                <label
-                  key={skill.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2"
-                >
-                  <Checkbox
-                    name="skills"
-                    value={skill.id}
-                    defaultChecked={preselected.has(skill.id)}
-                  />
-                  {skill.name[active]}
-                </label>
-              ))}
-            </div>
-          </Card>
-        ))}
+        {topics.map((topic) => {
+          const topicSkills = skillsOfTopic(topic.id);
+          const ticked = topicSkills.filter((skill) =>
+            preselected.has(skill.id),
+          ).length;
+
+          return (
+            <Chapter
+              key={topic.id}
+              id={topic.id}
+              title={topic.name[active]}
+              meta={topic.grade[active]}
+              count={`${ticked}/${topicSkills.length}`}
+              open={ticked > 0}
+            >
+              <div className="grid gap-2 sm:grid-cols-2">
+                {topicSkills.map((skill) => (
+                  <label
+                    key={skill.id}
+                    className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-surface-2"
+                  >
+                    <Checkbox
+                      name="skills"
+                      value={skill.id}
+                      defaultChecked={preselected.has(skill.id)}
+                    />
+                    {skill.name[active]}
+                  </label>
+                ))}
+              </div>
+            </Chapter>
+          );
+        })}
 
         <Card className="space-y-5">
           <div className="space-y-2">

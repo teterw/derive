@@ -5,8 +5,8 @@ should pick up. Update it at the end of every working session.
 
 Phases are defined in `PROMPT.md` §2.
 
-Last updated: 2026-09-20 (Calculus I finished, then a sweep over the app; see
-Rounds eleven to thirteen).
+Last updated: 2026-09-20 (Calculus I finished, a sweep over the app, then a
+pass on navigating twenty chapters; see Rounds eleven to fourteen).
 
 ---
 
@@ -25,7 +25,7 @@ Beyond the phase plan: the **daily challenge** from
 `docs/CONTENT-PIPELINE.md` §6 is built.
 
 Green as of this commit: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(1384 tests in 64 files), `pnpm build`, `pnpm smoke` (against the real
+(1387 tests in 64 files), `pnpm build`, `pnpm smoke` (against the real
 database), `pnpm render-check` (38 pages, signed in), `pnpm content:coverage`,
 `pnpm check:contrast`, `pnpm vars`.
 
@@ -877,6 +877,68 @@ spaced-repetition ladder; and the heatmap's Monday-first weekday labels.
 returns 200 with the 404 page rather than a 404 status - a soft 404. The page
 a learner sees is correct and the app is invite-only, so nothing reads that
 status today.
+
+## Round fourteen - twenty chapters that fit on a screen
+
+The content grew from fourteen chapters to twenty and every list page grew with
+it. `/learn` measured **9,036 pixels - ten screens** - with seventy-eight
+rendered formulas, and Calculus I, the part a university learner came for, sat
+in the last third. `/practice` was 7,221. Nobody scrolls that far to find out
+whether something is there; they assume it is not.
+
+### Chapters that open and shut
+
+`components/ui/chapter.tsx`, a native `<details>`, now carries every chapter on
+`/learn`, `/practice`, `/exam` and the per-skill list on `/stats`. Shut, a
+chapter is one row: name, grade, and a count - lessons passed, skills ticked,
+skills started, whichever the page is about. `/learn` is **2,417 pixels**, and
+the twenty headings have become the page's own index.
+
+What opens on arrival is the work in progress, and each page says what that
+means: on `/learn` a chapter started but not finished, falling back to the
+first unfinished one so a new account does not meet twenty shut doors; on the
+setup pages a chapter with something ticked; on `/stats` a chapter with
+attempts in it.
+
+Native, so it needs no JavaScript, keeps working on the setup pages that are
+deliberately plain GET forms, and is keyboard- and screen-reader-operable for
+free. The property that matters on those pages is that a shut `<details>` is
+still in the DOM: a skill ticked and then shut away still submits. That was
+checked by doing it - tick `c1.ftc-second`, shut its chapter, press เริ่มฝึก,
+and read it back out of the URL.
+
+### Three links that skip the scrolling entirely
+
+Collapsing was most of it but not the part a university learner feels: Calculus
+I still began below the fold, behind thirteen chapters of school maths. So
+`StageJump` puts ม.ต้น / ม.ปลาย / มหาวิทยาลัย above the list, as plain in-page
+anchors. One click on มหาวิทยาลัย and **all seven Calculus I chapters are on
+one screen**, with no scrolling at all.
+
+Anchors rather than a filter, deliberately: a filter hides the chapters either
+side, and seeing that ม.6 `calc.intro` sits immediately before `c1.limits` is
+worth something the moment it is gone.
+
+`stageOf` derives the stage from `grade.en` rather than storing it on the
+topic, so there is one fact about a chapter's level and not two that can
+disagree. A grade it did not recognise would fall through to "university" and
+file a ม.2 chapter under Calculus, quietly - so `topics.test.ts` cross-checks
+it against a fact it does not consult, the chapter's own id: every `c1.`
+chapter is university and no other chapter is.
+
+### What this did not do
+
+It did not make anything faster to serve, and the numbers say so plainly:
+`pnpm perf` reads the same either side, 168ms and 61KB for `/learn` against
+170ms and 59KB before. The markup still ships, KaTeX still renders all
+seventy-eight formulas on the server, and a shut chapter's contents still
+report a real box in the browser (`content-visibility: visible` - checked,
+rather than assumed). Every page was already under 200ms and none of them was
+the complaint. What changed is how far you walk past what you did not come for.
+
+`/stats` is the one page still long at 6.9 screens, because ten of this
+account's twenty chapters have attempts in them and all ten open. That is a
+dashboard behaving like one, and left alone.
 
 ## Where to pick up
 

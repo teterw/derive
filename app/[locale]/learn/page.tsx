@@ -8,7 +8,9 @@ import { requireUser } from "@/lib/auth/current-user";
 import { skillsOfTopic, topics } from "@/content/topics";
 import { getLessonStates } from "@/lib/learn/progress";
 import { AppShell } from "@/components/layout/app-shell";
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { CardDescription } from "@/components/ui/card";
+import { Chapter } from "@/components/ui/chapter";
+import { StageJump } from "@/components/ui/stage-jump";
 import { Tex } from "@/components/math/katex";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +23,7 @@ export default async function LearnIndexPage({
 
   const user = await requireUser(locale);
   const t = await getTranslations("learn");
+  const tCommon = await getTranslations("common");
   const active = locale as Locale;
 
   const states = await getLessonStates(user.id);
@@ -29,6 +32,37 @@ export default async function LearnIndexPage({
     0,
   );
   const done = [...states.values()].filter((state) => state.passed).length;
+
+  /**
+   * How far through each chapter the learner is, and therefore which chapters
+   * open on arrival.
+   *
+   * A chapter is open if it is *started but not finished* - that is the work
+   * in progress, and carrying on is the commonest reason to be on this page.
+   * A finished chapter and one not begun are both closed: neither is where
+   * anyone is.
+   *
+   * If nothing is in progress the first unfinished chapter opens instead, so
+   * a learner arriving for the very first time, or returning having just
+   * finished one, still lands on something rather than on twenty shut doors.
+   */
+  const progress = topics.map((topic) => {
+    const skills = skillsOfTopic(topic.id);
+    const passed = skills.filter(
+      (skill) => states.get(skill.id)?.passed,
+    ).length;
+    return { topic, skills, passed, finished: passed === skills.length };
+  });
+
+  const started = progress.filter((row) => row.passed > 0 && !row.finished);
+  const openIds = new Set(
+    started.length > 0
+      ? started.map((row) => row.topic.id)
+      : progress
+          .filter((row) => !row.finished)
+          .slice(0, 1)
+          .map((row) => row.topic.id),
+  );
 
   return (
     <AppShell locale={active} user={user}>
@@ -42,15 +76,30 @@ export default async function LearnIndexPage({
         <p className="text-sm text-muted">{t("progress", { done, total })}</p>
       </div>
 
-      <div className="mt-6 space-y-6">
-        {topics.map((topic) => (
-          <Card key={topic.id} className="space-y-4">
-            <div className="space-y-1">
-              <CardTitle>{topic.name[active]}</CardTitle>
-              <CardDescription>
-                {topic.grade[active]} · {topic.summary[active]}
-              </CardDescription>
-            </div>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-xs text-muted">{tCommon("jumpTo")}</span>
+        <StageJump
+          labels={{
+            lower: tCommon("stage.lower"),
+            upper: tCommon("stage.upper"),
+            university: tCommon("stage.university"),
+          }}
+        />
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {progress.map(({ topic, skills, passed }) => (
+          <Chapter
+            key={topic.id}
+            id={topic.id}
+            title={topic.name[active]}
+            meta={topic.grade[active]}
+            count={`${passed}/${skills.length}`}
+            open={openIds.has(topic.id)}
+          >
+            <CardDescription className="mb-2">
+              {topic.summary[active]}
+            </CardDescription>
 
             {/*
               Formula first, name under it, tick on the left.
@@ -63,7 +112,7 @@ export default async function LearnIndexPage({
               actually is reading.
             */}
             <ol className="divide-y divide-border">
-              {skillsOfTopic(topic.id).map((skill) => {
+              {skills.map((skill) => {
                 const done = states.get(skill.id)?.passed ?? false;
                 return (
                   <li key={skill.id}>
@@ -106,7 +155,7 @@ export default async function LearnIndexPage({
                 );
               })}
             </ol>
-          </Card>
+          </Chapter>
         ))}
       </div>
     </AppShell>

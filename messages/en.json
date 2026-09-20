@@ -5,6 +5,12 @@
     "description": "Maths practice, one step at a time, with progress you can see"
   },
   "common": {
+    "stage": {
+      "lower": "Lower secondary",
+      "upper": "Upper secondary",
+      "university": "University"
+    },
+    "jumpTo": "Jump to",
     "submit": "Submit",
     "save": "Save",
     "loading": "Loading…",

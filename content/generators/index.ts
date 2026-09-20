@@ -1,6 +1,7 @@
 import { createRng } from "../rng";
 import { getSkill, skills } from "../topics";
 import type {
+  AnswerShape,
   Difficulty,
   Generator,
   GeneratorId,
@@ -265,6 +266,44 @@ export function pickGenerator(
  * What the client is allowed to see before it submits: the answer, the steps
  * and the hints stay on the server (PROMPT.md §6.4).
  */
+/**
+ * A plain number, as the answer checker would read it: a whole number, a
+ * decimal, or a fraction of two. Anything else - a radical, a variable, a
+ * sum - is an expression, and the box should say so.
+ */
+const PLAIN_NUMBER = /^-?\d+(?:\.\d+)?(?:\s*\/\s*-?\d+(?:\.\d+)?)?$/;
+
+/**
+ * What shape the answer box should say it wants.
+ *
+ * Read off the real answer, so it cannot drift from what `checkAnswer` will
+ * accept, and reduced to a form and a count before it crosses the wire - the
+ * learner is told "two answers, comma-separated", never which two.
+ */
+export function answerShape(question: Question): AnswerShape {
+  const requires = getSkill(question.skillId).strictForm ?? undefined;
+  const shape = (form: AnswerShape["form"], count?: number): AnswerShape => ({
+    form,
+    ...(count === undefined ? {} : { count }),
+    ...(requires ? { requires } : {}),
+  });
+
+  switch (question.answer.kind) {
+    case "choice":
+      return shape("choice");
+    case "set":
+      return shape("set", question.answer.values.length);
+    case "numeric":
+      return shape("number");
+    case "exact":
+      return shape(
+        PLAIN_NUMBER.test(question.answer.value.trim())
+          ? "number"
+          : "expression",
+      );
+  }
+}
+
 export function toPublicQuestion(question: Question): PublicQuestion {
   const {
     answer: _answer,
@@ -278,7 +317,7 @@ export function toPublicQuestion(question: Question): PublicQuestion {
   void _steps;
   void _machineStem;
   void _misconceptions;
-  return { ...rest, hintCount: hints.length };
+  return { ...rest, hintCount: hints.length, expects: answerShape(question) };
 }
 
 export { getSkill };

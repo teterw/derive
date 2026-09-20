@@ -418,6 +418,7 @@ export function PracticeRunner({
           </div>
         ) : (
           <AnswerInput
+            expects={question.expects}
             handleRef={inputRef}
             value={answer}
             onChange={setAnswer}

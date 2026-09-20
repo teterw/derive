@@ -347,6 +347,7 @@ export function ExamRunner({
           </div>
         ) : (
           <AnswerInput
+            expects={question.expects}
             value={answered?.answer ?? draft}
             onChange={setDraft}
             onSubmit={submit}

@@ -9,6 +9,7 @@ import {
   type Ref,
 } from "react";
 import { useTranslations } from "next-intl";
+import type { AnswerShape } from "@/content/types";
 import { answerToTex } from "@/lib/math/to-tex";
 import { Tex } from "@/components/math/katex";
 import { MathField, type MathFieldHandle } from "@/components/math/math-field";
@@ -52,6 +53,7 @@ export function AnswerInput({
   onSubmit,
   disabled,
   state,
+  expects,
   handleRef,
 }: {
   value: string;
@@ -59,9 +61,38 @@ export function AnswerInput({
   onSubmit: () => void;
   disabled?: boolean;
   state: "idle" | "correct" | "wrong";
+  /**
+   * What shape the box is waiting for, shown before anything is typed.
+   *
+   * "Both roots or one?" and "do I write x = 7 or just 7?" are questions about
+   * the interface, not about the mathematics, and being marked wrong for
+   * guessing them badly teaches nothing. It carries a count but never a value.
+   */
+  expects?: AnswerShape;
   handleRef?: Ref<AnswerInputHandle>;
 }) {
   const t = useTranslations("practice");
+
+  /**
+   * One line, chosen by what is most likely to catch someone out.
+   *
+   * A set leads with its count whatever else is true - answering one of two
+   * roots is the commonest way to lose a question you could do. Otherwise a
+   * skill that insists on a shape says so in its own words, which are the
+   * `accepts.*` lines that until now only appeared *after* a wrong answer;
+   * saying it first is strictly more use than saying it in hindsight. A
+   * multiple choice question needs nothing: the options are on screen.
+   */
+  const formatHint = (() => {
+    if (!expects) return null;
+    if (expects.form === "set") {
+      return t("expects.set", { count: expects.count ?? 2 });
+    }
+    if (expects.requires) return t(`accepts.${expects.requires}`);
+    if (expects.form === "choice") return null;
+    return t(`expects.${expects.form}`);
+  })();
+
   const inputRef = useRef<HTMLInputElement>(null);
   /**
    * Where the caret should land once the new value has been committed. The
@@ -197,7 +228,9 @@ export function AnswerInput({
         aria-live="polite"
         data-testid="answer-preview"
       >
-        {usingField || !typing ? null : preview ? (
+        {!typing && formatHint ? (
+          <span className="text-xs text-muted">{formatHint}</span>
+        ) : usingField || !typing ? null : preview ? (
           <>
             <span className="shrink-0 text-xs text-muted">{t("readsAs")}</span>
             <span

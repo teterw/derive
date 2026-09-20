@@ -193,12 +193,33 @@ export type Question = {
   rulesUsed: RuleId[];
 };
 
+/**
+ * What shape the answer box is waiting for.
+ *
+ * Not a hint at the answer - a hint at the *format*, which is a different
+ * thing and the one learners actually get stuck on. "Both roots or one?"
+ * "Do I write x = 7 or just 7?" are questions about the interface, and being
+ * marked wrong for guessing them badly teaches nothing about mathematics.
+ *
+ * Derived from the answer rather than written by hand, so it cannot disagree
+ * with what the checker will accept, and carrying only the count - never a
+ * value - so a question that wants two roots says "two" and not which two.
+ */
+export type AnswerShape = {
+  form: "number" | "expression" | "set" | "choice";
+  /** How many values a `set` wants. Absent otherwise. */
+  count?: number;
+  /** The shape the skill insists on, when it insists on one. */
+  requires?: FormRequirement;
+};
+
 /** What the client is allowed to see before it submits (PROMPT.md §6.4). */
 export type PublicQuestion = Omit<
   Question,
   "answer" | "steps" | "hints" | "misconceptions" | "machineStem"
 > & {
   hintCount: number;
+  expects: AnswerShape;
 };
 
 export interface RNG {

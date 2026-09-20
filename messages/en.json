@@ -171,6 +171,11 @@
     "theAnswerIs": "The answer is",
     "couldNotRead": "That could not be read. Try something like sqrt(2) or 1/2.",
     "yourAnswer": "Your answer",
+    "expects": {
+      "number": "A number. You do not need to write x =",
+      "expression": "An expression, like 2x + 1",
+      "set": "{count} answers. Give them all, separated by commas - like 2, -5"
+    },
     "answerPlaceholder": "Type your answer, e.g. 2sqrt(3) or 1/2",
     "answered": "Answered",
     "accuracy": "Accuracy",
